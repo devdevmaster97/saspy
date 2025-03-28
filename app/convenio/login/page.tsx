@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaSpinner, FaArrowLeft } from 'react-icons/fa6';
+import { FaSpinner, FaArrowLeft } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
 export default function LoginConvenio() {
@@ -39,7 +39,8 @@ export default function LoginConvenio() {
         toast.error(data.message || 'Erro ao fazer login');
       }
     } catch (error) {
-      toast.error('Erro ao fazer login. Tente novamente.');
+      console.error('Erro no login:', error);
+      toast.error('Erro ao conectar com o servidor. Tente novamente mais tarde.');
     } finally {
       setLoading(false);
     }

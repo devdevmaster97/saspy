@@ -6,6 +6,7 @@ import ServiceWorkerRegistration from './components/ServiceWorkerRegistration';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import IOSInstallPrompt from './components/IOSInstallPrompt';
 import UpdateNotification from './components/UpdateNotification';
+import Providers from './components/Providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -84,12 +85,14 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
       </head>
       <body className={inter.className}>
-        {children}
-        <Toaster position="top-right" />
-        <ServiceWorkerRegistration />
-        <PWAInstallPrompt />
-        <IOSInstallPrompt />
-        <UpdateNotification />
+        <Providers>
+          {children}
+          <Toaster position="top-right" />
+          <ServiceWorkerRegistration />
+          <PWAInstallPrompt />
+          <IOSInstallPrompt />
+          <UpdateNotification />
+        </Providers>
       </body>
     </html>
   );

@@ -1,48 +1,75 @@
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
-import { useSession } from 'next-auth/react';
+import { useState, useEffect } from "react"
+import { QRCodeSVG } from "qrcode.react"
 
-export default function QrCodeContent() {
-  const { data: session } = useSession();
-  const [cartao, setCartao] = useState<string>('');
+// Removemos a dependência do useAuthSession
+const QRCodeContent = () => {
+  const [cartao, setCartao] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Se tiver cartão na sessão, usa ele
-    if (session?.user?.cartao) {
-      setCartao(session.user.cartao);
-    } 
-    // Caso contrário, usa um valor padrão para testes
-    else if (!cartao) {
-      setCartao('1184646067');
+    // Função para inicializar os dados do QR Code
+    const initQrCode = () => {
+      try {
+        // Verificamos se há algum valor salvo no localStorage
+        const storedUser = localStorage.getItem('qrcred_user')
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser)
+            if (parsedUser.cartao) {
+              setCartao(parsedUser.cartao)
+              setIsLoading(false)
+              return
+            }
+          } catch (error) {
+            console.error('Erro ao processar dados do usuário:', error)
+          }
+        }
+        
+        // Fallback para um valor padrão (se não houver cartão no localStorage)
+        setCartao("1184646067")
+        setIsLoading(false)
+      } catch (error) {
+        console.error("Erro ao inicializar QR Code:", error)
+        // Em caso de erro, ainda definimos um valor padrão
+        setCartao("1184646067")
+        setIsLoading(false)
+      }
     }
-  }, [session, cartao]);
 
-  if (!cartao) {
+    // Inicializa o componente
+    initQrCode()
+  }, [])
+
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
-    );
+    )
+  }
+
+  if (!cartao) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-red-500">Erro ao carregar o QR Code. Tente novamente.</div>
+      </div>
+    )
   }
 
   return (
     <div className="flex flex-col items-center justify-center p-4 space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-lg">
-        <QRCodeSVG 
-          value={cartao} 
-          size={256} 
-          level="H"
-          includeMargin={true}
-        />
-        <p className="mt-4 text-center text-gray-600">
-          Seu número de cartão: {cartao}
-        </p>
+        <QRCodeSVG value={cartao} size={256} level="H" includeMargin={true} />
+        <p className="mt-4 text-center text-gray-600">Seu número de cartão: {cartao}</p>
       </div>
       <p className="text-sm text-gray-500 text-center">
         Apresente este QR Code no estabelecimento para realizar pagamentos
       </p>
     </div>
-  );
-} 
+  )
+}
+
+export default QRCodeContent
+

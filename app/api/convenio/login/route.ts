@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
-    const usuario = formData.get('usuario') as string;
-    const senha = formData.get('senha') as string;
+    const body = await request.json();
+    const usuario = body.usuario;
+    const senha = body.senha;
 
     if (!usuario || !senha) {
       return NextResponse.json(
@@ -14,21 +15,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Enviar requisição para o backend
-    const response = await axios.post('https://qrcred.makecard.com.br/login_convenio_app.php', {
-      usuario,
-      senha
-    });
+    // Criar parâmetros no formato form-urlencoded para enviar para a API PHP
+    const params = new URLSearchParams();
+    params.append('userconv', usuario);
+    params.append('passconv', senha);
 
-    if (response.data.success) {
+    // Enviar requisição para o backend
+    const response = await axios.post('https://qrcred.makecard.com.br/convenio_autenticar_app.php', 
+      params, 
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    );
+
+    console.log('Resposta API:', response.data);
+
+    if (response.data.tipo_login === 'login sucesso') {
+      // Criar um token JWT ou qualquer outro identificador único
+      const token = btoa(JSON.stringify({
+        id: response.data.cod_convenio,
+        user: usuario,
+        senha: senha,
+        timestamp: new Date().getTime()
+      }));
+
+      // Salvar o token em um cookie
+      const cookieStore = cookies();
+      cookieStore.set('convenioToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 60 * 24 * 7, // 1 semana
+        path: '/',
+      });
+
       return NextResponse.json({
         success: true,
-        data: response.data
+        data: {
+          cod_convenio: response.data.cod_convenio,
+          razaosocial: response.data.razaosocial,
+          nome_fantasia: response.data.nomefantasia,
+          endereco: response.data.endereco,
+          bairro: response.data.bairro,
+          cidade: response.data.cidade,
+          estado: response.data.estado,
+          cnpj: response.data.cnpj,
+          cpf: response.data.cpf
+        }
       });
     } else {
       return NextResponse.json({
         success: false,
-        message: response.data.message || 'Usuário ou senha inválidos'
+        message: response.data.tipo_login === 'login incorreto' 
+          ? 'Usuário ou senha inválidos' 
+          : 'Erro ao realizar login'
       }, { status: 401 });
     }
   } catch (error) {
