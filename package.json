@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --legacy-peer-deps",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "build:dev": "vite build --mode development"
@@ -37,5 +37,9 @@
     "sharp": "^0.33.5",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
+  },
+  "overrides": {
+    "react": "^18",
+    "react-dom": "^18"
   }
 }
