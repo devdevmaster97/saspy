@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fundo do cartão -->
+  <rect width="512" height="512" rx="256" fill="#1e40af"/>
+  
+  <!-- Cartão de crédito -->
+  <rect x="96" y="160" width="320" height="192" rx="16" fill="white"/>
+  
+  <!-- Chip do cartão -->
+  <rect x="120" y="200" width="48" height="36" rx="4" fill="#1e40af"/>
+  
+  <!-- Linhas do chip -->
+  <rect x="128" y="208" width="8" height="4" rx="1" fill="white"/>
+  <rect x="140" y="208" width="8" height="4" rx="1" fill="white"/>
+  <rect x="152" y="208" width="8" height="4" rx="1" fill="white"/>
+  <rect x="128" y="216" width="8" height="4" rx="1" fill="white"/>
+  <rect x="140" y="216" width="8" height="4" rx="1" fill="white"/>
+  <rect x="152" y="216" width="8" height="4" rx="1" fill="white"/>
+  
+  <!-- Número do cartão -->
+  <text x="120" y="280" font-family="Arial" font-size="24" fill="#1e40af">**** **** **** 1234</text>
+  
+  <!-- Data de validade -->
+  <text x="120" y="320" font-family="Arial" font-size="16" fill="#1e40af">12/25</text>
+  
+  <!-- Nome do titular -->
+  <text x="120" y="340" font-family="Arial" font-size="16" fill="#1e40af">TITULAR</text>
+</svg> 

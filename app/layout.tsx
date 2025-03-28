@@ -1,0 +1,96 @@
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { Toaster } from 'react-hot-toast';
+import ServiceWorkerRegistration from './components/ServiceWorkerRegistration';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
+import IOSInstallPrompt from './components/IOSInstallPrompt';
+import UpdateNotification from './components/UpdateNotification';
+
+const inter = Inter({ subsets: ['latin'] });
+
+export const metadata: Metadata = {
+  title: 'QRCred',
+  description: 'Sistema de Cartão de Crédito QRCred',
+  manifest: '/manifest.json',
+  themeColor: '#1e40af',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'QRCred',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  applicationName: 'QRCred',
+  referrer: 'origin-when-cross-origin',
+  keywords: ['cartão de crédito', 'finanças', 'pagamentos'],
+  authors: [{ name: 'QRCred' }],
+  creator: 'QRCred',
+  publisher: 'QRCred',
+  robots: 'index, follow',
+  openGraph: {
+    type: 'website',
+    locale: 'pt_BR',
+    url: 'https://qrcred.vercel.app',
+    siteName: 'QRCred',
+    title: 'QRCred - Sistema de Cartão de Crédito',
+    description: 'Sistema de Cartão de Crédito QRCred',
+    images: [
+      {
+        url: '/icons/icon-512x512.png',
+        width: 512,
+        height: 512,
+        alt: 'QRCred Logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'QRCred - Sistema de Cartão de Crédito',
+    description: 'Sistema de Cartão de Crédito QRCred',
+    images: ['/icons/icon-512x512.png'],
+  },
+  verification: {
+    google: 'adicione_seu_codigo_de_verificacao_aqui',
+  },
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="pt-BR">
+      <head>
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="QRCred" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="theme-color" content="#1e40af" />
+        <meta name="application-name" content="QRCred" />
+        <meta name="msapplication-TileColor" content="#1e40af" />
+        <meta name="msapplication-config" content="/browserconfig.xml" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-touch-fullscreen" content="yes" />
+        <meta name="apple-mobile-web-app-orientations" content="portrait" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="QRCred" />
+        <meta name="theme-color" content="#1e40af" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+      </head>
+      <body className={inter.className}>
+        {children}
+        <Toaster position="top-right" />
+        <ServiceWorkerRegistration />
+        <PWAInstallPrompt />
+        <IOSInstallPrompt />
+        <UpdateNotification />
+      </body>
+    </html>
+  );
+}
