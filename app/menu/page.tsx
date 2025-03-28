@@ -33,8 +33,10 @@ interface WebkitWindow extends Window {
 export default function MenuPage() {
   const router = useRouter();
   const [appVersion, setAppVersion] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     // Em uma aplicação real, você obteria a versão do package.json ou de uma variável de ambiente
     setAppVersion('1.0.0');
   }, []);
@@ -90,6 +92,23 @@ export default function MenuPage() {
       alert('Aplicativo encerrado com sucesso!');
     }
   };
+
+  // Para evitar problemas de hidratação, renderize somente no cliente após a montagem
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
+        <div className="container mx-auto px-4 py-8 flex flex-col items-center">
+          {/* Conteúdo mínimo para não causar mudança de layout */}
+          <div className="mb-8"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-lg mx-auto">
+            <div className="flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-6"></div>
+            <div className="flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-6"></div>
+          </div>
+          <div className="mt-12 text-center"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">

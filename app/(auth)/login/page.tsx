@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { FaSpinner, FaArrowLeft } from 'react-icons/fa6';
+import { FaSpinner } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 import LoginForm from '@/app/components/LoginForm';
 import Logo from '@/app/components/Logo';
@@ -47,20 +47,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header title="Login" />
+      <Header title="Login" showBackButton onBackClick={handleVoltar} />
       
       <main className="flex-1 flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
           <Logo size="lg" />
-          
-          <button
-            onClick={handleVoltar}
-            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-8"
-            disabled={loading}
-          >
-            <FaArrowLeft className="mr-2" />
-            Voltar
-          </button>
           
           <LoginForm onSubmit={handleSubmit} loading={loading} />
           
