@@ -2,10 +2,33 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { FaUser, FaStore } from 'react-icons/fa';
+import { FaUser, FaStore, FaPowerOff } from 'react-icons/fa';
 import MenuCard from '../components/MenuCard';
 import Logo from '../components/Logo';
 import UpdateChecker from '../components/UpdateChecker';
+
+// Interfaces para tipos de Window em ambientes específicos
+interface ReactNativeWindow extends Window {
+  ReactNativeWebView?: {
+    postMessage: (message: string) => void;
+  };
+}
+
+interface AndroidWindow extends Window {
+  Android?: {
+    exitApp: () => void;
+  };
+}
+
+interface WebkitWindow extends Window {
+  webkit?: {
+    messageHandlers?: {
+      exitApp?: {
+        postMessage: (message: string) => void;
+      };
+    };
+  };
+}
 
 export default function MenuPage() {
   const router = useRouter();
@@ -26,6 +49,46 @@ export default function MenuPage() {
 
   const handlePoliticaPrivacidadeClick = () => {
     router.push('/politica-privacidade');
+  };
+  
+  const handleEncerrarApp = () => {
+    // Detectar o tipo de dispositivo
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // Em apps mobile nativos embutidos em WebView, podemos tentar chamar uma ponte nativa
+      const windowWithRN = window as ReactNativeWindow;
+      const windowWithAndroid = window as AndroidWindow;
+      const windowWithWebkit = window as WebkitWindow;
+      
+      if (windowWithRN.ReactNativeWebView) {
+        // Para React Native WebView
+        windowWithRN.ReactNativeWebView.postMessage(JSON.stringify({ type: 'EXIT_APP' }));
+        return;
+      } else if (windowWithAndroid.Android) {
+        // Para Android WebView com interface JavaScript
+        windowWithAndroid.Android.exitApp();
+        return;
+      } else if (windowWithWebkit.webkit?.messageHandlers?.exitApp) {
+        // Para iOS WKWebView
+        windowWithWebkit.webkit.messageHandlers.exitApp.postMessage('');
+        return;
+      }
+      
+      // Se não conseguir fechar nativamente, mostra mensagem explicativa
+      const confirmExit = confirm('Para sair completamente do aplicativo, feche-o usando os controles do seu dispositivo:\n\n• Android: botão Recentes e deslize o app para cima\n• iOS: deslize para cima a partir da parte inferior da tela');
+      
+      if (confirmExit) {
+        // Redireciona para tela inicial como fallback
+        router.push('/');
+      }
+    } else if (typeof window !== 'undefined' && window.close) {
+      // Em navegadores desktop, tenta fechar a janela
+      window.close();
+    } else {
+      // Fallback para web - redireciona para uma página de logout ou exibe mensagem
+      alert('Aplicativo encerrado com sucesso!');
+    }
   };
 
   return (
@@ -50,12 +113,20 @@ export default function MenuPage() {
         </div>
         
         <div className="mt-12 text-center">
-          <button 
-            onClick={handlePoliticaPrivacidadeClick}
-            className="text-blue-600 hover:underline text-sm"
-          >
-            Política de Privacidade
-          </button>
+          <div className="flex flex-wrap justify-center gap-4 mb-3">
+            <button 
+              onClick={handlePoliticaPrivacidadeClick}
+              className="text-blue-600 hover:underline text-sm"
+            >
+              Política de Privacidade
+            </button>
+            <button 
+              onClick={handleEncerrarApp}
+              className="text-red-600 hover:underline text-sm flex items-center gap-1"
+            >
+              <FaPowerOff size={12} /> Encerrar App
+            </button>
+          </div>
           <p className="text-gray-500 text-xs mt-2">
             Versão: {appVersion}
           </p>
