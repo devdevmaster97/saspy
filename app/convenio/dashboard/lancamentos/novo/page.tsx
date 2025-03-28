@@ -5,11 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FaSpinner, FaQrcode, FaArrowLeft, FaCreditCard } from 'react-icons/fa';
 import Header from '@/app/components/Header';
 import toast from 'react-hot-toast';
-import dynamic from 'next/dynamic';
-
-// Importar o QR Reader de forma dinâmica para evitar problemas de SSR
-// @ts-ignore - Ignorando erros de tipo para o pacote react-qr-reader que é antigo
-const QrReader = dynamic(() => import('react-qr-reader'), { ssr: false });
+import { Html5Qrcode } from 'html5-qrcode';
 
 interface AssociadoData {
   nome: string;
@@ -19,15 +15,6 @@ interface AssociadoData {
   token_associado?: string;
   cel?: string;
   limite?: string;
-}
-
-// Definindo a interface para as props do QrReader
-interface QrReaderProps {
-  delay?: number;
-  onError: (err: any) => void;
-  onScan: (data: string | null) => void;
-  style?: React.CSSProperties;
-  facingMode?: string;
 }
 
 export default function NovoLancamentoPage() {
@@ -44,9 +31,63 @@ export default function NovoLancamentoPage() {
   const [valorParcela, setValorParcela] = useState(0);
   const [showQrReader, setShowQrReader] = useState(false);
   const [mesCorrente, setMesCorrente] = useState('');
+  const qrReaderRef = useRef<HTMLDivElement>(null);
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   
   // API Host
   const HOST = process.env.NEXT_PUBLIC_API_HOST || 'https://api.qrcred.com.br/';
+
+  // Inicializa e limpa o leitor QR ao montar/desmontar
+  useEffect(() => {
+    // Limpar o scanner QR quando o componente for desmontado
+    return () => {
+      if (html5QrCodeRef.current) {
+        html5QrCodeRef.current.stop().catch(error => {
+          console.error("Erro ao parar o scanner:", error);
+        });
+      }
+    };
+  }, []);
+
+  // Inicializa o leitor QR quando o modal é aberto
+  useEffect(() => {
+    if (showQrReader && qrReaderRef.current) {
+      const qrCodeId = "qr-reader-" + Date.now();
+      // Limpa o conteúdo anterior e adiciona um novo elemento
+      qrReaderRef.current.innerHTML = `<div id="${qrCodeId}" style="width:100%;"></div>`;
+
+      // Inicializa o scanner
+      html5QrCodeRef.current = new Html5Qrcode(qrCodeId);
+      
+      html5QrCodeRef.current.start(
+        { facingMode: "environment" }, // Usar câmera traseira
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+        },
+        (decodedText) => {
+          // Sucesso
+          if (html5QrCodeRef.current) {
+            html5QrCodeRef.current.stop().then(() => {
+              setShowQrReader(false);
+              setCartao(decodedText);
+              buscarAssociado();
+            }).catch(err => {
+              console.error("Erro ao parar o scanner:", err);
+            });
+          }
+        },
+        (errorMessage) => {
+          // Erro ou QR não encontrado (ignorar)
+        }
+      ).catch(err => {
+        console.error("Erro ao iniciar o scanner:", err);
+        toast.error("Não foi possível acessar a câmera");
+        setShowQrReader(false);
+      });
+    }
+  }, [showQrReader]);
 
   // Formatar valor como moeda
   const formatarValor = (valor: string) => {
@@ -192,21 +233,12 @@ export default function NovoLancamentoPage() {
     setShowQrReader(true);
   };
 
-  const handleQrScan = (data: string | null) => {
-    if (data) {
-      setShowQrReader(false);
-      setCartao(data);
-      buscarAssociado();
-    }
-  };
-
-  const handleQrError = (err: any) => {
-    console.error(err);
-    toast.error('Erro ao ler QR Code. Tente novamente.');
-    setShowQrReader(false);
-  };
-
   const handleCloseQrReader = () => {
+    if (html5QrCodeRef.current) {
+      html5QrCodeRef.current.stop().catch(error => {
+        console.error("Erro ao parar o scanner:", error);
+      });
+    }
     setShowQrReader(false);
   };
 
@@ -294,14 +326,7 @@ export default function NovoLancamentoPage() {
           <div className="bg-white p-4 rounded-lg max-w-sm w-full">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Ler QR Code</h3>
             <div className="mb-4">
-              {/* @ts-ignore - O componente ReactQrReader tem tipos incompatíveis */}
-              <QrReader
-                delay={300}
-                onError={handleQrError}
-                onScan={handleQrScan}
-                style={{ width: '100%' }}
-                facingMode="environment"
-              />
+              <div ref={qrReaderRef} className="w-full"></div>
             </div>
             <button
               type="button"
