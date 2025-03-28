@@ -1,0 +1,5 @@
+{
+  "version": "v1.0.4",
+  "timestamp": 1711658000000,
+  "notes": "Melhorias de desempenho e navegação no PWA. Correção do menu do dashboard e solução para tela em branco no Android."
+} 

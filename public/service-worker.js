@@ -1,154 +1,271 @@
-const CACHE_VERSION = 'v1.0.2';
-const CACHE_NAME = `qrcred-${CACHE_VERSION}`;
+const CACHE_VERSION = 'v1.0.4';
+const CACHE_NAME = `qrcred-cache-${CACHE_VERSION}`;
+const CACHE_TIMESTAMP = Date.now();
 const urlsToCache = [
   '/',
   '/index.html',
+  '/dashboard',
+  '/convenio/dashboard',
   '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
-  '/browserconfig.xml',
-  '/robots.txt',
+  '/favicon.ico',
+  '/logo192.png',
+  '/logo512.png',
   '/workbox-4754cb34.js',
   '/sw.js',
   '/next.svg',
   '/vercel.svg',
   '/file.svg',
   '/globe.svg',
-  '/window.svg'
+  '/window.svg',
+  '/offline.html'
 ];
 
 // Instalação do Service Worker
 self.addEventListener('install', (event) => {
+  console.log(`[Service Worker] Instalando nova versão ${CACHE_VERSION}`);
+  
+  // Ativa o service worker imediatamente sem esperar que o anterior termine
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
+        console.log('[Service Worker] Cache aberto');
         return cache.addAll(urlsToCache);
       })
+      .catch((error) => {
+        console.error('[Service Worker] Erro ao adicionar ao cache:', error);
+      })
   );
-  self.skipWaiting();
 });
 
 // Ativação do Service Worker
 self.addEventListener('activate', (event) => {
+  console.log(`[Service Worker] Ativando nova versão ${CACHE_VERSION}`);
+  
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          // Remove caches antigos quando houver uma nova versão
-          if (cacheName.startsWith('qrcred-') && cacheName !== CACHE_NAME) {
+          if (cacheName.startsWith('qrcred-cache-') && cacheName !== CACHE_NAME) {
+            console.log('[Service Worker] Removendo cache antigo:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
-      // Notifica todos os clientes sobre a atualização
-      self.clients.matchAll().then(clients => {
+      // Assume o controle imediatamente
+      return self.clients.claim();
+    }).then(() => {
+      // Após ativação, notifica todos os clientes sobre a atualização
+      return self.clients.matchAll().then(clients => {
         clients.forEach(client => {
           client.postMessage({
             type: 'UPDATE_AVAILABLE',
-            version: CACHE_VERSION
+            version: CACHE_VERSION,
+            timestamp: CACHE_TIMESTAMP
           });
         });
       });
     })
   );
-  self.clients.claim();
 });
 
-// Interceptação de requisições - Modificado para strategy: network-first, fallback para cache
+// Função para verificar atualizações
+const checkForUpdates = async () => {
+  try {
+    // Adiciona um timestamp para evitar cache
+    const response = await fetch('/version.json?t=' + Date.now(), { 
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      
+      // Se a versão atual for diferente da versão no arquivo
+      if (data.version !== CACHE_VERSION || data.timestamp > CACHE_TIMESTAMP) {
+        console.log('[Service Worker] Nova versão disponível:', data.version);
+        
+        // Notifica todos os clientes conectados
+        const clients = await self.clients.matchAll();
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'UPDATE_AVAILABLE',
+            version: data.version,
+            notes: data.notes || 'Nova versão disponível!'
+          });
+        });
+        
+        // Força o service worker a atualizar
+        self.registration.update();
+      }
+    }
+  } catch (error) {
+    console.error('[Service Worker] Erro ao verificar atualizações:', error);
+  }
+};
+
+// Escuta mensagens dos clientes
+self.addEventListener('message', (event) => {
+  console.log('[Service Worker] Mensagem recebida:', event.data);
+  
+  if (event.data && event.data.type === 'CHECK_UPDATES') {
+    checkForUpdates();
+  }
+});
+
+// Configura verificação periódica
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'check-updates') {
+    event.waitUntil(checkForUpdates());
+  }
+});
+
+// Implementa verificação regular (a cada 30 minutos)
+setInterval(checkForUpdates, 30 * 60 * 1000);
+
+// Fetch event - estratégia de cache para navegação e recursos
 self.addEventListener('fetch', (event) => {
-  // Para navegação (HTML), sempre tente rede primeiro, depois cache
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .catch(() => {
-          return caches.match(event.request)
-            .then(response => {
-              if (response) {
-                return response;
-              }
-              // Se não tiver no cache, tente a página inicial como fallback
-              return caches.match('/');
-            });
-        })
-    );
+  // Ignorar solicitações para outros domínios
+  if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
 
-  // Para outros recursos, use cache primeiro com fallback para rede (assets estáticos)
+  // Verifique se é uma solicitação de navegação
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      // Primeiro tenta rede
+      fetch(event.request)
+        .then((networkResponse) => {
+          // Se a resposta for bem-sucedida, armazena em cache
+          if (networkResponse.ok) {
+            const clonedResponse = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, clonedResponse);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(async () => {
+          console.log('[Service Worker] Falha de rede, usando cache ou fallback');
+          
+          // Tentar obter do cache
+          const cachedResponse = await caches.match(event.request);
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          
+          // Fallback para página principal
+          const fallbackResponse = await caches.match('/');
+          if (fallbackResponse) {
+            return fallbackResponse;
+          }
+          
+          // Ou para página offline se existir
+          return caches.match('/offline.html') || new Response('Você está offline e o recurso não está em cache.', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: new Headers({
+              'Content-Type': 'text/plain'
+            })
+          });
+        })
+    );
+    
+    // Após uma navegação, verificar por atualizações
+    event.waitUntil(checkForUpdates());
+    return;
+  }
+  
+  // Para outros recursos (imagens, scripts, etc.), use cache-first
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Cache hit - retorna a resposta do cache
         if (response) {
+          // Retorna do cache se disponível
           return response;
         }
-
-        // Clone da requisição
-        const fetchRequest = event.request.clone();
-
-        // Faz a requisição para a rede
-        return fetch(fetchRequest)
-          .then(response => {
-            // Verifica se recebemos uma resposta válida
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // Clona a resposta
-            const responseToCache = response.clone();
-
-            // Adiciona a resposta ao cache
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          })
-          .catch(error => {
-            console.error('Fetch falhou:', error);
-            throw error;
+        
+        // Caso contrário, busca na rede
+        return fetch(event.request).then((networkResponse) => {
+          // Armazena em cache para uso futuro
+          if (networkResponse.ok) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return networkResponse;
+        })
+        .catch((error) => {
+          console.error('[Service Worker] Erro ao buscar recurso:', error);
+          
+          // Para solicitações de imagem, retorne uma imagem de fallback
+          if (event.request.url.match(/\.(jpg|jpeg|png|gif|svg|webp)$/)) {
+            return caches.match('/logo192.png');
+          }
+          
+          // Para outros recursos, retorne um erro
+          return new Response('Recurso não disponível offline', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: new Headers({
+              'Content-Type': 'text/plain'
+            })
           });
+        });
       })
   );
 });
 
-// Sincronização em background
+// Evento de sincronização em segundo plano
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'syncData') {
-    event.waitUntil(syncData());
+  if (event.tag === 'check-updates') {
+    event.waitUntil(checkForUpdates());
   }
 });
 
-// Notificações push
+// Evento de notificação push
 self.addEventListener('push', (event) => {
-  if (event.data) {
-    const data = event.data.json();
-    event.waitUntil(
-      self.registration.showNotification('QRCred', {
-        body: data.message,
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/icon-192x192.png',
-        data: data.url,
-        tag: data.tag,
-        actions: [
-          {
-            action: 'explore',
-            title: 'Ver mais'
-          }
-        ]
-      })
-    );
-  }
+  const data = event.data.json();
+  
+  // Mostra notificação push
+  const options = {
+    body: data.body || 'Nova notificação disponível',
+    icon: '/logo192.png',
+    badge: '/logo192.png',
+    data: {
+      url: data.url || '/'
+    }
+  };
+  
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'QR Cred App', options)
+  );
 });
 
-// Clique na notificação
+// Manipula cliques em notificações
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow(event.notification.data)
-    );
-  }
+  
+  const urlToOpen = event.notification.data?.url || '/';
+  
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then((clientList) => {
+      // Verifica se já existe uma janela/aba aberta
+      for (const client of clientList) {
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      
+      // Caso contrário, abre uma nova
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(urlToOpen);
+      }
+    })
+  );
 }); 

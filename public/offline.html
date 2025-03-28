@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Cred - Sem conexão</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+        Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 16px;
+      text-align: center;
+      background-color: #f7f7f7;
+      color: #333;
+    }
+    
+    .container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 32px;
+      max-width: 480px;
+      width: 100%;
+    }
+    
+    h1 {
+      color: #0070f3;
+      margin-bottom: 16px;
+    }
+    
+    p {
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    
+    .logo {
+      width: 120px;
+      height: auto;
+      margin-bottom: 24px;
+    }
+    
+    .button {
+      background-color: #0070f3;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .button:hover, .button:focus {
+      background-color: #0051b3;
+    }
+    
+    .offline-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      color: #0070f3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="offline-icon">📶</div>
+    <h1>Você está offline</h1>
+    <p>Parece que você está sem conexão com a internet no momento. Algumas funcionalidades do QR Cred podem não estar disponíveis.</p>
+    <p>Verifique sua conexão e tente novamente ou acesse as áreas da aplicação que foram previamente carregadas.</p>
+    <button class="button" onclick="tryReconnect()">Tentar novamente</button>
+  </div>
+
+  <script>
+    function tryReconnect() {
+      // Verifica se há conexão
+      if (navigator.onLine) {
+        // Se estiver online, redireciona para a página inicial
+        window.location.href = '/';
+      } else {
+        // Se ainda estiver offline, mostra alerta
+        alert('Você ainda está offline. Por favor, verifique sua conexão de internet.');
+      }
+    }
+    
+    // Verifica periodicamente se a conexão foi restaurada
+    window.addEventListener('online', function() {
+      // Aguarda um momento para garantir que a conexão foi realmente restaurada
+      setTimeout(function() {
+        window.location.href = '/';
+      }, 1000);
+    });
+  </script>
+</body>
+</html> 
