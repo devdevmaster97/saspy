@@ -33,7 +33,9 @@ export default function MenuPage() {
       {/* Cabeçalho */}
       <header className="bg-blue-600 text-white p-4 shadow-md">
         <div className="container mx-auto flex items-center justify-center">
-          <Logo size="sm" />
+          <div className="text-white text-2xl font-bold">
+            QRCred<span className="text-green-400">.</span>
+          </div>
         </div>
       </header>
 

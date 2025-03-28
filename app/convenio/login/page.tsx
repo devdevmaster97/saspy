@@ -33,7 +33,6 @@ export default function LoginConvenio() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success('Login realizado com sucesso!');
         router.push('/convenio/dashboard');
       } else {
         toast.error(data.message || 'Erro ao fazer login');

@@ -38,6 +38,7 @@ export default function DashboardLayout({
   const [loading, setLoading] = useState(true);
   const retryCountRef = useRef(0);
   const maxRetries = 3;
+  const toastShownRef = useRef(false);
 
   useEffect(() => {
     // Recuperar dados do convênio da sessão ou fazer nova chamada API
@@ -60,6 +61,15 @@ export default function DashboardLayout({
         if (data.success) {
           setConvenioData(data.data);
           retryCountRef.current = 0; // Resetar contador de tentativas se obtiver sucesso
+          
+          // Mostra o toast de boas-vindas apenas uma vez quando os dados são carregados com sucesso
+          if (!toastShownRef.current && pathname === '/convenio/dashboard/lancamentos') {
+            toast.success('Login realizado com sucesso!', {
+              position: 'top-right',
+              duration: 3000
+            });
+            toastShownRef.current = true;
+          }
         } else {
           retryCountRef.current += 1;
           console.warn(`Falha ao obter dados do convênio (${retryCountRef.current}/${maxRetries}): ${data.message}`);
@@ -94,7 +104,7 @@ export default function DashboardLayout({
     return () => {
       clearInterval(intervalId);
     };
-  }, [router]);
+  }, [router, pathname]);
 
   const handleLogout = async () => {
     // Limpar os dados de autenticação
