@@ -83,6 +83,26 @@ export default function RootLayout({
         <meta name="application-name" content="QRCred" />
         <meta name="theme-color" content="#1e40af" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+        
+        {/* Script para garantir navegação correta no PWA */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Fix for navigation in standalone PWA mode
+                if (window.navigator.standalone) {
+                  document.addEventListener('click', function(e) {
+                    var link = e.target.closest('a');
+                    if (link && link.href && link.href.indexOf(location.host) !== -1) {
+                      e.preventDefault();
+                      window.location = link.href;
+                    }
+                  }, true);
+                }
+              })();
+            `,
+          }}
+        />
       </head>
       <body className={inter.className}>
         <Providers>

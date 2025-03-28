@@ -1,12 +1,20 @@
-const CACHE_VERSION = 'v1.0.1';
+const CACHE_VERSION = 'v1.0.2';
 const CACHE_NAME = `qrcred-${CACHE_VERSION}`;
 const urlsToCache = [
   '/',
+  '/index.html',
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
   '/browserconfig.xml',
-  '/robots.txt'
+  '/robots.txt',
+  '/workbox-4754cb34.js',
+  '/sw.js',
+  '/next.svg',
+  '/vercel.svg',
+  '/file.svg',
+  '/globe.svg',
+  '/window.svg'
 ];
 
 // Instalação do Service Worker
@@ -47,8 +55,27 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Interceptação de requisições
+// Interceptação de requisições - Modificado para strategy: network-first, fallback para cache
 self.addEventListener('fetch', (event) => {
+  // Para navegação (HTML), sempre tente rede primeiro, depois cache
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          return caches.match(event.request)
+            .then(response => {
+              if (response) {
+                return response;
+              }
+              // Se não tiver no cache, tente a página inicial como fallback
+              return caches.match('/');
+            });
+        })
+    );
+    return;
+  }
+
+  // Para outros recursos, use cache primeiro com fallback para rede (assets estáticos)
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -61,8 +88,8 @@ self.addEventListener('fetch', (event) => {
         const fetchRequest = event.request.clone();
 
         // Faz a requisição para a rede
-        return fetch(fetchRequest).then(
-          (response) => {
+        return fetch(fetchRequest)
+          .then(response => {
             // Verifica se recebemos uma resposta válida
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
@@ -78,8 +105,11 @@ self.addEventListener('fetch', (event) => {
               });
 
             return response;
-          }
-        );
+          })
+          .catch(error => {
+            console.error('Fetch falhou:', error);
+            throw error;
+          });
       })
   );
 });
