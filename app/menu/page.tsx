@@ -29,19 +29,10 @@ export default function MenuPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Cabeçalho */}
-      <header className="bg-blue-600 text-white p-4 shadow-md">
-        <div className="container mx-auto flex items-center justify-center">
-          <div className="text-white text-2xl font-bold">
-            QRCred<span className="text-green-400">.</span>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
       {/* Conteúdo principal */}
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="mb-8 flex justify-center">
+      <main className="container mx-auto px-4 py-8 flex flex-col items-center">
+        <div className="mb-8">
           <Logo size="lg" />
         </div>
 
