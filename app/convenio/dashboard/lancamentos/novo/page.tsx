@@ -1,16 +1,33 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaSpinner, FaQrcode, FaArrowLeft, FaCreditCard } from 'react-icons/fa';
 import Header from '@/app/components/Header';
 import toast from 'react-hot-toast';
+import dynamic from 'next/dynamic';
+
+// Importar o QR Reader de forma dinâmica para evitar problemas de SSR
+// @ts-ignore - Ignorando erros de tipo para o pacote react-qr-reader que é antigo
+const QrReader = dynamic(() => import('react-qr-reader'), { ssr: false });
 
 interface AssociadoData {
   nome: string;
   matricula: string;
   empregador: string;
   saldo: number;
+  token_associado?: string;
+  cel?: string;
+  limite?: string;
+}
+
+// Definindo a interface para as props do QrReader
+interface QrReaderProps {
+  delay?: number;
+  onError: (err: any) => void;
+  onScan: (data: string | null) => void;
+  style?: React.CSSProperties;
+  facingMode?: string;
 }
 
 export default function NovoLancamentoPage() {
@@ -25,7 +42,11 @@ export default function NovoLancamentoPage() {
   const [descricao, setDescricao] = useState('');
   const [associado, setAssociado] = useState<AssociadoData | null>(null);
   const [valorParcela, setValorParcela] = useState(0);
-  const [hasQRCode, setHasQRCode] = useState(false);
+  const [showQrReader, setShowQrReader] = useState(false);
+  const [mesCorrente, setMesCorrente] = useState('');
+  
+  // API Host
+  const HOST = process.env.NEXT_PUBLIC_API_HOST || 'https://api.qrcred.com.br/';
 
   // Formatar valor como moeda
   const formatarValor = (valor: string) => {
@@ -59,31 +80,93 @@ export default function NovoLancamentoPage() {
     setAssociado(null);
 
     try {
-      // Aqui irá a chamada real para API
-      // const response = await fetch(`/api/associados/cartao/${cartao}`);
-      // const data = await response.json();
+      // Chamada para API localizaasapp.php
+      const response = await fetch(`${HOST}localizaasapp.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          cartaodigitado: cartao
+        })
+      });
       
-      // Simulando resposta da API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const data = await response.json();
       
-      // Dados simulados
-      if (cartao === '1234567890') {
+      if (data && data.nome && data.nome !== 'login incorreto') {
         const mockData: AssociadoData = {
-          nome: 'João Silva',
-          matricula: '12345',
-          empregador: 'Empresa ABC',
-          saldo: 1500.00
+          nome: data.nome,
+          matricula: data.matricula,
+          empregador: data.empregador,
+          cel: data.cel,
+          limite: data.limite,
+          token_associado: data.token_associado,
+          saldo: 0 // Será preenchido após capturar o mês corrente
         };
         setAssociado(mockData);
-        setHasQRCode(true);
+        capturarMesCorrente(data.matricula, data.empregador);
       } else {
         toast.error('Cartão não encontrado');
+        setCartao('');
       }
     } catch (error) {
       toast.error('Erro ao buscar dados do cartão');
       console.error('Erro ao buscar associado:', error);
     } finally {
       setLoadingCartao(false);
+    }
+  };
+
+  const capturarMesCorrente = async (matricula: string, empregador: string) => {
+    try {
+      // Primeiro, busca o mês corrente
+      const responseMes = await fetch(`${HOST}meses_corrente_app.php`);
+      const dataMes = await responseMes.json();
+      
+      if (dataMes && dataMes.length > 0) {
+        const mesAtual = dataMes[0].abreviacao;
+        setMesCorrente(mesAtual);
+        
+        // Depois, calcula o saldo com base no mês corrente
+        const responseConta = await fetch(`${HOST}conta_app.php`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            matricula: matricula,
+            empregador: empregador,
+            mes: mesAtual
+          })
+        });
+        
+        const dataConta = await responseConta.json();
+        
+        if (dataConta) {
+          // Calcula o total
+          let total = 0;
+          for(let i = 0; i < dataConta.length; i++) {
+            total += parseFloat(dataConta[i].valor);
+          }
+          
+          // Calcula o saldo (limite - total)
+          if (associado && associado.limite) {
+            const limite = parseFloat(associado.limite);
+            const saldo = limite - total;
+            
+            // Atualiza o associado com o saldo
+            setAssociado(prev => {
+              if (prev) {
+                return { ...prev, saldo: saldo };
+              }
+              return prev;
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao capturar mês corrente:', error);
+      toast.error('Erro ao calcular saldo disponível');
     }
   };
 
@@ -106,9 +189,25 @@ export default function NovoLancamentoPage() {
   };
 
   const handleLerQRCode = () => {
-    // Simulação de leitura de QR Code
-    setCartao('1234567890');
-    buscarAssociado();
+    setShowQrReader(true);
+  };
+
+  const handleQrScan = (data: string | null) => {
+    if (data) {
+      setShowQrReader(false);
+      setCartao(data);
+      buscarAssociado();
+    }
+  };
+
+  const handleQrError = (err: any) => {
+    console.error(err);
+    toast.error('Erro ao ler QR Code. Tente novamente.');
+    setShowQrReader(false);
+  };
+
+  const handleCloseQrReader = () => {
+    setShowQrReader(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -129,15 +228,51 @@ export default function NovoLancamentoPage() {
       return;
     }
     
+    // Verificar se o valor total não excede o saldo
+    const valorTotal = parseFloat(valor.replace(/[^\d,]/g, '').replace(',', '.'));
+    if (valorTotal > associado.saldo) {
+      toast.error('O valor total não pode ser maior que o saldo disponível');
+      return;
+    }
+    
+    // Verificar se o valor da parcela não excede o saldo quando for mais de uma parcela
+    if (parcelas > 1 && valorParcela > associado.saldo) {
+      toast.error('O valor da parcela não pode ser maior que o saldo disponível');
+      return;
+    }
+    
     setLoading(true);
     
     try {
-      // Simulação de envio para API
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Verificar senha do associado
+      const responseSenha = await fetch(`${HOST}consulta_pass_assoc.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          pass: senha,
+          matricula: associado.matricula,
+          empregador: associado.empregador
+        })
+      });
       
-      // Sucesso
-      toast.success('Pagamento autorizado com sucesso!');
-      router.push('/convenio/dashboard/lancamentos');
+      const dataSenha = await responseSenha.json();
+      
+      if (dataSenha && dataSenha.situacao === 'certo') {
+        // Processar o pagamento
+        // Aqui seria implementada a API de pagamento
+        
+        // Simulação de envio para API
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Sucesso
+        toast.success('Pagamento autorizado com sucesso!');
+        router.push('/convenio/dashboard/lancamentos');
+      } else {
+        toast.error('Senha incorreta');
+        setSenha('');
+      }
     } catch (error) {
       toast.error('Erro ao processar pagamento');
       console.error('Erro ao processar pagamento:', error);
@@ -153,6 +288,31 @@ export default function NovoLancamentoPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header title="Novo Lançamento" showBackButton onBackClick={handleVoltar} />
+      
+      {showQrReader ? (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white p-4 rounded-lg max-w-sm w-full">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Ler QR Code</h3>
+            <div className="mb-4">
+              {/* @ts-ignore - O componente ReactQrReader tem tipos incompatíveis */}
+              <QrReader
+                delay={300}
+                onError={handleQrError}
+                onScan={handleQrScan}
+                style={{ width: '100%' }}
+                facingMode="environment"
+              />
+            </div>
+            <button
+              type="button"
+              className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md"
+              onClick={handleCloseQrReader}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      ) : null}
       
       <div className="flex-1 py-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
         <div className="bg-white shadow rounded-lg p-6">
