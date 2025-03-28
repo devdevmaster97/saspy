@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FaSpinner, FaPlus, FaSearch } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 
 interface Lancamento {
   id: string;
@@ -13,6 +14,7 @@ interface Lancamento {
 }
 
 export default function LancamentosPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [lancamentos, setLancamentos] = useState<Lancamento[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,6 +72,10 @@ export default function LancamentosPage() {
     lancamento.cartao.includes(searchTerm)
   );
 
+  const handleNovoLancamento = () => {
+    router.push('/convenio/dashboard/lancamentos/novo');
+  };
+
   return (
     <div>
       <div className="mb-6">
@@ -80,6 +86,7 @@ export default function LancamentosPage() {
       <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
         <button 
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
+          onClick={handleNovoLancamento}
         >
           <FaPlus className="mr-2" /> Novo Lançamento
         </button>
