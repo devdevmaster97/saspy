@@ -133,10 +133,16 @@ export default function DashboardLayout({
 
   const menuItems = [
     {
+      name: 'Dashboard',
+      href: '/convenio/dashboard',
+      icon: <FaChartLine className="w-5 h-5" />,
+      current: pathname === '/convenio/dashboard'
+    },
+    {
       name: 'Lançamentos',
-      href: '/convenio/dashboard/lancamentos',
+      href: '/convenio/dashboard/lancamentos/novo',
       icon: <FaReceipt className="w-5 h-5" />,
-      current: pathname === '/convenio/dashboard/lancamentos'
+      current: pathname === '/convenio/dashboard/lancamentos/novo'
     },
     {
       name: 'Meus Dados',

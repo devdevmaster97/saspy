@@ -1,153 +1,174 @@
 'use client';
 
-import { useState } from 'react';
-import { FaSpinner, FaFileDownload, FaFilePdf, FaFileExcel, FaCalendarAlt } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { FaSpinner, FaFilter } from 'react-icons/fa';
+import { toast } from 'react-hot-toast';
 
-interface Relatorio {
-  id: string;
-  nome: string;
+interface Lancamento {
+  id: number;
+  data: string;
+  hora: string;
+  valor: string;
+  associado: string;
+  empregador: string;
+  mes: string;
+  parcela: number;
   descricao: string;
-  formato: 'pdf' | 'excel';
+  data_fatura: string;
 }
 
 export default function RelatoriosPage() {
-  const [loading, setLoading] = useState(false);
-  const [dataInicio, setDataInicio] = useState<string>('');
-  const [dataFim, setDataFim] = useState<string>('');
+  const [lancamentos, setLancamentos] = useState<Lancamento[]>([]);
+  const [mesSelecionado, setMesSelecionado] = useState<string>('');
+  const [mesesDisponiveis, setMesesDisponiveis] = useState<string[]>([]);
+  const [loadingLancamentos, setLoadingLancamentos] = useState(true);
 
-  const relatorios: Relatorio[] = [
-    {
-      id: '1',
-      nome: 'Vendas por Período',
-      descricao: 'Relatório detalhado de todas as vendas realizadas no período selecionado.',
-      formato: 'pdf'
-    },
-    {
-      id: '2',
-      nome: 'Estornos Realizados',
-      descricao: 'Lista de todos os estornos realizados no período selecionado, com detalhes e status.',
-      formato: 'pdf'
-    },
-    {
-      id: '3',
-      nome: 'Análise de Vendas',
-      descricao: 'Análise detalhada das vendas, com gráficos e estatísticas sobre o desempenho do convênio.',
-      formato: 'excel'
-    },
-    {
-      id: '4',
-      nome: 'Clientes Atendidos',
-      descricao: 'Lista de todos os clientes atendidos no período selecionado, com detalhes das compras.',
-      formato: 'excel'
-    },
-    {
-      id: '5',
-      nome: 'Resumo Financeiro',
-      descricao: 'Resumo financeiro do período, incluindo vendas, estornos, taxas e valores líquidos.',
-      formato: 'pdf'
-    }
-  ];
-
-  const gerarRelatorio = (id: string) => {
-    if (!dataInicio || !dataFim) {
-      alert('Selecione o período para gerar o relatório');
-      return;
-    }
-
-    setLoading(true);
-
-    // Simulação de geração de relatório
-    setTimeout(() => {
-      setLoading(false);
-      alert(`Relatório gerado com sucesso! Período: ${dataInicio} a ${dataFim}`);
-    }, 2000);
+  // Função para gerar o mês corrente no formato abreviado (ex: JAN/2024)
+  const gerarMesCorrente = () => {
+    const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    const data = new Date();
+    const mes = meses[data.getMonth()];
+    const ano = data.getFullYear();
+    return `${mes}/${ano}`;
   };
+
+  // Buscar lançamentos do banco de dados
+  useEffect(() => {
+    const buscarLancamentos = async () => {
+      try {
+        const response = await fetch('/api/convenio/lancamentos');
+        const data = await response.json();
+
+        if (data.success) {
+          setLancamentos(data.data);
+          // Extrair meses únicos dos lançamentos
+          const meses = Array.from(new Set(data.data.map((l: Lancamento) => l.mes))) as string[];
+          // Ordenar meses do mais recente para o mais antigo
+          const mesesOrdenados = meses.sort().reverse();
+          setMesesDisponiveis(mesesOrdenados);
+          
+          // Definir o mês corrente como padrão
+          const mesCorrente = gerarMesCorrente();
+          setMesSelecionado(mesCorrente);
+        } else {
+          toast.error(data.message || 'Erro ao buscar lançamentos');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar lançamentos:', error);
+        toast.error('Erro ao conectar com o servidor');
+      } finally {
+        setLoadingLancamentos(false);
+      }
+    };
+
+    buscarLancamentos();
+  }, []);
+
+  // Filtrar lançamentos pelo mês selecionado
+  const lancamentosFiltrados = mesSelecionado
+    ? lancamentos.filter(l => l.mes === mesSelecionado)
+    : lancamentos;
 
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Relatórios</h1>
-        <p className="mt-1 text-sm text-gray-600">Gere relatórios e analise os dados do seu convênio</p>
+        <p className="mt-1 text-sm text-gray-600">Visualize e analise os dados do seu convênio</p>
       </div>
 
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Selecione o período</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="dataInicio" className="block text-sm font-medium text-gray-700">
-              Data Inicial
+      {/* Listagem de Lançamentos */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-medium text-gray-900">Lançamentos</h2>
+          <div className="flex items-center space-x-2">
+            <FaFilter className="text-gray-500" />
+            <label htmlFor="mes" className="text-sm font-medium text-gray-700">
+              Filtrar por Mês:
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaCalendarAlt className="text-gray-400" />
-              </div>
-              <input
-                type="date"
-                name="dataInicio"
-                id="dataInicio"
-                value={dataInicio}
-                onChange={(e) => setDataInicio(e.target.value)}
-                className="pl-10 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-              />
-            </div>
-          </div>
-          <div>
-            <label htmlFor="dataFim" className="block text-sm font-medium text-gray-700">
-              Data Final
-            </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaCalendarAlt className="text-gray-400" />
-              </div>
-              <input
-                type="date"
-                name="dataFim"
-                id="dataFim"
-                value={dataFim}
-                onChange={(e) => setDataFim(e.target.value)}
-                className="pl-10 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-              />
-            </div>
+            <select
+              id="mes"
+              value={mesSelecionado}
+              onChange={(e) => setMesSelecionado(e.target.value)}
+              className="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+            >
+              <option value="">Todos os Meses</option>
+              {mesesDisponiveis.map((mes) => (
+                <option key={mes} value={mes}>
+                  {mes}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
-      </div>
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <ul className="divide-y divide-gray-200">
-          {relatorios.map((relatorio) => (
-            <li key={relatorio.id} className="p-4 hover:bg-gray-50">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center">
-                    {relatorio.formato === 'pdf' ? (
-                      <FaFilePdf className="h-5 w-5 text-red-500 mr-2" />
-                    ) : (
-                      <FaFileExcel className="h-5 w-5 text-green-500 mr-2" />
-                    )}
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {relatorio.nome}
-                    </p>
-                  </div>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {relatorio.descricao}
-                  </p>
-                </div>
-                <button
-                  onClick={() => gerarRelatorio(relatorio.id)}
-                  disabled={loading}
-                  className="ml-4 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <FaSpinner className="animate-spin h-4 w-4 mr-1" />
-                  ) : (
-                    <FaFileDownload className="h-4 w-4 mr-1" />
-                  )}
-                  Gerar
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {loadingLancamentos ? (
+          <div className="text-center py-8">
+            <FaSpinner className="animate-spin h-8 w-8 mx-auto text-blue-600" />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Data/Hora
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Associado
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Empregador
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Valor
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Mês
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Parcela
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Data Fatura
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Descrição
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {lancamentosFiltrados.map((lancamento) => (
+                  <tr key={lancamento.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {lancamento.data} {lancamento.hora}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {lancamento.associado}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {lancamento.empregador}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      R$ {lancamento.valor}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {lancamento.mes}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {lancamento.parcela}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {lancamento.data_fatura}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {lancamento.descricao}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -34,6 +34,12 @@ export default function LoginConvenio() {
       const data = await response.json();
 
       if (data.success) {
+        // Salvar os dados do convênio no localStorage
+        if (data.data) {
+          localStorage.setItem('dadosConvenio', JSON.stringify(data.data));
+          console.log('Dados do convênio salvos no localStorage:', data.data);
+          toast.success('Login efetuado com sucesso!');
+        }
         router.push('/convenio/dashboard');
       } else {
         toast.error(data.message || 'Erro ao fazer login');

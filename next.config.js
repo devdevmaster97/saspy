@@ -25,7 +25,11 @@ const nextConfig = {
   experimental: {
     forceSwcTransforms: true,
   },
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+  webpack: (config, { dev }) => {
+    // Ativar sourcemaps em desenvolvimento para depuração
+    if (dev) {
+      config.devtool = 'source-map';
+    }
     // Important: return the modified config
     return config;
   },
