@@ -1,6 +1,6 @@
+import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import ServiceWorkerRegistration from './components/ServiceWorkerRegistration';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
@@ -11,8 +11,8 @@ import Providers from './components/Providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'QRCred',
-  description: 'Sistema de Cartão de Crédito QRCred',
+  title: 'QRCred - Crédito Rápido por QR Code',
+  description: 'Acesse crédito de forma rápida e segura através de QR Code',
   manifest: '/manifest.json',
   themeColor: '#1e40af',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover',
@@ -107,7 +107,16 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           {children}
-          <Toaster position="top-right" />
+          <Toaster 
+            position="top-right" 
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+            }}
+          />
           <ServiceWorkerRegistration />
           <PWAInstallPrompt />
           <IOSInstallPrompt />

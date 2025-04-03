@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { FaSpinner, FaClockRotateLeft, FaArrowRotateLeft } from 'react-icons/fa6';
+import { useTheme } from '@/app/contexts/ThemeContext';
 
 interface AntecipacaoProps {
   cartao?: string;
@@ -50,6 +51,7 @@ interface SolicitacaoAntecipacao {
 
 export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoProps) {
   const { data: session } = useSession();
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [associadoData, setAssociadoData] = useState<AssociadoData | null>(null);
@@ -66,11 +68,16 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
   const [solicitacaoData, setSolicitacaoData] = useState("");
   const [ultimasSolicitacoes, setUltimasSolicitacoes] = useState<SolicitacaoAntecipacao[]>([]);
   const [loadingHistorico, setLoadingHistorico] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   
   // Valores para exibição após a solicitação ser enviada
   const [valorConfirmado, setValorConfirmado] = useState("");
   const [taxaConfirmada, setTaxaConfirmada] = useState(0);
   const [totalConfirmado, setTotalConfirmado] = useState(0);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Função para buscar o mês corrente
   const fetchMesCorrente = useCallback(async (cartaoParam: string) => {
@@ -478,6 +485,23 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
   // Filtrar apenas solicitações pendentes
   const solicitacoesPendentes = ultimasSolicitacoes.filter(isPendente);
 
+  if (!isMounted) {
+    return null;
+  }
+
+  // Classes para tema escuro
+  const bgClass = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
+  const bgSecondaryClass = theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50';
+  const textPrimaryClass = theme === 'dark' ? 'text-white' : 'text-gray-900';
+  const textSecondaryClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-600';
+  const labelClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
+  const inputBgClass = theme === 'dark' ? 'bg-gray-700' : 'bg-white';
+  const inputTextClass = theme === 'dark' ? 'text-white' : 'text-gray-900'; 
+  const inputBorderClass = theme === 'dark' ? 'border-gray-600' : 'border-gray-300';
+  const borderClass = theme === 'dark' ? 'border-gray-600' : 'border-gray-200';
+  const alertBgClass = theme === 'dark' ? 'bg-red-900' : 'bg-red-50';
+  const alertTextClass = theme === 'dark' ? 'text-red-300' : 'text-red-700';
+
   if (isInitialLoading && !associadoData) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -487,102 +511,119 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
   }
 
   return (
-    <div className="max-w-lg mx-auto p-4">
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold mb-6 text-gray-800">Solicitação de Antecipação</h2>
+    <div className="p-4">
+      {/* Informações de Saldo */}
+      <div className={`mb-6 p-6 ${bgClass} rounded-lg shadow-sm border ${borderClass}`}>
+        <h2 className={`text-xl font-semibold mb-4 ${textPrimaryClass}`}>Saldo Disponível para Antecipação</h2>
         
-        {/* Saldo Disponível */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-md font-medium text-gray-600">Saldo Disponível:</h3>
+        {isInitialLoading ? (
+          <div className="flex justify-center py-8">
+            <FaSpinner className="animate-spin text-blue-500 text-4xl" />
+          </div>
+        ) : saldoData ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className={`p-4 ${bgSecondaryClass} rounded-lg`}>
+              <h3 className={`text-sm font-medium ${textSecondaryClass} mb-1`}>Limite Total</h3>
+              <p className={`text-2xl font-bold ${textPrimaryClass}`}>{formatarValor(saldoData.limite)}</p>
+            </div>
+            <div className={`p-4 ${bgSecondaryClass} rounded-lg`}>
+              <h3 className={`text-sm font-medium ${textSecondaryClass} mb-1`}>Utilizado</h3>
+              <p className={`text-2xl font-bold ${textPrimaryClass}`}>{formatarValor(saldoData.total)}</p>
+            </div>
+            <div className={`p-4 ${bgSecondaryClass} rounded-lg bg-green-50 dark:bg-green-900`}>
+              <h3 className={`text-sm font-medium ${textSecondaryClass} mb-1 text-green-700 dark:text-green-300`}>Disponível para Antecipação</h3>
+              <p className="text-2xl font-bold text-green-700 dark:text-green-300">{formatarValor(saldoData.saldo)}</p>
+            </div>
+          </div>
+        ) : (
+          <div className={`p-4 ${alertBgClass} rounded-lg`}>
+            <p className={alertTextClass}>{erro || "Não foi possível carregar seus dados. Tente novamente."}</p>
             <button 
-              onClick={() => loadSaldoData()}
-              className="bg-blue-600 hover:bg-blue-700 p-2 rounded text-white transition-colors"
-              title="Atualizar saldo"
-              disabled={loading}
-              type="button"
+              onClick={loadSaldoData} 
+              className="mt-2 flex items-center text-blue-600 hover:text-blue-800"
             >
-              {loading ? <FaSpinner className="animate-spin" /> : <FaArrowRotateLeft />}
+              <FaArrowRotateLeft className="mr-1" /> Tentar novamente
             </button>
           </div>
-          {erro && !valorSolicitado ? (
-            <div className="text-red-500 mt-2">{erro}</div>
-          ) : (
-            <p className="text-2xl font-bold text-green-600">
-              {saldoData ? formatarValor(saldoData.saldo) : 'Carregando...'}
-            </p>
-          )}
-          {saldoData?.mesCorrente && (
-            <p className="text-sm text-gray-500 mt-1">
-              Referente ao mês: {saldoData.mesCorrente}
-            </p>
-          )}
+        )}
+      </div>
+
+      {/* Histórico de Solicitações */}
+      <div className={`mb-6 p-6 ${bgClass} rounded-lg shadow-sm border ${borderClass}`}>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className={`text-xl font-semibold ${textPrimaryClass}`}>Histórico de Solicitações</h2>
+          <button 
+            onClick={fetchHistoricoSolicitacoes}
+            className="text-blue-600 hover:text-blue-800 flex items-center"
+            disabled={loadingHistorico}
+          >
+            {loadingHistorico ? <FaSpinner className="animate-spin mr-1" /> : <FaClockRotateLeft className="mr-1" />}
+            Atualizar
+          </button>
         </div>
         
-        {/* Últimas Solicitações Pendentes */}
-        {solicitacoesPendentes.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-md font-medium text-gray-700 flex items-center">
-                <FaClockRotateLeft className="mr-1" /> Solicitações Pendentes
-              </h3>
-              {loadingHistorico && (
-                <FaSpinner className="animate-spin text-blue-600" />
-              )}
-            </div>
-            <div className="overflow-x-auto">
-              <div className="flex space-x-3 py-2">
-                {solicitacoesPendentes.map((solicitacao) => (
-                  <div 
-                    key={solicitacao.id} 
-                    className="bg-gray-50 rounded-lg border border-gray-200 p-3 flex-shrink-0 w-48"
-                  >
-                    <div className="text-sm text-gray-500">
-                      {format(new Date(solicitacao.data_solicitacao), "dd/MM/yyyy", { locale: ptBR })}
-                    </div>
-                    <div className="font-semibold">
-                      {Number(solicitacao.valor_solicitado).toLocaleString('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL'
-                      })}
-                    </div>
-                    <div className="text-xs text-gray-600">
-                      Mês: {solicitacao.mes_corrente}
-                    </div>
-                    <div className="mt-1 text-xs">
-                      Status: {formatarStatus(solicitacao.status)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+        {loadingHistorico ? (
+          <div className="flex justify-center py-4">
+            <FaSpinner className="animate-spin text-blue-500" />
           </div>
+        ) : ultimasSolicitacoes.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className={`${bgSecondaryClass}`}>
+                <tr>
+                  <th className={`px-4 py-2 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>Data</th>
+                  <th className={`px-4 py-2 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>Valor</th>
+                  <th className={`px-4 py-2 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>Taxa</th>
+                  <th className={`px-4 py-2 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>Total</th>
+                  <th className={`px-4 py-2 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>Status</th>
+                </tr>
+              </thead>
+              <tbody className={`${bgClass} divide-y divide-gray-200 dark:divide-gray-700`}>
+                {ultimasSolicitacoes.map((solicitacao, index) => (
+                  <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td className={`px-4 py-3 ${textPrimaryClass}`}>{solicitacao.data_solicitacao}</td>
+                    <td className={`px-4 py-3 ${textPrimaryClass}`}>{formatarValor(parseFloat(solicitacao.valor_solicitado))}</td>
+                    <td className={`px-4 py-3 ${textPrimaryClass}`}>{formatarValor(parseFloat(solicitacao.taxa))}</td>
+                    <td className={`px-4 py-3 ${textPrimaryClass}`}>{formatarValor(parseFloat(solicitacao.valor_descontar))}</td>
+                    <td className="px-4 py-3">{formatarStatus(solicitacao.status)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className={textSecondaryClass}>Nenhuma solicitação encontrada.</p>
         )}
+      </div>
+
+      {/* Formulário de Solicitação */}
+      <div className={`p-6 ${bgClass} rounded-lg shadow-sm border ${borderClass}`}>
+        <h2 className={`text-xl font-semibold mb-4 ${textPrimaryClass}`}>Solicitar Antecipação</h2>
 
         {solicitado ? (
           /* Resumo da Solicitação */
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <h3 className="text-lg font-semibold mb-3 text-gray-800">Solicitação Enviada</h3>
+          <div className={`p-4 ${bgSecondaryClass} rounded-lg border ${borderClass}`}>
+            <h3 className={`text-lg font-semibold mb-3 ${textPrimaryClass}`}>Solicitação Enviada</h3>
             <div className="space-y-2">
-              <p className="text-gray-700">
+              <p className={textPrimaryClass}>
                 <span className="font-medium">Valor: </span>
                 {valorConfirmado}
               </p>
-              <p className="text-gray-700">
+              <p className={textPrimaryClass}>
                 <span className="font-medium">Taxa: </span>
                 {formatarValor(taxaConfirmada)}
               </p>
-              <p className="text-gray-700">
+              <p className={textPrimaryClass}>
                 <span className="font-medium">Total a Descontar: </span>
                 {formatarValor(totalConfirmado)}
               </p>
-              <p className="text-gray-700">
+              <p className={textPrimaryClass}>
                 <span className="font-medium">Solicitado em: </span>
                 {solicitacaoData}
               </p>
             </div>
             <div className="mt-4 flex flex-col space-y-2">
-              <p className="text-blue-600 text-sm">
+              <p className="text-blue-600 dark:text-blue-400 text-sm">
                 Sua solicitação está em análise. Em breve você receberá o resultado.
               </p>
               <button
@@ -599,20 +640,20 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
           <form onSubmit={handleSubmit}>
             {/* Campo de Valor */}
             <div className="mb-4">
-              <label htmlFor="valor" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="valor" className={`block text-sm font-medium ${labelClass} mb-1`}>
                 Valor Desejado
               </label>
               <input
                 type="text"
                 id="valor"
                 placeholder="R$ 0,00"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                className={`w-full p-3 border ${inputBorderClass} rounded-lg focus:ring-blue-500 focus:border-blue-500 ${inputBgClass} ${inputTextClass}`}
                 onChange={handleValorChange}
                 value={valorSolicitado ? (parseFloat(valorSolicitado) / 100).toFixed(2).replace('.', ',') : ''}
                 disabled={loading}
               />
               {valorFormatado && (
-                <div className="mt-2 text-sm text-gray-600">
+                <div className={`mt-2 text-sm ${textSecondaryClass}`}>
                   Valor: {valorFormatado}
                 </div>
               )}
@@ -620,27 +661,27 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
             
             {/* Simulação de Taxa e Valor Total */}
             {valorFormatado && (
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-gray-700 mb-2">Simulação:</h4>
+              <div className={`mb-4 p-3 ${bgSecondaryClass} rounded-lg`}>
+                <h4 className={`font-medium ${textPrimaryClass} mb-2`}>Simulação:</h4>
                 <div className="grid grid-cols-2 gap-2">
-                  <p className="text-sm text-gray-600">Taxa ({saldoData?.porcentagem || 0}%):</p>
-                  <p className="text-sm text-gray-800 font-medium">{formatarValor(taxa)}</p>
-                  <p className="text-sm text-gray-600">Total a Descontar:</p>
-                  <p className="text-sm text-gray-800 font-medium">{formatarValor(valorTotal)}</p>
+                  <p className={`text-sm ${textSecondaryClass}`}>Taxa ({saldoData?.porcentagem || 0}%):</p>
+                  <p className={`text-sm ${textPrimaryClass} font-medium`}>{formatarValor(taxa)}</p>
+                  <p className={`text-sm ${textSecondaryClass}`}>Total a Descontar:</p>
+                  <p className={`text-sm ${textPrimaryClass} font-medium`}>{formatarValor(valorTotal)}</p>
                 </div>
               </div>
             )}
             
             {/* Chave PIX */}
             <div className="mb-4">
-              <label htmlFor="chave-pix" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="chave-pix" className={`block text-sm font-medium ${labelClass} mb-1`}>
                 Chave PIX para Recebimento
               </label>
               <input
                 type="text"
                 id="chave-pix"
                 placeholder="CPF, E-mail, Celular ou Chave Aleatória"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                className={`w-full p-3 border ${inputBorderClass} rounded-lg focus:ring-blue-500 focus:border-blue-500 ${inputBgClass} ${inputTextClass}`}
                 value={chavePix}
                 onChange={(e) => setChavePix(e.target.value)}
                 disabled={loading}
@@ -649,14 +690,14 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
             
             {/* Senha */}
             <div className="mb-6">
-              <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="senha" className={`block text-sm font-medium ${labelClass} mb-1`}>
                 Senha (para confirmar)
               </label>
               <input
                 type="password"
                 id="senha"
                 placeholder="Digite sua senha"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                className={`w-full p-3 border ${inputBorderClass} rounded-lg focus:ring-blue-500 focus:border-blue-500 ${inputBgClass} ${inputTextClass}`}
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 disabled={loading}
@@ -665,7 +706,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
             
             {/* Mensagem de Erro */}
             {erro && valorSolicitado && (
-              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">
+              <div className={`mb-4 p-3 ${alertBgClass} ${alertTextClass} rounded-lg`}>
                 {erro}
               </div>
             )}

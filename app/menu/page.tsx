@@ -1,11 +1,12 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { FaUser, FaStore, FaPowerOff } from 'react-icons/fa';
-import MenuCard from '../components/MenuCard';
+import { useRouter } from 'next/navigation';
+import { FaUser, FaBuilding, FaFileAlt } from 'react-icons/fa';
 import Logo from '../components/Logo';
 import UpdateChecker from '../components/UpdateChecker';
+import ThemeToggle from '../components/ThemeToggle';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Interfaces para tipos de Window em ambientes específicos
 interface ReactNativeWindow extends Window {
@@ -32,8 +33,9 @@ interface WebkitWindow extends Window {
 
 export default function MenuPage() {
   const router = useRouter();
-  const [appVersion, setAppVersion] = useState('');
+  const [appVersion, setAppVersion] = useState('1.0.0');
   const [isMounted, setIsMounted] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     setIsMounted(true);
@@ -42,111 +44,83 @@ export default function MenuPage() {
   }, []);
 
   const handleUserCardClick = () => {
-    router.push('/login');
+    router.push('/dashboard');
   };
 
   const handleConvenioCardClick = () => {
-    router.push('/convenio');
+    router.push('/convenio/login');
   };
 
   const handlePoliticaPrivacidadeClick = () => {
     router.push('/politica-privacidade');
   };
-  
-  const handleEncerrarApp = () => {
-    // Detectar o tipo de dispositivo
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-      // Em apps mobile nativos embutidos em WebView, podemos tentar chamar uma ponte nativa
-      const windowWithRN = window as ReactNativeWindow;
-      const windowWithAndroid = window as AndroidWindow;
-      const windowWithWebkit = window as WebkitWindow;
-      
-      if (windowWithRN.ReactNativeWebView) {
-        // Para React Native WebView
-        windowWithRN.ReactNativeWebView.postMessage(JSON.stringify({ type: 'EXIT_APP' }));
-        return;
-      } else if (windowWithAndroid.Android) {
-        // Para Android WebView com interface JavaScript
-        windowWithAndroid.Android.exitApp();
-        return;
-      } else if (windowWithWebkit.webkit?.messageHandlers?.exitApp) {
-        // Para iOS WKWebView
-        windowWithWebkit.webkit.messageHandlers.exitApp.postMessage('');
-        return;
-      }
-      
-      // Se não conseguir fechar nativamente, mostra mensagem explicativa
-      const confirmExit = confirm('Para sair completamente do aplicativo, feche-o usando os controles do seu dispositivo:\n\n• Android: botão Recentes e deslize o app para cima\n• iOS: deslize para cima a partir da parte inferior da tela');
-      
-      if (confirmExit) {
-        // Redireciona para tela inicial como fallback
-        router.push('/');
-      }
-    } else if (typeof window !== 'undefined' && window.close) {
-      // Em navegadores desktop, tenta fechar a janela
-      window.close();
-    } else {
-      // Fallback para web - redireciona para uma página de logout ou exibe mensagem
-      alert('Aplicativo encerrado com sucesso!');
-    }
-  };
 
-  // Para evitar problemas de hidratação, renderize somente no cliente após a montagem
+  // Classes dinâmicas com base no tema
+  const bgClass = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50';
+  const cardClass = theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200';
+  const textClass = theme === 'dark' ? 'text-gray-200' : 'text-gray-600';
+  const headingClass = theme === 'dark' ? 'text-white' : 'text-gray-900';
+
   if (!isMounted) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-        <div className="container mx-auto px-4 py-8 flex flex-col items-center">
-          {/* Conteúdo mínimo para não causar mudança de layout */}
-          <div className="mb-8"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-lg mx-auto">
-            <div className="flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-6"></div>
-            <div className="flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-6"></div>
-          </div>
-          <div className="mt-12 text-center"></div>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen bg-gray-50"></div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
+    <div className={`min-h-screen ${bgClass} flex flex-col items-center justify-center transition-colors`}>
+      {/* Adicionar o controle de tema no canto superior direito */}
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      
       {/* Conteúdo principal */}
       <main className="container mx-auto px-4 py-8 flex flex-col items-center">
         <div className="mb-8">
-          <Logo size="lg" />
+          <Logo />
+          <h1 className={`text-2xl font-bold text-center mt-4 mb-2 ${headingClass}`}>Bem-vindo ao QRCred</h1>
+          <p className={`text-center ${textClass}`}>O que você deseja fazer hoje?</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-lg mx-auto">
-          <MenuCard 
-            icon={<FaUser />} 
-            title="Área do Usuário" 
-            onClick={handleUserCardClick} 
-          />
-          <MenuCard 
-            icon={<FaStore />} 
-            title="Área do Convênio" 
-            onClick={handleConvenioCardClick} 
-          />
+        {/* Cards de Opção */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-lg">
+          {/* Card do Usuário */}
+          <button
+            onClick={handleUserCardClick}
+            className={`p-6 rounded-lg shadow-md border hover:shadow-lg transition-shadow flex flex-col items-center space-y-3 ${cardClass}`}
+          >
+            <div className={theme === 'dark' ? 'bg-blue-900 p-3 rounded-full' : 'bg-blue-100 p-3 rounded-full'}>
+              <FaUser className={theme === 'dark' ? 'text-blue-400 text-xl' : 'text-blue-600 text-xl'} />
+            </div>
+            <h2 className={`font-semibold text-lg ${headingClass}`}>Área do Usuário</h2>
+            <p className={`text-sm text-center ${textClass}`}>
+              Acesse suas informações e transações
+            </p>
+          </button>
+
+          {/* Card do Convênio */}
+          <button
+            onClick={handleConvenioCardClick}
+            className={`p-6 rounded-lg shadow-md border hover:shadow-lg transition-shadow flex flex-col items-center space-y-3 ${cardClass}`}
+          >
+            <div className={theme === 'dark' ? 'bg-green-900 p-3 rounded-full' : 'bg-green-100 p-3 rounded-full'}>
+              <FaBuilding className={theme === 'dark' ? 'text-green-400 text-xl' : 'text-green-600 text-xl'} />
+            </div>
+            <h2 className={`font-semibold text-lg ${headingClass}`}>Área do Convênio</h2>
+            <p className={`text-sm text-center ${textClass}`}>
+              Gerencie seus convênios e operações
+            </p>
+          </button>
         </div>
         
         <div className="mt-12 text-center">
           <div className="flex flex-wrap justify-center gap-4 mb-3">
             <button 
               onClick={handlePoliticaPrivacidadeClick}
-              className="text-blue-600 hover:underline text-sm"
+              className={theme === 'dark' ? 'text-blue-400 hover:underline text-sm' : 'text-blue-600 hover:underline text-sm'}
             >
               Política de Privacidade
             </button>
-            <button 
-              onClick={handleEncerrarApp}
-              className="text-red-600 hover:underline text-sm flex items-center gap-1"
-            >
-              <FaPowerOff size={12} /> Encerrar App
-            </button>
           </div>
-          <p className="text-gray-500 text-xs mt-2">
+          <p className={theme === 'dark' ? 'text-gray-400 text-xs mt-2' : 'text-gray-500 text-xs mt-2'}>
             Versão: {appVersion}
           </p>
         </div>

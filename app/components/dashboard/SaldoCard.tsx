@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FaWallet, FaSpinner, FaSyncAlt } from 'react-icons/fa';
 import axios from 'axios';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface UserData {
   matricula: string;
@@ -26,7 +27,17 @@ export default function SaldoCard() {
   const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [cartao, setCartao] = useState('');
+  const { theme } = useTheme();
 
+  // Classes baseadas no tema
+  const bgCardClass = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
+  const textPrimaryClass = theme === 'dark' ? 'text-white' : 'text-gray-800';
+  const textSecondaryClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-500';
+  const textTertiaryClass = theme === 'dark' ? 'text-gray-400' : 'text-gray-700';
+  const errorTextClass = theme === 'dark' ? 'text-red-400' : 'text-red-500';
+  const loadingCardClass = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
+  const loadingTextClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-600';
+  
   // Função para buscar o mês corrente
   const fetchMesCorrente = useCallback(async () => {
     try {
@@ -197,18 +208,18 @@ export default function SaldoCard() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-lg h-60">
+      <div className={`flex flex-col items-center justify-center p-8 ${loadingCardClass} rounded-lg shadow-lg h-60`}>
         <FaSpinner className="animate-spin text-blue-600 text-4xl mb-4" />
-        <p className="text-gray-600">Carregando saldo...</p>
+        <p className={loadingTextClass}>Carregando saldo...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8 bg-white rounded-lg shadow-lg">
-        <div className="text-red-500 mb-2 font-semibold">Erro</div>
-        <p className="text-gray-700">{error}</p>
+      <div className={`p-8 ${bgCardClass} rounded-lg shadow-lg`}>
+        <div className={`${errorTextClass} mb-2 font-semibold`}>Erro</div>
+        <p className={textTertiaryClass}>{error}</p>
         <button 
           onClick={loadSaldoData}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
@@ -220,7 +231,7 @@ export default function SaldoCard() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className={`${bgCardClass} rounded-lg shadow-lg overflow-hidden transition-colors`}>
       <div className="bg-blue-600 p-4 flex items-center justify-between">
         <div className="flex items-center">
           <FaWallet className="text-white text-2xl mr-3" />
@@ -238,12 +249,12 @@ export default function SaldoCard() {
       
       <div className="p-6">
         <div className="mb-6">
-          <p className="text-gray-500 text-sm mb-1">Saldo Disponível</p>
-          <p className="text-3xl font-bold text-gray-800">
+          <p className={`${textSecondaryClass} text-sm mb-1`}>Saldo Disponível</p>
+          <p className={`text-3xl font-bold ${textPrimaryClass}`}>
             {saldoData ? formatCurrency(saldoData.saldo) : 'R$ 0,00'}
           </p>
           {saldoData?.mesCorrente && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className={`text-sm ${textSecondaryClass} mt-1`}>
               Referente ao mês: {saldoData.mesCorrente}
             </p>
           )}
@@ -251,14 +262,14 @@ export default function SaldoCard() {
         
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-gray-500 text-sm mb-1">Limite Total</p>
-            <p className="text-xl font-semibold text-gray-700">
+            <p className={`${textSecondaryClass} text-sm mb-1`}>Limite Total</p>
+            <p className={`text-xl font-semibold ${textTertiaryClass}`}>
               {saldoData ? formatCurrency(saldoData.limite) : 'R$ 0,00'}
             </p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm mb-1">Total Utilizado</p>
-            <p className="text-xl font-semibold text-gray-700">
+            <p className={`${textSecondaryClass} text-sm mb-1`}>Total Utilizado</p>
+            <p className={`text-xl font-semibold ${textTertiaryClass}`}>
               {saldoData ? formatCurrency(saldoData.total) : 'R$ 0,00'}
             </p>
           </div>

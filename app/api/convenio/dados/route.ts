@@ -11,7 +11,14 @@ export async function GET(request: NextRequest) {
     if (!tokenEncoded) {
       return NextResponse.json(
         { success: false, message: 'Não autenticado' },
-        { status: 401 }
+        { 
+          status: 401,
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
@@ -28,7 +35,10 @@ export async function GET(request: NextRequest) {
       params,
       {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       }
     );
@@ -38,7 +48,7 @@ export async function GET(request: NextRequest) {
     // Verificar se os dados foram retornados corretamente
     if (response.data && response.data.tipo_login === 'login sucesso') {
       // Se a chamada for bem-sucedida, retornar os dados do convênio
-      return NextResponse.json({
+      const resposta = NextResponse.json({
         success: true,
         data: {
           cod_convenio: response.data.cod_convenio,
@@ -66,17 +76,38 @@ export async function GET(request: NextRequest) {
           aceito_termo: response.data.aceita_termo
         }
       });
+      
+      // Adicionar headers para evitar cache
+      resposta.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      resposta.headers.set('Pragma', 'no-cache');
+      resposta.headers.set('Expires', '0');
+      
+      return resposta;
     } else {
       return NextResponse.json({
         success: false,
         message: 'Sessão expirada ou inválida'
-      }, { status: 401 });
+      }, { 
+        status: 401,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
     }
   } catch (error) {
     console.error('Erro ao buscar dados do convênio:', error);
     return NextResponse.json(
       { success: false, message: 'Erro ao buscar dados do convênio' },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
     );
   }
 } 

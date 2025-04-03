@@ -13,6 +13,7 @@ export default function LoginConvenio() {
     usuario: '',
     senha: ''
   });
+  const [error, setError] = useState('');
 
   const handleVoltar = () => {
     router.push('/convenio');
@@ -21,31 +22,49 @@ export default function LoginConvenio() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
     try {
+      console.log('Enviando requisição de login');
       const response = await fetch('/api/convenio/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
         body: JSON.stringify(formData),
+        cache: 'no-store'
       });
 
+      console.log('Resposta recebida, status:', response.status);
       const data = await response.json();
+      console.log('Dados da resposta:', data);
 
       if (data.success) {
         // Salvar os dados do convênio no localStorage
         if (data.data) {
           localStorage.setItem('dadosConvenio', JSON.stringify(data.data));
-          console.log('Dados do convênio salvos no localStorage:', data.data);
-          toast.success('Login efetuado com sucesso!');
+          console.log('Dados do convênio salvos no localStorage');
         }
-        router.push('/convenio/dashboard');
+        
+        toast.success('Login efetuado com sucesso!', {
+          position: 'top-right',
+          duration: 3000
+        });
+        
+        // Redirecionamento após um pequeno delay para garantir que o toast seja mostrado
+        setTimeout(() => {
+          router.push('/convenio/dashboard');
+        }, 300);
       } else {
+        setError(data.message || 'Erro ao fazer login');
         toast.error(data.message || 'Erro ao fazer login');
       }
     } catch (error) {
       console.error('Erro no login:', error);
+      setError('Erro ao conectar com o servidor. Tente novamente mais tarde.');
       toast.error('Erro ao conectar com o servidor. Tente novamente mais tarde.');
     } finally {
       setLoading(false);
@@ -65,6 +84,12 @@ export default function LoginConvenio() {
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            {error && (
+              <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+                {error}
+              </div>
+            )}
+            
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label htmlFor="usuario" className="block text-sm font-medium text-gray-700">
@@ -79,6 +104,7 @@ export default function LoginConvenio() {
                     value={formData.usuario}
                     onChange={(e) => setFormData({ ...formData, usuario: e.target.value })}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -96,6 +122,7 @@ export default function LoginConvenio() {
                     value={formData.senha}
                     onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -107,7 +134,10 @@ export default function LoginConvenio() {
                   className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
-                    <FaSpinner className="animate-spin h-5 w-5" />
+                    <div className="flex items-center">
+                      <FaSpinner className="animate-spin h-5 w-5 mr-2" />
+                      <span>Entrando...</span>
+                    </div>
                   ) : (
                     'Entrar'
                   )}
