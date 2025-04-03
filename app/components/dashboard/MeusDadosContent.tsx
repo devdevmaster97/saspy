@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaUser } from 'react-icons/fa';
-import { useTheme } from '@/app/contexts/ThemeContext';
 
 interface DadosAssociado {
   nome: string;
@@ -41,12 +40,6 @@ export default function MeusDadosContent() {
   const [dados, setDados] = useState<DadosAssociado | null>(null);
   const [editando, setEditando] = useState(false);
   const [formData, setFormData] = useState<Partial<DadosAssociado>>({});
-  const { theme } = useTheme();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   useEffect(() => {
     if (session?.user?.cartao && status === 'authenticated') {
@@ -100,23 +93,6 @@ export default function MeusDadosContent() {
     }
   };
 
-  if (!isMounted) {
-    return null;
-  }
-
-  // Classes para temas
-  const bgClass = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
-  const cardBgClass = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
-  const textPrimaryClass = theme === 'dark' ? 'text-white' : 'text-gray-900';
-  const textSecondaryClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-500';
-  const textErrorClass = theme === 'dark' ? 'text-red-400' : 'text-red-600';
-  const labelClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
-  const inputBgClass = theme === 'dark' ? 'bg-gray-700' : 'bg-white';
-  const inputTextClass = theme === 'dark' ? 'text-white' : 'text-gray-900';
-  const inputBorderClass = theme === 'dark' ? 'border-gray-600' : 'border-gray-300';
-  const inputFocusClass = theme === 'dark' ? 'focus:ring-blue-500 focus:border-blue-500' : 'focus:ring-blue-500 focus:border-blue-500';
-  const iconClass = theme === 'dark' ? 'text-gray-400' : 'text-gray-400';
-
   if (status === 'loading' && !dados) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -128,7 +104,7 @@ export default function MeusDadosContent() {
   if (error) {
     return (
       <div className="text-center p-4">
-        <p className={textErrorClass}>{error}</p>
+        <p className="text-red-600">{error}</p>
         <button
           onClick={buscarDados}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -141,9 +117,9 @@ export default function MeusDadosContent() {
 
   return (
     <div className="max-w-2xl mx-auto p-4">
-      <div className={`${cardBgClass} rounded-lg shadow-lg p-6`}>
+      <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className={`text-xl font-semibold ${textPrimaryClass}`}>Meus Dados</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Meus Dados</h2>
           {!editando && (
             <button
               onClick={() => setEditando(true)}
@@ -157,114 +133,114 @@ export default function MeusDadosContent() {
         {editando ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className={`block text-sm font-medium ${labelClass}`}>Nome</label>
+              <label className="block text-sm font-medium text-gray-700">Nome</label>
               <input
                 type="text"
                 name="nome"
                 value={formData.nome || ''}
                 onChange={handleInputChange}
-                className={`mt-1 block w-full rounded-md ${inputBorderClass} shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass}`}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 disabled
               />
             </div>
 
             <div>
-              <label className={`block text-sm font-medium ${labelClass}`}>Email</label>
+              <label className="block text-sm font-medium text-gray-700">Email</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email || ''}
                 onChange={handleInputChange}
-                className={`mt-1 block w-full rounded-md ${inputBorderClass} shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass}`}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className={`block text-sm font-medium ${labelClass}`}>Celular</label>
+              <label className="block text-sm font-medium text-gray-700">Celular</label>
               <input
                 type="tel"
                 name="cel"
                 value={formData.cel || ''}
                 onChange={handleInputChange}
-                className={`mt-1 block w-full rounded-md ${inputBorderClass} shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass}`}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className={`block text-sm font-medium ${labelClass}`}>CPF</label>
+              <label className="block text-sm font-medium text-gray-700">CPF</label>
               <input
                 type="text"
                 name="cpf"
                 value={formData.cpf || ''}
                 onChange={handleInputChange}
-                className={`mt-1 block w-full rounded-md ${inputBorderClass} shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass}`}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 disabled
               />
             </div>
 
             <div>
-              <label className={`block text-sm font-medium ${labelClass}`}>CEP</label>
+              <label className="block text-sm font-medium text-gray-700">CEP</label>
               <input
                 type="text"
                 name="cep"
                 value={formData.cep || ''}
                 onChange={handleInputChange}
-                className={`mt-1 block w-full rounded-md ${inputBorderClass} shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass}`}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className={`block text-sm font-medium ${labelClass}`}>Endereço</label>
+              <label className="block text-sm font-medium text-gray-700">Endereço</label>
               <input
                 type="text"
                 name="endereco"
                 value={formData.endereco || ''}
                 onChange={handleInputChange}
-                className={`mt-1 block w-full rounded-md ${inputBorderClass} shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass}`}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className={`block text-sm font-medium ${labelClass}`}>Número</label>
+              <label className="block text-sm font-medium text-gray-700">Número</label>
               <input
                 type="text"
                 name="numero"
                 value={formData.numero || ''}
                 onChange={handleInputChange}
-                className={`mt-1 block w-full rounded-md ${inputBorderClass} shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass}`}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className={`block text-sm font-medium ${labelClass}`}>Bairro</label>
+              <label className="block text-sm font-medium text-gray-700">Bairro</label>
               <input
                 type="text"
                 name="bairro"
                 value={formData.bairro || ''}
                 onChange={handleInputChange}
-                className={`mt-1 block w-full rounded-md ${inputBorderClass} shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass}`}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className={`block text-sm font-medium ${labelClass}`}>Cidade</label>
+              <label className="block text-sm font-medium text-gray-700">Cidade</label>
               <input
                 type="text"
                 name="cidade"
                 value={formData.cidade || ''}
                 onChange={handleInputChange}
-                className={`mt-1 block w-full rounded-md ${inputBorderClass} shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass}`}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className={`block text-sm font-medium ${labelClass}`}>Estado</label>
+              <label className="block text-sm font-medium text-gray-700">Estado</label>
               <input
                 type="text"
                 name="uf"
                 value={formData.uf || ''}
                 onChange={handleInputChange}
-                className={`mt-1 block w-full rounded-md ${inputBorderClass} shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass}`}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
@@ -275,7 +251,7 @@ export default function MeusDadosContent() {
                   setEditando(false);
                   setFormData(dados || {});
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               >
                 Cancelar
               </button>
@@ -290,34 +266,34 @@ export default function MeusDadosContent() {
         ) : (
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <FaUser className={iconClass} />
+              <FaUser className="text-gray-400" />
               <div>
-                <p className={`text-sm ${textSecondaryClass}`}>Nome</p>
-                <p className={`font-medium ${textPrimaryClass}`}>{dados?.nome}</p>
+                <p className="text-sm text-gray-500">Nome</p>
+                <p className="font-medium">{dados?.nome}</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-3">
-              <FaEnvelope className={iconClass} />
+              <FaEnvelope className="text-gray-400" />
               <div>
-                <p className={`text-sm ${textSecondaryClass}`}>Email</p>
-                <p className={`font-medium ${textPrimaryClass}`}>{dados?.email || 'Não informado'}</p>
+                <p className="text-sm text-gray-500">Email</p>
+                <p className="font-medium">{dados?.email || 'Não informado'}</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-3">
-              <FaPhone className={iconClass} />
+              <FaPhone className="text-gray-400" />
               <div>
-                <p className={`text-sm ${textSecondaryClass}`}>Celular</p>
-                <p className={`font-medium ${textPrimaryClass}`}>{dados?.cel || 'Não informado'}</p>
+                <p className="text-sm text-gray-500">Celular</p>
+                <p className="font-medium">{dados?.cel || 'Não informado'}</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-3">
-              <FaMapMarkerAlt className={iconClass} />
+              <FaMapMarkerAlt className="text-gray-400" />
               <div>
-                <p className={`text-sm ${textSecondaryClass}`}>Endereço</p>
-                <p className={`font-medium ${textPrimaryClass}`}>
+                <p className="text-sm text-gray-500">Endereço</p>
+                <p className="font-medium">
                   {dados?.endereco}, {dados?.numero} - {dados?.bairro}
                   <br />
                   {dados?.cidade} - {dados?.uf} - {dados?.cep}

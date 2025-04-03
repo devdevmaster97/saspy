@@ -5,17 +5,11 @@
       "type": "chrome",
       "request": "launch",
       "name": "Depurar Next.js no Chrome",
-      "program": "${workspaceFolder}/app/api/convenio/lancamentos/route.ts",
-      "runtimeArgs": ["-r", "ts-node/register"],
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "url": "http://localhost:3000",
       "webRoot": "${workspaceFolder}",
       "sourceMaps": true,
       "sourceMapPathOverrides": {
         "webpack://_N_E/*": "${webRoot}/*"
-      },
-      "env": {
-        "NODE_ENV": "development"
       }
     }
   ]

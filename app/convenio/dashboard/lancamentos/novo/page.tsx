@@ -31,13 +31,10 @@ export default function NovoLancamentoPage() {
   const [valorParcela, setValorParcela] = useState(0);
   const [showQrReader, setShowQrReader] = useState(false);
   const [mesCorrente, setMesCorrente] = useState('');
-  const [mesesDisponiveis, setMesesDisponiveis] = useState<string[]>([]);
-  const [mesSelecionado, setMesSelecionado] = useState('');
   const [showConfirmacao, setShowConfirmacao] = useState(false);
   const [valorPagamento, setValorPagamento] = useState('');
   const qrReaderRef = useRef<HTMLDivElement>(null);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
-  const mesCorrenteCarregadoRef = useRef(false);
   
   // Usar URLs reais da API - sem simulações locais
   const BASE_URL = 'https://qrcred.makecard.com.br';
@@ -1105,10 +1102,12 @@ export default function NovoLancamentoPage() {
             if (situacao === 1 || situacao === '1') {
               // Sucesso - situacao = 1
               console.log('✅ Venda registrada com sucesso! Registro:', resultadoVenda.registrolan);
+              toast.success('Pagamento realizado com sucesso!');
               
               // Salvar dados da venda
               if (resultadoVenda.registrolan) {
                 console.log('✅ Registro de lançamento:', resultadoVenda.registrolan);
+                // Aqui poderia armazenar o registro para exibição ou referência futura
               }
               
               // Exibir tela de confirmação
@@ -1122,6 +1121,7 @@ export default function NovoLancamentoPage() {
             } else if (!situacao && resultadoVenda.responseText) {
               // Caso em que recebemos texto, mas assumimos sucesso
               console.log('✅ Venda possivelmente registrada (resposta em texto)');
+              toast.success('Pagamento processado!');
               setValorPagamento(valor);
               setShowConfirmacao(true);
             } else {
@@ -1132,6 +1132,7 @@ export default function NovoLancamentoPage() {
           } else if (typeof resultadoVenda === 'string' && resultadoVenda.trim() !== '') {
             // Resposta é string não vazia, assumimos sucesso
             console.log('✅ Resposta em formato de texto:', resultadoVenda);
+            toast.success('Pagamento processado!');
             setValorPagamento(valor);
             setShowConfirmacao(true);
           } else {
@@ -1200,7 +1201,7 @@ export default function NovoLancamentoPage() {
                 onClick={handleVoltarParaDashboard}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
               >
-                Novo Lançamento
+                Voltar para Lançamentos
               </button>
             </div>
           </div>

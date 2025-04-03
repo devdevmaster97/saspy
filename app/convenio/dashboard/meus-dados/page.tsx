@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { FaSpinner, FaSave, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
-import { useTheme } from '@/app/contexts/ThemeContext';
 
 interface ConvenioData {
   cod_convenio: string;
@@ -29,12 +28,6 @@ export default function MeusDadosPage() {
   const [editMode, setEditMode] = useState(false);
   const [convenioData, setConvenioData] = useState<ConvenioData | null>(null);
   const [formData, setFormData] = useState<ConvenioData | null>(null);
-  const { theme } = useTheme();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   useEffect(() => {
     const fetchConvenioData = async () => {
@@ -102,20 +95,6 @@ export default function MeusDadosPage() {
     }
   };
 
-  if (!isMounted) {
-    return null;
-  }
-
-  // Classes para tema
-  const bgClass = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
-  const textPrimaryClass = theme === 'dark' ? 'text-white' : 'text-gray-900';
-  const textSecondaryClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-600';
-  const labelClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
-  const inputBgClass = theme === 'dark' ? 'bg-gray-700' : editMode ? 'bg-white' : 'bg-gray-100';
-  const inputTextClass = theme === 'dark' ? 'text-white' : 'text-gray-900';
-  const inputBorderClass = theme === 'dark' ? 'border-gray-600' : 'border-gray-300';
-  const inputFocusClass = 'focus:outline-none focus:ring-blue-500 focus:border-blue-500';
-
   if (loading) {
     return (
       <div className="flex justify-center my-12">
@@ -126,18 +105,18 @@ export default function MeusDadosPage() {
 
   if (!convenioData) {
     return (
-      <div className={`text-center py-12 ${bgClass} shadow rounded-lg`}>
-        <p className={textSecondaryClass}>Não foi possível carregar os dados do convênio.</p>
+      <div className="text-center py-12 bg-white shadow rounded-lg">
+        <p className="text-gray-500">Não foi possível carregar os dados do convênio.</p>
       </div>
     );
   }
 
   return (
-    <div className={theme === 'dark' ? 'bg-gray-900' : ''}>
+    <div>
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className={`text-2xl font-bold ${textPrimaryClass}`}>Meus Dados</h1>
-          <p className={`mt-1 text-sm ${textSecondaryClass}`}>Visualize e edite as informações do seu convênio</p>
+          <h1 className="text-2xl font-bold text-gray-900">Meus Dados</h1>
+          <p className="mt-1 text-sm text-gray-600">Visualize e edite as informações do seu convênio</p>
         </div>
         
         {!editMode ? (
@@ -160,11 +139,11 @@ export default function MeusDadosPage() {
         )}
       </div>
 
-      <div className={`${bgClass} shadow rounded-lg p-6`}>
+      <div className="bg-white shadow rounded-lg p-6">
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label htmlFor="razaosocial" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="razaosocial" className="block text-sm font-medium text-gray-700">
                 Razão Social
               </label>
               <input
@@ -174,12 +153,12 @@ export default function MeusDadosPage() {
                 value={formData?.razaosocial || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
 
             <div>
-              <label htmlFor="nome_fantasia" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="nome_fantasia" className="block text-sm font-medium text-gray-700">
                 Nome Fantasia
               </label>
               <input
@@ -189,12 +168,12 @@ export default function MeusDadosPage() {
                 value={formData?.nome_fantasia || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
 
             <div>
-              <label htmlFor="cnpj" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="cnpj" className="block text-sm font-medium text-gray-700">
                 CNPJ
               </label>
               <input
@@ -204,12 +183,12 @@ export default function MeusDadosPage() {
                 value={formData?.cnpj || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
 
             <div>
-              <label htmlFor="cpf" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="cpf" className="block text-sm font-medium text-gray-700">
                 CPF
               </label>
               <input
@@ -219,12 +198,12 @@ export default function MeusDadosPage() {
                 value={formData?.cpf || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
 
             <div>
-              <label htmlFor="endereco" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="endereco" className="block text-sm font-medium text-gray-700">
                 Endereço
               </label>
               <input
@@ -234,12 +213,12 @@ export default function MeusDadosPage() {
                 value={formData?.endereco || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
 
             <div>
-              <label htmlFor="numero" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="numero" className="block text-sm font-medium text-gray-700">
                 Número
               </label>
               <input
@@ -249,12 +228,12 @@ export default function MeusDadosPage() {
                 value={formData?.numero || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
 
             <div>
-              <label htmlFor="bairro" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="bairro" className="block text-sm font-medium text-gray-700">
                 Bairro
               </label>
               <input
@@ -264,12 +243,12 @@ export default function MeusDadosPage() {
                 value={formData?.bairro || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
 
             <div>
-              <label htmlFor="cidade" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="cidade" className="block text-sm font-medium text-gray-700">
                 Cidade
               </label>
               <input
@@ -279,12 +258,12 @@ export default function MeusDadosPage() {
                 value={formData?.cidade || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
 
             <div>
-              <label htmlFor="estado" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="estado" className="block text-sm font-medium text-gray-700">
                 Estado
               </label>
               <input
@@ -294,12 +273,12 @@ export default function MeusDadosPage() {
                 value={formData?.estado || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
 
             <div>
-              <label htmlFor="cep" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="cep" className="block text-sm font-medium text-gray-700">
                 CEP
               </label>
               <input
@@ -309,12 +288,12 @@ export default function MeusDadosPage() {
                 value={formData?.cep || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
 
             <div>
-              <label htmlFor="cel" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="cel" className="block text-sm font-medium text-gray-700">
                 Celular
               </label>
               <input
@@ -324,12 +303,12 @@ export default function MeusDadosPage() {
                 value={formData?.cel || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
 
             <div>
-              <label htmlFor="tel" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="tel" className="block text-sm font-medium text-gray-700">
                 Telefone
               </label>
               <input
@@ -339,12 +318,12 @@ export default function MeusDadosPage() {
                 value={formData?.tel || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
 
             <div>
-              <label htmlFor="email" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email
               </label>
               <input
@@ -354,12 +333,12 @@ export default function MeusDadosPage() {
                 value={formData?.email || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
 
             <div>
-              <label htmlFor="contato" className={`block text-sm font-medium ${labelClass}`}>
+              <label htmlFor="contato" className="block text-sm font-medium text-gray-700">
                 Contato
               </label>
               <input
@@ -369,7 +348,7 @@ export default function MeusDadosPage() {
                 value={formData?.contato || ''}
                 onChange={handleChange}
                 disabled={!editMode}
-                className={`mt-1 block w-full px-3 py-2 border ${inputBorderClass} rounded-md shadow-sm ${inputFocusClass} ${inputBgClass} ${inputTextClass} sm:text-sm`}
+                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${!editMode ? 'bg-gray-100' : ''}`}
               />
             </div>
           </div>

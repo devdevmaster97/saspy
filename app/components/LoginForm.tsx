@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import { FaLock, FaCreditCard, FaSpinner } from 'react-icons/fa';
 import axios from 'axios';
 import { FaSpinner as FaSpinner6 } from 'react-icons/fa6';
-import { useTheme } from '@/app/contexts/ThemeContext';
 
 // Esquema de validação para o formulário de login
 const loginSchema = z.object({
@@ -47,17 +46,11 @@ interface LoginFormProps {
 
 export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
   const router = useRouter();
-  const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [readOnly, setReadOnly] = useState(false);
   const [associadoNome, setAssociadoNome] = useState('Login do Usuário');
   const [debugInfo, setDebugInfo] = useState<string>('');
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -181,35 +174,20 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
     }
   };
 
-  if (!isMounted) {
-    return null;
-  }
-
-  // Classes baseadas no tema
-  const bgClass = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
-  const textClass = theme === 'dark' ? 'text-white' : 'text-gray-800';
-  const borderClass = theme === 'dark' ? 'border-gray-600' : 'border-gray-300';
-  const inputBgClass = theme === 'dark' ? 'bg-gray-700' : 'bg-transparent';
-  const inputTextClass = theme === 'dark' ? 'text-white' : 'text-gray-800';
-  const inputIconClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-400';
-  const debugBgClass = theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100';
-  const debugTextClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
-  const placeholderClass = theme === 'dark' ? 'placeholder-gray-400' : 'placeholder-gray-500';
-
   return (
-    <div className={`w-full max-w-md p-6 ${bgClass} rounded-lg shadow-lg`}>
+    <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
       <div className="text-center mb-6">
-        <h2 className={`text-2xl font-bold ${textClass}`}>{associadoNome}</h2>
+        <h2 className="text-2xl font-bold text-gray-800">{associadoNome}</h2>
       </div>
 
       <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
         <div className="space-y-1">
-          <div className={`flex items-center border ${borderClass} rounded-md px-3 py-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 ${theme === 'dark' ? 'bg-gray-700' : ''}`}>
-            <FaCreditCard className={inputIconClass + " mr-2"} />
+          <div className="flex items-center border rounded-md px-3 py-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+            <FaCreditCard className="text-gray-400 mr-2" />
             <input
               type="text"
               placeholder="Número do Cartão"
-              className={`flex-1 outline-none ${inputTextClass} ${placeholderClass} ${inputBgClass}`}
+              className="flex-1 outline-none bg-transparent"
               readOnly={readOnly}
               maxLength={10}
               {...register('cartao')}
@@ -221,12 +199,12 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
         </div>
 
         <div className="space-y-1">
-          <div className={`flex items-center border ${borderClass} rounded-md px-3 py-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 ${theme === 'dark' ? 'bg-gray-700' : ''}`}>
-            <FaLock className={inputIconClass + " mr-2"} />
+          <div className="flex items-center border rounded-md px-3 py-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+            <FaLock className="text-gray-400 mr-2" />
             <input
               type="password"
               placeholder="Senha"
-              className={`flex-1 outline-none ${inputTextClass} ${placeholderClass} ${inputBgClass}`}
+              className="flex-1 outline-none bg-transparent"
               maxLength={20}
               {...register('senha')}
             />
@@ -243,7 +221,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
         )}
         
         {debugInfo && (
-          <div className={`p-2 ${debugBgClass} ${debugTextClass} rounded text-xs overflow-auto max-h-40`}>
+          <div className="p-2 bg-gray-100 text-gray-700 rounded text-xs overflow-auto max-h-40">
             <strong>Info Diagnóstico:</strong> {debugInfo}
           </div>
         )}
@@ -275,7 +253,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
         <div className="text-center">
           <a 
             href="#" 
-            className={`text-sm ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'}`}
+            className="text-sm text-blue-600 hover:text-blue-800"
             onClick={(e) => {
               e.preventDefault();
               router.push('/esqueci-senha');

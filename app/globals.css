@@ -2,93 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Variáveis de tema para modo claro (padrão) */
-:root,
-html[data-theme='light'] {
+:root {
   --background: #ffffff;
-  --foreground: #131313;
-  --card-background: #ffffff;
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --text-primary: #1f2937;
-  --text-secondary: #4b5563;
-  --text-accent: #2563eb;
-  --border: #e5e7eb;
-  --border-light: #f3f4f6;
-  --input-background: #ffffff;
-  --input-border: #d1d5db;
-  --sidebar-background: #f8fafc;
-  --navbar-background: #ffffff;
-  --navbar-border: #e5e7eb;
-  --hover-background: #f3f4f6;
-  --error: #ef4444;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --info: #3b82f6;
+  --foreground: #171717;
 }
 
-/* Variáveis de tema para modo escuro */
-html[data-theme='dark'] {
-  --background: #121212;
-  --foreground: #f9fafb;
-  --card-background: #1f2937;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --text-primary: #f3f4f6;
-  --text-secondary: #9ca3af;
-  --text-accent: #60a5fa;
-  --border: #374151;
-  --border-light: #1f2937;
-  --input-background: #1f2937;
-  --input-border: #4b5563;
-  --sidebar-background: #0f172a;
-  --navbar-background: #1f2937;
-  --navbar-border: #374151;
-  --hover-background: #374151;
-  --error: #f87171;
-  --success: #34d399;
-  --warning: #fbbf24;
-  --info: #60a5fa;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
 }
 
-/* Configurações gerais */
 body {
-  background-color: var(--background);
+  background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.card {
-  background-color: var(--card-background);
-  border: 1px solid var(--border);
-}
-
-/* Aplicações específicas para elementos */
-html[data-theme='dark'] .bg-white,
-html[data-theme='dark'] .bg-gray-50 {
-  background-color: var(--card-background);
-}
-
-html[data-theme='dark'] .text-gray-600 {
-  color: var(--text-secondary);
-}
-
-html[data-theme='dark'] .border-gray-200 {
-  border-color: var(--border);
-}
-
-/* Remover a barra de rolagem horizontal para elementos com a classe no-scrollbar */
 @layer utilities {
+  /* Esconde a barra de rolagem para Chrome, Safari e Opera */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+  
+  /* Esconde a barra de rolagem para IE, Edge e Firefox */
   .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
+    -ms-overflow-style: none;  /* IE e Edge */
     scrollbar-width: none;  /* Firefox */
   }
-}
-
-/* Transição suave entre temas */
-body, html, * {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }

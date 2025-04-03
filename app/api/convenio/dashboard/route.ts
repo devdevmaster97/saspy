@@ -9,17 +9,10 @@ export async function GET() {
     const encodedToken = cookieStore.get('convenioToken')?.value;
 
     if (!encodedToken) {
-      console.log('Token não encontrado, retornando dados mockados para desenvolvimento');
-      // Para facilitar o desenvolvimento, retornamos dados mockados se não houver token
-      return NextResponse.json({
-        success: true,
-        data: {
-          totalLancamentos: 45,
-          totalVendas: 38,
-          totalEstornos: 7,
-          totalAssociados: 120
-        }
-      });
+      return NextResponse.json(
+        { success: false, message: 'Token não encontrado' },
+        { status: 401 }
+      );
     }
 
     // Decodificar o token para obter as credenciais

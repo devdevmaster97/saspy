@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v1.0.5';
+const CACHE_VERSION = 'v1.0.4';
 const CACHE_NAME = `qrcred-cache-${CACHE_VERSION}`;
 const CACHE_TIMESTAMP = Date.now();
 const urlsToCache = [
@@ -133,12 +133,6 @@ self.addEventListener('fetch', (event) => {
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
-  
-  // Ignorar requisições POST - não podem ser armazenadas em cache
-  if (event.request.method === 'POST') {
-    console.log('[Service Worker] Ignorando requisição POST:', event.request.url);
-    return;
-  }
 
   // Verifique se é uma solicitação de navegação
   if (event.request.mode === 'navigate') {
@@ -197,8 +191,8 @@ self.addEventListener('fetch', (event) => {
         
         // Caso contrário, busca na rede
         return fetch(event.request).then((networkResponse) => {
-          // Armazena em cache para uso futuro (apenas métodos GET)
-          if (networkResponse.ok && event.request.method === 'GET') {
+          // Armazena em cache para uso futuro
+          if (networkResponse.ok) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);
