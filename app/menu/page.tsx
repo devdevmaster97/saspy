@@ -139,12 +139,6 @@ export default function MenuPage() {
             >
               Política de Privacidade
             </button>
-            <button 
-              onClick={handleEncerrarApp}
-              className="text-red-600 hover:underline text-sm flex items-center gap-1"
-            >
-              <FaPowerOff size={12} /> Encerrar App
-            </button>
           </div>
           <p className="text-gray-500 text-xs mt-2">
             Versão: {appVersion}
