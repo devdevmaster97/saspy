@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaSpinner, FaReceipt, FaChartLine, FaUser, FaFileAlt } from 'react-icons/fa';
+import { FaSpinner, FaReceipt, FaChartLine, FaUser, FaFileAlt, FaUndo } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
+import Link from 'next/link';
 
 interface DashboardData {
   totalLancamentos: number;
@@ -115,22 +116,22 @@ export default function DashboardPage() {
       <div className="mt-8">
         <h2 className="text-lg font-medium text-gray-900 mb-4">Ações Rápidas</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button className="flex items-center justify-center p-4 bg-white rounded-lg shadow hover:bg-gray-50">
+          <Link href="/convenio/dashboard/lancamentos" className="flex items-center justify-center p-4 bg-white rounded-lg shadow hover:bg-gray-50 transition duration-150">
             <FaReceipt className="h-5 w-5 text-blue-600 mr-2" />
             <span className="text-gray-700">Novo Lançamento</span>
-          </button>
-          <button className="flex items-center justify-center p-4 bg-white rounded-lg shadow hover:bg-gray-50">
+          </Link>
+          <Link href="/convenio/dashboard/relatorios" className="flex items-center justify-center p-4 bg-white rounded-lg shadow hover:bg-gray-50 transition duration-150">
             <FaChartLine className="h-5 w-5 text-green-600 mr-2" />
             <span className="text-gray-700">Relatório de Vendas</span>
-          </button>
-          <button className="flex items-center justify-center p-4 bg-white rounded-lg shadow hover:bg-gray-50">
-            <FaFileAlt className="h-5 w-5 text-purple-600 mr-2" />
-            <span className="text-gray-700">Gerar Relatório</span>
-          </button>
-          <button className="flex items-center justify-center p-4 bg-white rounded-lg shadow hover:bg-gray-50">
+          </Link>
+          <Link href="/convenio/dashboard/estornos" className="flex items-center justify-center p-4 bg-white rounded-lg shadow hover:bg-gray-50 transition duration-150">
+            <FaUndo className="h-5 w-5 text-red-600 mr-2" />
+            <span className="text-gray-700">Estornos</span>
+          </Link>
+          <Link href="/convenio/dashboard/meus-dados" className="flex items-center justify-center p-4 bg-white rounded-lg shadow hover:bg-gray-50 transition duration-150">
             <FaUser className="h-5 w-5 text-orange-600 mr-2" />
-            <span className="text-gray-700">Gerenciar Associados</span>
-          </button>
+            <span className="text-gray-700">Meus Dados</span>
+          </Link>
         </div>
       </div>
     </div>

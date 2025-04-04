@@ -170,7 +170,7 @@ export default function EstornosPage() {
   };
 
   return (
-    <div>
+    <div className="mb-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Estornos</h1>
         <p className="mt-1 text-sm text-gray-600">Visualize e gerencie os estornos do seu convênio</p>
@@ -196,151 +196,185 @@ export default function EstornosPage() {
           <FaSpinner className="animate-spin text-blue-500 text-4xl" />
         </div>
       ) : filteredEstornos.length > 0 ? (
-        <div className="overflow-x-auto bg-white shadow rounded-lg">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Data Estorno
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Lançamento
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Associado
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Empregador
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Valor
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Parcela
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredEstornos.map((estorno) => (
-                <tr key={estorno.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatarData(estorno.data_estorno)} {estorno.hora_estorno}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {estorno.lancamento}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {estorno.nome_associado}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {estorno.nome_empregador}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {formatarValor(estorno.valor)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {estorno.parcela || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button
-                      onClick={() => handleConfirmarCancelamento(estorno)}
-                      disabled={cancelandoId === estorno.id}
-                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {cancelandoId === estorno.id ? (
-                        <FaSpinner className="animate-spin h-4 w-4 mr-1" />
-                      ) : (
-                        <FaTimes className="h-4 w-4 mr-1" />
-                      )}
-                      Cancelar
-                    </button>
-                  </td>
+        <>
+          {/* Versão para Desktop */}
+          <div className="hidden md:block overflow-x-auto bg-white shadow rounded-lg">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Data Estorno
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Lançamento
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Associado
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Empregador
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Valor
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Parcela
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ações
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredEstornos.map((estorno) => (
+                  <tr key={estorno.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatarData(estorno.data_estorno)} {estorno.hora_estorno}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {estorno.lancamento}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {estorno.nome_associado}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {estorno.nome_empregador}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {formatarValor(estorno.valor)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {estorno.parcela || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <button
+                        onClick={() => handleConfirmarCancelamento(estorno)}
+                        disabled={cancelandoId === estorno.id}
+                        className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {cancelandoId === estorno.id ? (
+                          <FaSpinner className="animate-spin h-5 w-5" />
+                        ) : (
+                          <FaTimes className="h-5 w-5" />
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Versão para Mobile */}
+          <div className="md:hidden space-y-4">
+            {filteredEstornos.map((estorno) => (
+              <div key={estorno.id} className="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-bold text-gray-900">
+                      {estorno.nome_associado}
+                    </h3>
+                    <p className="text-sm text-gray-500">{estorno.nome_empregador}</p>
+                  </div>
+                  <span className="font-bold text-gray-900">{formatarValor(estorno.valor)}</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                  <div>
+                    <span className="text-gray-500">Data:</span>{' '}
+                    <span className="text-gray-900">{formatarData(estorno.data_estorno)}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Lançamento:</span>{' '}
+                    <span className="text-gray-900">{estorno.lancamento}</span>
+                  </div>
+                  {estorno.parcela && (
+                    <div>
+                      <span className="text-gray-500">Parcela:</span>{' '}
+                      <span className="text-gray-900">{estorno.parcela}</span>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-gray-500">Hora:</span>{' '}
+                    <span className="text-gray-900">{estorno.hora_estorno || '-'}</span>
+                  </div>
+                </div>
+                
+                <div className="mt-2 border-t pt-2 flex justify-end">
+                  <button
+                    onClick={() => handleConfirmarCancelamento(estorno)}
+                    disabled={cancelandoId === estorno.id}
+                    className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {cancelandoId === estorno.id ? (
+                      <>
+                        <FaSpinner className="animate-spin mr-2 h-4 w-4" />
+                        Cancelando...
+                      </>
+                    ) : (
+                      <>
+                        <FaTimes className="mr-2 h-4 w-4" />
+                        Cancelar Estorno
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       ) : (
-        <div className="text-center py-12 bg-white shadow rounded-lg">
-          <p className="text-gray-500">Nenhum estorno encontrado.</p>
+        <div className="bg-white shadow rounded-lg p-8 text-center">
+          <FaExclamationTriangle className="mx-auto h-12 w-12 text-yellow-400" />
+          <h3 className="mt-2 text-lg font-medium text-gray-900">Nenhum estorno encontrado</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            {searchTerm ? 'Nenhum resultado encontrado para sua pesquisa.' : 'Não há estornos registrados no sistema.'}
+          </p>
         </div>
       )}
 
-      {/* Modal de Confirmação */}
+      {/* Modal de confirmação */}
       {showModal && estornoSelecionado && (
-        <div className="fixed inset-0 overflow-y-auto z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 transition-opacity">
-            <div className="absolute inset-0 bg-gray-500 bg-opacity-75"></div>
-          </div>
-          
-          <div className="bg-white rounded-lg overflow-hidden shadow-xl transform transition-all max-w-lg w-full">
-            <div className="bg-blue-50 p-4">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <FaQuestionCircle className="h-6 w-6 text-blue-600" />
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full overflow-hidden shadow-xl transform transition-all">
+            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div className="sm:flex sm:items-start">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <FaExclamationTriangle className="h-6 w-6 text-red-600" />
                 </div>
-                <div className="ml-3">
-                  <h3 className="text-lg font-medium text-blue-800">
-                    Confirmar Cancelamento
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Cancelar estorno
                   </h3>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      Tem certeza que deseja cancelar este estorno? Esta ação não poderá ser desfeita.
+                    </p>
+                    
+                    <div className="mt-3 bg-gray-50 p-3 rounded-md text-sm">
+                      <p><span className="font-semibold">Associado:</span> {estornoSelecionado.nome_associado}</p>
+                      <p><span className="font-semibold">Lançamento:</span> {estornoSelecionado.lancamento}</p>
+                      <p><span className="font-semibold">Valor:</span> {formatarValor(estornoSelecionado.valor)}</p>
+                      <p><span className="font-semibold">Data:</span> {formatarData(estornoSelecionado.data_estorno)}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            
-            <div className="p-6">
-              <div className="text-center sm:text-left">
-                <p className="text-sm text-gray-700 mb-4">
-                  Você está prestes a cancelar o seguinte estorno:
-                </p>
-                
-                <div className="bg-gray-50 rounded p-4 mb-6">
-                  <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
-                    <div className="sm:col-span-2">
-                      <dt className="text-sm font-medium text-gray-500">Associado</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{estornoSelecionado.nome_associado}</dd>
-                    </div>
-                    <div className="sm:col-span-1">
-                      <dt className="text-sm font-medium text-gray-500">Lançamento</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{estornoSelecionado.lancamento}</dd>
-                    </div>
-                    <div className="sm:col-span-1">
-                      <dt className="text-sm font-medium text-gray-500">Data</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{formatarData(estornoSelecionado.data_estorno || estornoSelecionado.data)}</dd>
-                    </div>
-                    <div className="sm:col-span-1">
-                      <dt className="text-sm font-medium text-gray-500">Valor</dt>
-                      <dd className="mt-1 text-sm font-semibold text-gray-900">{formatarValor(estornoSelecionado.valor)}</dd>
-                    </div>
-                    <div className="sm:col-span-1">
-                      <dt className="text-sm font-medium text-gray-500">Parcela</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{estornoSelecionado.parcela || '-'}</dd>
-                    </div>
-                  </dl>
-                </div>
-                
-                <p className="text-base font-medium text-gray-900 text-center">
-                  Deseja realmente cancelar este estorno?
-                </p>
-              </div>
-            </div>
-            
             <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={handleCancelarEstorno}
                 className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
               >
-                Sim, cancelar
+                Confirmar Cancelamento
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowModal(false)}
-                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
               >
-                Não, manter
+                Cancelar
               </button>
             </div>
           </div>

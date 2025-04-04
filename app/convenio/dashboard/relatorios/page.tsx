@@ -168,7 +168,7 @@ export default function RelatoriosPage() {
 
       {/* Listagem de Lançamentos */}
       <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-3">
           <h2 className="text-lg font-medium text-gray-900">Lançamentos</h2>
           <div className="flex items-center space-x-2">
             <FaFilter className="text-gray-500" />
@@ -179,7 +179,7 @@ export default function RelatoriosPage() {
               id="mes"
               value={mesSelecionado}
               onChange={(e) => setMesSelecionado(e.target.value)}
-              className="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+              className="block w-full md:w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
             >
               <option value="">Todos os Meses</option>
               {mesesDisponiveis.map((mes) => (
@@ -195,154 +195,192 @@ export default function RelatoriosPage() {
           <div className="text-center py-8">
             <FaSpinner className="animate-spin h-8 w-8 mx-auto text-blue-600" />
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data/Hora
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Associado
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Empregador
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Valor
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Mês
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Parcela
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data Fatura
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {lancamentosFiltrados.map((lancamento) => (
-                  <tr key={lancamento.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {lancamento.data} {lancamento.hora}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {lancamento.associado}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {lancamento.empregador}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      R$ {lancamento.valor}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {lancamento.mes}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {lancamento.parcela}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {lancamento.data_fatura}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <button
-                        onClick={() => confirmarEstorno(lancamento)}
-                        disabled={estornandoId === lancamento.id}
-                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {estornandoId === lancamento.id ? (
-                          <FaSpinner className="animate-spin h-4 w-4 mr-1" />
-                        ) : (
-                          <FaUndo className="h-4 w-4 mr-1" />
-                        )}
-                        Estornar
-                      </button>
-                    </td>
+        ) : lancamentosFiltrados.length > 0 ? (
+          <>
+            {/* Versão para Desktop */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Data/Hora
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Associado
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Empregador
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Valor
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Mês
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Parcela
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Data Fatura
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {lancamentosFiltrados.map((lancamento) => (
+                    <tr key={lancamento.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {lancamento.data} {lancamento.hora}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {lancamento.associado}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {lancamento.empregador}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        R$ {lancamento.valor}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {lancamento.mes}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {lancamento.parcela}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {lancamento.data_fatura || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button
+                          onClick={() => confirmarEstorno(lancamento)}
+                          disabled={estornandoId === lancamento.id}
+                          className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {estornandoId === lancamento.id ? (
+                            <FaSpinner className="animate-spin h-5 w-5" />
+                          ) : (
+                            <FaUndo className="h-5 w-5" />
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Versão para Mobile */}
+            <div className="md:hidden space-y-4">
+              {lancamentosFiltrados.map((lancamento) => (
+                <div key={lancamento.id} className="bg-white rounded-lg shadow border border-gray-200 p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-bold text-gray-900">
+                        {lancamento.associado}
+                      </h3>
+                      <p className="text-sm text-gray-500">{lancamento.empregador}</p>
+                    </div>
+                    <span className="font-bold text-gray-900">R$ {lancamento.valor}</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                    <div>
+                      <span className="text-gray-500">Data:</span>{' '}
+                      <span className="text-gray-900">{lancamento.data}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Hora:</span>{' '}
+                      <span className="text-gray-900">{lancamento.hora}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Mês:</span>{' '}
+                      <span className="text-gray-900">{lancamento.mes}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Parcela:</span>{' '}
+                      <span className="text-gray-900">{lancamento.parcela}</span>
+                    </div>
+                    {lancamento.data_fatura && (
+                      <div className="col-span-2">
+                        <span className="text-gray-500">Data Fatura:</span>{' '}
+                        <span className="text-gray-900">{lancamento.data_fatura}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-2 border-t pt-2 flex justify-end">
+                    <button
+                      onClick={() => confirmarEstorno(lancamento)}
+                      disabled={estornandoId === lancamento.id}
+                      className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {estornandoId === lancamento.id ? (
+                        <>
+                          <FaSpinner className="animate-spin mr-2 h-4 w-4" />
+                          Estornando...
+                        </>
+                      ) : (
+                        <>
+                          <FaUndo className="mr-2 h-4 w-4" />
+                          Estornar
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="bg-white rounded-lg p-8 text-center">
+            <FaExclamationTriangle className="mx-auto h-12 w-12 text-yellow-400" />
+            <h3 className="mt-2 text-lg font-medium text-gray-900">Nenhum lançamento encontrado</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {mesSelecionado 
+                ? `Não há lançamentos registrados para o mês ${mesSelecionado}.` 
+                : 'Não há lançamentos registrados no sistema.'}
+            </p>
           </div>
         )}
       </div>
 
-      {/* Modal de Confirmação */}
+      {/* Modal de confirmação */}
       {showModal && lancamentoSelecionado && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden transform transition-all">
-            <div className="bg-red-50 p-4 border-b border-red-100">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full overflow-hidden shadow-xl transform transition-all">
+            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div className="sm:flex sm:items-start">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
                   <FaExclamationTriangle className="h-6 w-6 text-red-600" />
                 </div>
-                <div className="ml-3">
-                  <h3 className="text-lg font-medium text-red-800">Confirmar Estorno</h3>
-                </div>
-                <div className="ml-auto">
-                  <button 
-                    onClick={() => setShowModal(false)}
-                    className="bg-red-50 rounded-md text-red-500 hover:text-red-600 focus:outline-none"
-                  >
-                    <FaTimes className="h-5 w-5" />
-                  </button>
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Confirmar estorno
+                  </h3>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      Tem certeza que deseja estornar este lançamento? Esta ação não poderá ser desfeita.
+                    </p>
+                    
+                    <div className="mt-3 bg-gray-50 p-3 rounded-md text-sm">
+                      <p><span className="font-semibold">Associado:</span> {lancamentoSelecionado.associado}</p>
+                      <p><span className="font-semibold">Data:</span> {lancamentoSelecionado.data}</p>
+                      <p><span className="font-semibold">Valor:</span> R$ {lancamentoSelecionado.valor}</p>
+                      <p><span className="font-semibold">Mês:</span> {lancamentoSelecionado.mes}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            
-            <div className="px-4 py-5 sm:p-6">
-              <div className="mt-2 text-center sm:mt-0 sm:text-left">
-                <p className="text-sm text-gray-500 mb-4">
-                  Você está prestes a estornar o seguinte lançamento:
-                </p>
-                
-                <div className="bg-gray-50 rounded-md p-4 mb-4">
-                  <dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
-                    <div className="sm:col-span-1">
-                      <dt className="text-sm font-medium text-gray-500">ID Lançamento</dt>
-                      <dd className="mt-1 text-sm text-gray-900 font-mono">{lancamentoSelecionado.id}</dd>
-                    </div>
-                    <div className="sm:col-span-1">
-                      <dt className="text-sm font-medium text-gray-500">Data/Hora</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{lancamentoSelecionado.data} {lancamentoSelecionado.hora}</dd>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <dt className="text-sm font-medium text-gray-500">Associado</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{lancamentoSelecionado.associado}</dd>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <dt className="text-sm font-medium text-gray-500">Empregador</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{lancamentoSelecionado.empregador}</dd>
-                    </div>
-                    <div className="sm:col-span-1">
-                      <dt className="text-sm font-medium text-gray-500">Mês</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{lancamentoSelecionado.mes}</dd>
-                    </div>
-                    <div className="sm:col-span-1">
-                      <dt className="text-sm font-medium text-gray-500">Valor</dt>
-                      <dd className="mt-1 text-sm font-semibold text-gray-900">R$ {lancamentoSelecionado.valor}</dd>
-                    </div>
-                  </dl>
-                </div>
-                
-                <p className="text-sm text-red-600 font-medium">
-                  Deseja prosseguir com o estorno?
-                </p>
-              </div>
-            </div>
-            
             <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
               <button
                 type="button"
                 onClick={handleEstornar}
-                className="w-full inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
               >
-                <FaCheck className="mr-2 h-4 w-4" /> Sim, estornar
+                Confirmar Estorno
               </button>
               <button
                 type="button"
