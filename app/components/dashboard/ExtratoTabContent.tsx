@@ -17,6 +17,7 @@ interface ExtratoItem {
   mes: string;
   ano: string;
   uri_cupom?: string;
+  parcela?: string;
 }
 
 interface ExtratoTabContentProps {
@@ -64,6 +65,7 @@ interface ContaResponse {
   nome: string;
   mes: string;
   uri_cupom: string;
+  parcela?: string;
 }
 
 export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
@@ -168,7 +170,8 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
           nome: item.nome,
           mes: item.mes,
           ano: item.mes.split('/')[1],
-          uri_cupom: item.uri_cupom
+          uri_cupom: item.uri_cupom,
+          parcela: item.parcela
         }));
         setExtractData(formattedData);
       } else {
@@ -198,6 +201,26 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
   useEffect(() => {
     if (mesSelecionado) {
       fetchExtractByMonth(mesSelecionado);
+      
+      // Centralizar o mês selecionado na visualização quando mudar
+      setTimeout(() => {
+        const botaoSelecionado = document.getElementById(`mes-${mesSelecionado}`);
+        if (botaoSelecionado) {
+          const container = document.getElementById('meses-container');
+          if (container) {
+            // Calcular a posição para centralizar
+            const containerWidth = container.offsetWidth;
+            const botaoWidth = botaoSelecionado.offsetWidth;
+            const scrollLeft = botaoSelecionado.offsetLeft - (containerWidth / 2) + (botaoWidth / 2);
+            
+            // Aplicar scroll suave
+            container.scrollTo({
+              left: scrollLeft,
+              behavior: 'smooth'
+            });
+          }
+        }
+      }, 300);
     }
   }, [mesSelecionado]);
 
@@ -227,27 +250,57 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
     }
   };
 
+  // Função para centralizar o mês selecionado na visualização
+  const centralizarMesSelecionado = (mesAbreviacao: string) => {
+    setMesSelecionado(mesAbreviacao);
+    
+    // Encontrar o botão do mês selecionado e centralizar na visualização
+    setTimeout(() => {
+      const botaoSelecionado = document.getElementById(`mes-${mesAbreviacao}`);
+      if (botaoSelecionado) {
+        const container = document.getElementById('meses-container');
+        if (container) {
+          // Calcular a posição para centralizar
+          const containerWidth = container.offsetWidth;
+          const botaoWidth = botaoSelecionado.offsetWidth;
+          const scrollLeft = botaoSelecionado.offsetLeft - (containerWidth / 2) + (botaoWidth / 2);
+          
+          // Aplicar scroll suave
+          container.scrollTo({
+            left: scrollLeft,
+            behavior: 'smooth'
+          });
+        }
+      }
+    }, 100);
+  };
+
   return (
     <div className="space-y-4">
       {/* Seletor de Meses */}
-      <div className="flex overflow-x-auto pb-2 gap-2 no-scrollbar">
-        {mesesExtrato.map((mes) => (
-          <button
-            key={mes.abreviacao}
-            onClick={() => setMesSelecionado(mes.abreviacao)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex flex-col items-center whitespace-nowrap ${
-              mesSelecionado === mes.abreviacao
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            <div className="flex items-center">
-              <FaCalendarAlt className="mr-2" />
-              <span>{mes.abreviacao}</span>
-            </div>
-            <div className="text-xs font-normal mt-1">{mes.periodo}</div>
-          </button>
-        ))}
+      <div id="meses-container" className="flex overflow-x-auto pb-2 gap-2 no-scrollbar relative">
+        <div className="absolute top-0 bottom-0 left-0 w-8 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+        <div className="flex mx-auto">
+          {mesesExtrato.map((mes) => (
+            <button
+              id={`mes-${mes.abreviacao}`}
+              key={mes.abreviacao}
+              onClick={() => centralizarMesSelecionado(mes.abreviacao)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex flex-col items-center whitespace-nowrap mx-1 ${
+                mesSelecionado === mes.abreviacao
+                  ? 'bg-blue-600 text-white transform scale-110 shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <div className="flex items-center">
+                <FaCalendarAlt className="mr-2" />
+                <span>{mes.abreviacao}</span>
+              </div>
+              <div className="text-xs font-normal mt-1">{mes.periodo}</div>
+            </button>
+          ))}
+        </div>
+        <div className="absolute top-0 bottom-0 right-0 w-8 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
       </div>
 
       {/* Barra de Pesquisa */}
@@ -277,7 +330,7 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
                 Valor
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ações
+                Parcela
               </th>
             </tr>
           </thead>
@@ -313,27 +366,7 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
                     {formatValue(item.valor)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex space-x-2">
-                      {item.uri_cupom && (
-                        <a
-                          href={item.uri_cupom}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <FiEye className="w-5 h-5" />
-                        </a>
-                      )}
-                      <button
-                        onClick={() => {
-                          // Implementar download do cupom
-                          console.log('Download cupom:', item.uri_cupom);
-                        }}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        <FiDownload className="w-5 h-5" />
-                      </button>
-                    </div>
+                    {item.parcela || '-'}
                   </td>
                 </tr>
               ))

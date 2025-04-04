@@ -330,22 +330,6 @@ export default function RelatoriosPage() {
                   </dl>
                 </div>
                 
-                <div className="rounded-md bg-yellow-50 p-4 mb-4">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <FaExclamationTriangle className="h-5 w-5 text-yellow-400" />
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-yellow-800">Atenção</h3>
-                      <div className="mt-2 text-sm text-yellow-700">
-                        <p>
-                          Esta ação não pode ser desfeita. O estorno remove permanentemente o lançamento do sistema.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 <p className="text-sm text-red-600 font-medium">
                   Deseja prosseguir com o estorno?
                 </p>
