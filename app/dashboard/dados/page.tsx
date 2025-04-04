@@ -1,4 +1,5 @@
 import MeusDadosContent from '@/app/components/dashboard/MeusDadosContent';
+import AuthGuard from '@/app/components/auth/AuthGuard';
 
 export default function DadosPage() {
   return (
@@ -7,7 +8,9 @@ export default function DadosPage() {
         <h1 className="text-2xl font-bold text-gray-900">Meus Dados</h1>
       </div>
       <div className="bg-white rounded-lg shadow">
-        <MeusDadosContent />
+        <AuthGuard>
+          <MeusDadosContent />
+        </AuthGuard>
       </div>
     </div>
   );

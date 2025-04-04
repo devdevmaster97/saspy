@@ -5,6 +5,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
+    console.log('Recebendo solicitação para atualizar associado:', body);
+    
     // Enviar a requisição para o backend
     const response = await axios.post(
       'https://qrcred.makecard.com.br/atualiza_associado_app.php',
@@ -16,6 +18,8 @@ export async function POST(request: NextRequest) {
         timeout: 10000
       }
     );
+
+    console.log('Resposta da API atualiza_associado_app.php:', response.data);
 
     // Verificar e retornar a resposta
     if (response.data) {

@@ -121,7 +121,7 @@ export default function MenuPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-lg mx-auto">
           <MenuCard 
             icon={<FaUser />} 
-            title="Área do Usuário" 
+            title="Área do Associado" 
             onClick={handleUserCardClick} 
           />
           <MenuCard 

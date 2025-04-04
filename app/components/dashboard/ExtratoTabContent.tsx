@@ -264,12 +264,25 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
     item.data.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Calcular o valor total
+  const valorTotal = filteredExtract.reduce((total, item) => {
+    return total + parseFloat(item.valor);
+  }, 0);
+
   // Função para formatar o valor
   const formatValue = (value: string) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(parseFloat(value));
+  };
+
+  // Função para formatar valor numérico
+  const formatValueNumber = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
   };
 
   // Função para formatar a data
@@ -492,6 +505,16 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
                 </div>
               </div>
             ))}
+
+            {/* Total (Mobile) */}
+            {filteredExtract.length > 0 && (
+              <div className="mt-6 bg-white rounded-xl shadow border border-gray-200 p-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-semibold text-gray-800">Valor Total:</h3>
+                  <span className="font-bold text-lg text-blue-600">{formatValueNumber(valorTotal)}</span>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -563,6 +586,19 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
               ))
             )}
           </tbody>
+          {filteredExtract.length > 0 && (
+            <tfoot className="bg-gray-50">
+              <tr>
+                <td colSpan={2} className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
+                  Valor Total:
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
+                  {formatValueNumber(valorTotal)}
+                </td>
+                <td colSpan={2}></td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
     </div>
