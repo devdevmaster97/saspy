@@ -5,10 +5,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
-import { FaLock, FaCreditCard, FaSpinner, FaEnvelope, FaPhone, FaWhatsapp, FaInfoCircle } from 'react-icons/fa';
+import { FaLock, FaCreditCard, FaSpinner, FaEnvelope, FaPhone, FaWhatsapp, FaInfoCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
 import axios from 'axios';
 import { FaSpinner as FaSpinner6 } from 'react-icons/fa6';
 import { Dialog, Transition } from '@headlessui/react';
+import { X, Loader2 } from 'lucide-react';
 
 // Esquema de validação para o formulário de login
 const loginSchema = z.object({
@@ -62,21 +63,34 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
   const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
   
   // Estados para recuperação de senha
-  const [esqueciSenhaModal, setEsqueciSenhaModal] = useState(false);
-  const [metodoRecuperacao, setMetodoRecuperacao] = useState<string | null>(null);
+  const [mostrarRecuperacao, setMostrarRecuperacao] = useState(false);
+  const [metodoRecuperacao, setMetodoRecuperacao] = useState('');
   const [cartaoRecuperacao, setCartaoRecuperacao] = useState('');
+  const [codigoRecuperacao, setCodigoRecuperacao] = useState('');
+  const [etapaRecuperacao, setEtapaRecuperacao] = useState<'cartao' | 'codigo' | 'nova_senha'>('cartao');
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmacaoSenha, setConfirmacaoSenha] = useState('');
   const [enviandoRecuperacao, setEnviandoRecuperacao] = useState(false);
   const [mensagemRecuperacao, setMensagemRecuperacao] = useState('');
   const [destinoMascarado, setDestinoMascarado] = useState('');
-  
-  // Estados para validação do código
-  const [etapaRecuperacao, setEtapaRecuperacao] = useState<'solicitacao' | 'codigo' | 'nova_senha'>('solicitacao');
-  const [codigoRecuperacao, setCodigoRecuperacao] = useState('');
   const [tokenRecuperacao, setTokenRecuperacao] = useState('');
-  const [novaSenha, setNovaSenha] = useState('');
-  const [confirmacaoSenha, setConfirmacaoSenha] = useState('');
   const [enviandoCodigo, setEnviandoCodigo] = useState(false);
   const [enviandoNovaSenha, setEnviandoNovaSenha] = useState(false);
+  const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
+  const [mostrarConfirmacaoSenha, setMostrarConfirmacaoSenha] = useState(false);
+  
+  // Estado para armazenar informações do usuário para recuperação
+  const [dadosUsuarioRecuperacao, setDadosUsuarioRecuperacao] = useState<{
+    email?: string;
+    celular?: string;
+    temEmail: boolean;
+    temCelular: boolean;
+    temWhatsapp: boolean;
+  }>({
+    temEmail: false,
+    temCelular: false,
+    temWhatsapp: false
+  });
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -264,6 +278,61 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
     } else {
       setErrorMessage(`Erro ao fazer login (código: ${resultado})`);
       setDebugInfo(JSON.stringify(data));
+    }
+  };
+
+  // Função para verificar métodos disponíveis para o cartão
+  const verificarMetodosRecuperacao = async (cartao: string) => {
+    if (!cartao || cartao.length < 6) {
+      setMensagemRecuperacao('Por favor, informe o número completo do cartão');
+      return;
+    }
+
+    setEnviandoRecuperacao(true);
+    setMensagemRecuperacao('Verificando métodos disponíveis...');
+    
+    try {
+      // Preparar os dados para enviar
+      const formData = new FormData();
+      formData.append('cartao', cartao);
+      
+      // Chamar a API para verificar métodos disponíveis
+      const response = await fetch('/api/verificar-metodos-recuperacao', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      console.log('Métodos de recuperação disponíveis:', result);
+      
+      if (result.success) {
+        setDadosUsuarioRecuperacao({
+          email: result.email,
+          celular: result.celular,
+          temEmail: Boolean(result.temEmail),
+          temCelular: Boolean(result.temCelular),
+          temWhatsapp: Boolean(result.temWhatsapp)
+        });
+        
+        // Limpar mensagem de erro
+        setMensagemRecuperacao('');
+        
+        // Se tiver apenas um método disponível, já seleciona automaticamente
+        if (result.temEmail && !result.temCelular && !result.temWhatsapp) {
+          setMetodoRecuperacao('email');
+        } else if (!result.temEmail && result.temCelular && !result.temWhatsapp) {
+          setMetodoRecuperacao('sms');
+        } else if (!result.temEmail && !result.temCelular && result.temWhatsapp) {
+          setMetodoRecuperacao('whatsapp');
+        }
+      } else {
+        setMensagemRecuperacao(result.message || 'Cartão não encontrado ou sem métodos de recuperação disponíveis.');
+      }
+    } catch (error) {
+      console.error('Erro ao verificar métodos de recuperação:', error);
+      setMensagemRecuperacao('Erro ao verificar métodos disponíveis. Tente novamente.');
+    } finally {
+      setEnviandoRecuperacao(false);
     }
   };
 
@@ -554,7 +623,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
         
         // Após 3 segundos, fechar o modal e limpar os campos
         setTimeout(() => {
-          setEsqueciSenhaModal(false);
+          setMostrarRecuperacao(false);
           resetarFormularioRecuperacao();
           // Preencher o campo de cartão no formulário de login
           setValue('cartao', cartaoRecuperacao);
@@ -572,32 +641,337 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
 
   // Função para resetar o formulário de recuperação
   const resetarFormularioRecuperacao = () => {
-    setEtapaRecuperacao('solicitacao');
+    setMetodoRecuperacao('');
     setCartaoRecuperacao('');
-    setMetodoRecuperacao(null);
     setCodigoRecuperacao('');
-    setTokenRecuperacao('');
     setNovaSenha('');
     setConfirmacaoSenha('');
-    setMensagemRecuperacao('');
+    setEtapaRecuperacao('cartao');
+    setTokenRecuperacao('');
     setDestinoMascarado('');
+    setMensagemRecuperacao('');
   };
 
   // Função para abrir o modal de recuperação de senha
   const abrirModalRecuperacao = (e: React.MouseEvent) => {
     e.preventDefault();
-    setEsqueciSenhaModal(true);
+    setMostrarRecuperacao(true);
     resetarFormularioRecuperacao();
   };
 
-  // Função para voltar para a etapa anterior no fluxo de recuperação
+  // Função para voltar etapa da recuperação
   const voltarEtapaRecuperacao = () => {
-    if (etapaRecuperacao === 'nova_senha') {
+    if (etapaRecuperacao === 'codigo') {
+      setEtapaRecuperacao('cartao');
+    } else if (etapaRecuperacao === 'nova_senha') {
       setEtapaRecuperacao('codigo');
-    } else if (etapaRecuperacao === 'codigo') {
-      setEtapaRecuperacao('solicitacao');
     }
     setMensagemRecuperacao('');
+  };
+
+  // Modal de recuperação de senha
+  const renderRecuperacaoSenha = () => {
+    if (!mostrarRecuperacao) return null;
+
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-primary">
+                {etapaRecuperacao === 'cartao' && 'Recuperação de Senha'}
+                {etapaRecuperacao === 'codigo' && 'Verificação de Código'}
+                {etapaRecuperacao === 'nova_senha' && 'Definir Nova Senha'}
+              </h3>
+              <button 
+                onClick={() => setMostrarRecuperacao(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {mensagemRecuperacao && (
+              <div className={`p-3 mb-4 rounded ${
+                mensagemRecuperacao.includes('sucesso') || mensagemRecuperacao.includes('enviado')
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                <p>{mensagemRecuperacao}</p>
+                {destinoMascarado && etapaRecuperacao === 'codigo' && (
+                  <p className="text-sm mt-1">
+                    Enviado para: <span className="font-semibold">{destinoMascarado}</span>
+                  </p>
+                )}
+              </div>
+            )}
+
+            {etapaRecuperacao === 'cartao' && (
+              <div>
+                <div className="mb-4">
+                  <label htmlFor="cartaoRecuperacao" className="block text-sm font-medium text-gray-700 mb-1">
+                    Número do Cartão
+                  </label>
+                  <input
+                    type="text"
+                    id="cartaoRecuperacao"
+                    value={cartaoRecuperacao}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      setCartaoRecuperacao(value);
+                      // Se tiver 6 dígitos ou mais, verifica os métodos disponíveis
+                      if (value.length >= 6) {
+                        verificarMetodosRecuperacao(value);
+                      } else {
+                        // Resetar dados de métodos disponíveis
+                        setDadosUsuarioRecuperacao({
+                          temEmail: false,
+                          temCelular: false,
+                          temWhatsapp: false
+                        });
+                        setMetodoRecuperacao('');
+                      }
+                    }}
+                    placeholder="Digite o número do seu cartão"
+                    maxLength={16}
+                    className="w-full p-2 border rounded focus:ring-primary focus:border-primary"
+                  />
+                </div>
+
+                {(dadosUsuarioRecuperacao.temEmail || dadosUsuarioRecuperacao.temCelular || dadosUsuarioRecuperacao.temWhatsapp) && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Método de Recuperação
+                    </label>
+                    
+                    <div className="space-y-2">
+                      {dadosUsuarioRecuperacao.temEmail && (
+                        <div className="flex items-center p-3 border rounded-md cursor-pointer">
+                          <input
+                            type="radio"
+                            id="metodoEmail"
+                            name="metodoRecuperacao"
+                            value="email"
+                            checked={metodoRecuperacao === 'email'}
+                            onChange={() => setMetodoRecuperacao('email')}
+                            className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                          />
+                          <label htmlFor="metodoEmail" className="ml-2 flex items-center">
+                            <FaEnvelope className="text-blue-500 mr-2" />
+                            <div>
+                              <p className="text-sm font-medium">E-mail</p>
+                              <p className="text-xs text-gray-500">{dadosUsuarioRecuperacao.email || 'E-mail cadastrado'}</p>
+                            </div>
+                          </label>
+                        </div>
+                      )}
+                      
+                      {dadosUsuarioRecuperacao.temCelular && (
+                        <div className="flex items-center p-3 border rounded-md cursor-pointer">
+                          <input
+                            type="radio"
+                            id="metodoSMS"
+                            name="metodoRecuperacao"
+                            value="sms"
+                            checked={metodoRecuperacao === 'sms'}
+                            onChange={() => setMetodoRecuperacao('sms')}
+                            className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                          />
+                          <label htmlFor="metodoSMS" className="ml-2 flex items-center">
+                            <FaPhone className="text-green-500 mr-2" />
+                            <div>
+                              <p className="text-sm font-medium">SMS</p>
+                              <p className="text-xs text-gray-500">{dadosUsuarioRecuperacao.celular || 'Celular cadastrado'}</p>
+                            </div>
+                          </label>
+                        </div>
+                      )}
+                      
+                      {dadosUsuarioRecuperacao.temWhatsapp && (
+                        <div className="flex items-center p-3 border rounded-md cursor-pointer">
+                          <input
+                            type="radio"
+                            id="metodoWhatsapp"
+                            name="metodoRecuperacao"
+                            value="whatsapp"
+                            checked={metodoRecuperacao === 'whatsapp'}
+                            onChange={() => setMetodoRecuperacao('whatsapp')}
+                            className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                          />
+                          <label htmlFor="metodoWhatsapp" className="ml-2 flex items-center">
+                            <FaWhatsapp className="text-green-600 mr-2" />
+                            <div>
+                              <p className="text-sm font-medium">WhatsApp</p>
+                              <p className="text-xs text-gray-500">{dadosUsuarioRecuperacao.celular || 'Celular cadastrado'}</p>
+                            </div>
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end mt-6">
+                  <button
+                    type="button"
+                    onClick={handleRecuperarSenha}
+                    disabled={enviandoRecuperacao || !cartaoRecuperacao || !metodoRecuperacao}
+                    className={`px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors ${
+                      (enviandoRecuperacao || !cartaoRecuperacao || !metodoRecuperacao) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {enviandoRecuperacao ? (
+                      <span className="flex items-center">
+                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                        Enviando...
+                      </span>
+                    ) : (
+                      'Enviar Código'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {etapaRecuperacao === 'codigo' && (
+              <div>
+                <div className="mb-4">
+                  <label htmlFor="codigoRecuperacao" className="block text-sm font-medium text-gray-700 mb-1">
+                    Código de Verificação
+                  </label>
+                  <input
+                    type="text"
+                    id="codigoRecuperacao"
+                    value={codigoRecuperacao}
+                    onChange={(e) => setCodigoRecuperacao(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Digite o código de 6 dígitos"
+                    maxLength={6}
+                    className="w-full p-2 border rounded focus:ring-primary focus:border-primary text-center text-lg tracking-widest"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Digite o código de 6 dígitos enviado para {destinoMascarado || 'seu contato cadastrado'}.
+                  </p>
+                </div>
+
+                <div className="flex justify-between mt-6">
+                  <button
+                    type="button"
+                    onClick={voltarEtapaRecuperacao}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                  >
+                    Voltar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleValidarCodigo}
+                    disabled={enviandoCodigo || !codigoRecuperacao || codigoRecuperacao.length < 6}
+                    className={`px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors ${
+                      (enviandoCodigo || !codigoRecuperacao || codigoRecuperacao.length < 6) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {enviandoCodigo ? (
+                      <span className="flex items-center">
+                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                        Verificando...
+                      </span>
+                    ) : (
+                      'Verificar Código'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {etapaRecuperacao === 'nova_senha' && (
+              <div>
+                <div className="mb-4">
+                  <label htmlFor="novaSenha" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nova senha (6 dígitos numéricos)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={mostrarNovaSenha ? "text" : "password"}
+                      id="novaSenha"
+                      value={novaSenha}
+                      onChange={(e) => setNovaSenha(e.target.value.replace(/\D/g, '').substring(0, 6))}
+                      placeholder="Apenas 6 dígitos numéricos"
+                      maxLength={6}
+                      className="w-full p-2 border rounded focus:ring-primary focus:border-primary pr-10"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      onClick={() => setMostrarNovaSenha(!mostrarNovaSenha)}
+                      tabIndex={-1}
+                    >
+                      {mostrarNovaSenha ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    A senha deve conter exatamente 6 dígitos numéricos.
+                  </p>
+                </div>
+
+                <div className="mb-4">
+                  <label htmlFor="confirmacaoSenha" className="block text-sm font-medium text-gray-700 mb-1">
+                    Confirmar senha
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={mostrarConfirmacaoSenha ? "text" : "password"}
+                      id="confirmacaoSenha"
+                      value={confirmacaoSenha}
+                      onChange={(e) => setConfirmacaoSenha(e.target.value.replace(/\D/g, '').substring(0, 6))}
+                      placeholder="Repita a mesma senha"
+                      maxLength={6}
+                      className="w-full p-2 border rounded focus:ring-primary focus:border-primary pr-10"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      onClick={() => setMostrarConfirmacaoSenha(!mostrarConfirmacaoSenha)}
+                      tabIndex={-1}
+                    >
+                      {mostrarConfirmacaoSenha ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Digite novamente a mesma senha para confirmar.
+                  </p>
+                </div>
+
+                <div className="flex justify-between mt-6">
+                  <button
+                    type="button"
+                    onClick={voltarEtapaRecuperacao}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                  >
+                    Voltar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDefinirNovaSenha}
+                    disabled={enviandoNovaSenha || !novaSenha || novaSenha !== confirmacaoSenha || !/^\d{6}$/.test(novaSenha)}
+                    className={`px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors ${
+                      (enviandoNovaSenha || !novaSenha || novaSenha !== confirmacaoSenha || !/^\d{6}$/.test(novaSenha)) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {enviandoNovaSenha ? (
+                      <span className="flex items-center">
+                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                        Salvando...
+                      </span>
+                    ) : (
+                      'Salvar Nova Senha'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -732,248 +1106,37 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
         )}
       </form>
 
-      {/* Modal de Recuperação de Senha */}
-      <Transition.Root show={esqueciSenhaModal} as={Fragment}>
-        <Dialog as="div" className="fixed z-10 inset-0 overflow-y-auto" onClose={() => setEsqueciSenhaModal(false)}>
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-            </Transition.Child>
-
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
-              &#8203;
-            </span>
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            >
-              <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                {/* Cabeçalho do modal */}
-                <div>
-                  <div className="text-center">
-                    <Dialog.Title as="h3" className="text-lg leading-6 font-medium text-gray-900">
-                      {etapaRecuperacao === 'solicitacao' && 'Recuperação de Senha'}
-                      {etapaRecuperacao === 'codigo' && 'Digite o código de verificação'}
-                      {etapaRecuperacao === 'nova_senha' && 'Defina sua nova senha'}
-                    </Dialog.Title>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500">
-                        {etapaRecuperacao === 'solicitacao' && 'Digite o número do seu cartão e escolha como deseja receber o código de recuperação.'}
-                        {etapaRecuperacao === 'codigo' && `Um código de verificação foi enviado para ${destinoMascarado || 'seu contato cadastrado'}. Por favor, digite-o abaixo.`}
-                        {etapaRecuperacao === 'nova_senha' && 'Crie uma nova senha para sua conta. A senha deve ter pelo menos 4 caracteres.'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Etapa 1: Solicitação do código */}
-                  {etapaRecuperacao === 'solicitacao' && (
-                    <div className="mt-4">
-                      <label htmlFor="cartao-recuperacao" className="block text-sm font-medium text-gray-700">
-                        Número do Cartão
-                      </label>
-                      <div className="mt-1 flex rounded-md shadow-sm">
-                        <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
-                          <FaCreditCard className="h-4 w-4" />
-                        </span>
-                        <input
-                          type="text"
-                          id="cartao-recuperacao"
-                          value={cartaoRecuperacao}
-                          onChange={(e) => setCartaoRecuperacao(e.target.value.replace(/\D/g, ''))}
-                          className="focus:ring-blue-500 focus:border-blue-500 flex-1 block w-full rounded-none rounded-r-md sm:text-sm border-gray-300"
-                          placeholder="Digite o número do cartão"
-                          maxLength={10}
-                        />
-                      </div>
-                    
-                      <div className="mt-4">
-                        <label className="block text-sm font-medium text-gray-700">
-                          Método de Recuperação
-                        </label>
-                        <div className="mt-2 space-y-2">
-                          <div 
-                            className={`flex items-center p-3 border rounded-md cursor-pointer ${metodoRecuperacao === 'email' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-50'}`}
-                            onClick={() => setMetodoRecuperacao('email')}
-                          >
-                            <FaEnvelope className={`mr-3 ${metodoRecuperacao === 'email' ? 'text-blue-500' : 'text-gray-400'}`} />
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">E-mail</p>
-                              <p className="text-xs text-gray-500">Enviar código para o e-mail cadastrado</p>
-                            </div>
-                          </div>
-                          
-                          <div 
-                            className={`flex items-center p-3 border rounded-md cursor-pointer ${metodoRecuperacao === 'sms' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-50'}`}
-                            onClick={() => setMetodoRecuperacao('sms')}
-                          >
-                            <FaPhone className={`mr-3 ${metodoRecuperacao === 'sms' ? 'text-blue-500' : 'text-gray-400'}`} />
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">SMS</p>
-                              <p className="text-xs text-gray-500">Enviar código via SMS para o celular cadastrado</p>
-                            </div>
-                          </div>
-                          
-                          <div 
-                            className={`flex items-center p-3 border rounded-md cursor-pointer ${metodoRecuperacao === 'whatsapp' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-50'}`}
-                            onClick={() => setMetodoRecuperacao('whatsapp')}
-                          >
-                            <FaWhatsapp className={`mr-3 ${metodoRecuperacao === 'whatsapp' ? 'text-blue-500' : 'text-gray-400'}`} />
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">WhatsApp</p>
-                              <p className="text-xs text-gray-500">Enviar código via WhatsApp</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Etapa 2: Validação do código */}
-                  {etapaRecuperacao === 'codigo' && (
-                    <div className="mt-4">
-                      <label htmlFor="codigo-recuperacao" className="block text-sm font-medium text-gray-700">
-                        Código de verificação
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          id="codigo-recuperacao"
-                          value={codigoRecuperacao}
-                          onChange={(e) => setCodigoRecuperacao(e.target.value.replace(/[^\d]/g, ''))}
-                          className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md text-center tracking-widest"
-                          placeholder="Digite o código de 6 dígitos"
-                          maxLength={6}
-                        />
-                      </div>
-                      <p className="mt-2 text-xs text-gray-500">
-                        Digite o código de 6 dígitos enviado para {metodoRecuperacao === 'email' ? 'seu e-mail' : metodoRecuperacao === 'sms' ? 'seu celular via SMS' : 'seu WhatsApp'}.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Etapa 3: Nova senha */}
-                  {etapaRecuperacao === 'nova_senha' && (
-                    <div className="mt-4 space-y-4">
-                      <div>
-                        <label htmlFor="nova-senha" className="block text-sm font-medium text-gray-700">
-                          Nova senha
-                        </label>
-                        <div className="mt-1">
-                          <input
-                            type="password"
-                            id="nova-senha"
-                            value={novaSenha}
-                            onChange={(e) => setNovaSenha(e.target.value)}
-                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                            placeholder="Mínimo de 4 caracteres"
-                            minLength={4}
-                          />
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="confirmar-senha" className="block text-sm font-medium text-gray-700">
-                          Confirmar senha
-                        </label>
-                        <div className="mt-1">
-                          <input
-                            type="password"
-                            id="confirmar-senha"
-                            value={confirmacaoSenha}
-                            onChange={(e) => setConfirmacaoSenha(e.target.value)}
-                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                            placeholder="Digite a senha novamente"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Mensagem de feedback */}
-                  {mensagemRecuperacao && (
-                    <div className={`mt-3 p-3 rounded-md text-sm ${mensagemRecuperacao.includes('sucesso') || mensagemRecuperacao.includes('validado') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                      <div className="flex">
-                        <FaInfoCircle className="h-5 w-5 mr-2 flex-shrink-0" />
-                        <span>{mensagemRecuperacao}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Botões de ação */}
-                <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-                  {etapaRecuperacao === 'solicitacao' && (
-                    <button
-                      type="button"
-                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={handleRecuperarSenha}
-                      disabled={enviandoRecuperacao || !cartaoRecuperacao || !metodoRecuperacao}
-                    >
-                      {enviandoRecuperacao ? (
-                        <><FaSpinner className="animate-spin h-5 w-5 mr-2" /> Enviando...</>
-                      ) : (
-                        "Enviar Código"
-                      )}
-                    </button>
-                  )}
-
-                  {etapaRecuperacao === 'codigo' && (
-                    <button
-                      type="button"
-                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={handleValidarCodigo}
-                      disabled={enviandoCodigo || !codigoRecuperacao || codigoRecuperacao.length < 6}
-                    >
-                      {enviandoCodigo ? (
-                        <><FaSpinner className="animate-spin h-5 w-5 mr-2" /> Verificando...</>
-                      ) : (
-                        "Verificar Código"
-                      )}
-                    </button>
-                  )}
-
-                  {etapaRecuperacao === 'nova_senha' && (
-                    <button
-                      type="button"
-                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={handleDefinirNovaSenha}
-                      disabled={enviandoNovaSenha || !novaSenha || novaSenha !== confirmacaoSenha || !/^\d{6}$/.test(novaSenha)}
-                    >
-                      {enviandoNovaSenha ? (
-                        <><FaSpinner className="animate-spin h-5 w-5 mr-2" /> Salvando...</>
-                      ) : (
-                        "Salvar Nova Senha"
-                      )}
-                    </button>
-                  )}
-
-                  {/* Botão de cancelar/voltar */}
-                  <button
-                    type="button"
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:col-start-1 sm:text-sm"
-                    onClick={etapaRecuperacao === 'solicitacao' ? () => setEsqueciSenhaModal(false) : voltarEtapaRecuperacao}
-                  >
-                    {etapaRecuperacao === 'solicitacao' ? 'Cancelar' : 'Voltar'}
-                  </button>
-                </div>
-              </div>
-            </Transition.Child>
-          </div>
-        </Dialog>
-      </Transition.Root>
+      {renderRecuperacaoSenha()}
     </div>
   );
+}
+
+/**
+ * Mascara o email para exibição, mostrando apenas parte do email
+ * Ex: jo***@gm***.com
+ */
+function mascaraEmail(email: string): string {
+  if (!email || email.indexOf('@') === -1) return '***@***.com';
+  
+  const [usuario, dominio] = email.split('@');
+  const dominioPartes = dominio.split('.');
+  const extensao = dominioPartes.pop() || '';
+  const nomeUsuarioMascarado = usuario.substring(0, Math.min(2, usuario.length)) + '***';
+  const nomeDominioMascarado = dominioPartes.join('.').substring(0, Math.min(2, dominioPartes.join('.').length)) + '***';
+  
+  return `${nomeUsuarioMascarado}@${nomeDominioMascarado}.${extensao}`;
+}
+
+/**
+ * Mascara o telefone para exibição, mostrando apenas parte do número
+ * Ex: (**) *****-1234
+ */
+function mascaraTelefone(telefone: string): string {
+  if (!telefone) return '(**) *****-****';
+  
+  const numeroLimpo = telefone.replace(/\D/g, '');
+  if (numeroLimpo.length < 4) return '(**) *****-****';
+  
+  const ultimosDigitos = numeroLimpo.slice(-4);
+  return `(**) *****-${ultimosDigitos}`;
 } 
