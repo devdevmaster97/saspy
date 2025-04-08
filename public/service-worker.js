@@ -151,6 +151,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Ignorar solicitações POST, PUT, DELETE, etc., pois não podem ser armazenadas em cache
+  if (event.request.method !== 'GET') {
+    return fetch(event.request);
+  }
+
   // Verifique se é uma solicitação de navegação
   if (event.request.mode === 'navigate') {
     event.respondWith(

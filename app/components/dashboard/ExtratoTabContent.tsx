@@ -192,14 +192,14 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
       if (Array.isArray(extratoResponse.data)) {
         const formattedData = extratoResponse.data.map((item) => {
           return {
-            data: `${item.dia} ${item.hora}`,
-            valor: item.valor,
-            descricao: item.nomefantasia || item.razaosocial || 'N/A',
-            tipo: 'debito' as const,
-            codigo: item.associado,
-            nome: item.nome,
-            mes: item.mes,
-            ano: item.mes.split('/')[1],
+          data: `${item.dia} ${item.hora}`,
+          valor: item.valor,
+          descricao: item.nomefantasia || item.razaosocial || 'N/A',
+          tipo: 'debito' as const,
+          codigo: item.associado,
+          nome: item.nome,
+          mes: item.mes,
+          ano: item.mes.split('/')[1],
             uri_cupom: item.uri_cupom,
             parcela: item.parcela,
             // Agora usando o campo lancamento que foi adicionado à API
@@ -354,10 +354,10 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
       >
         <div className="absolute top-0 bottom-0 left-0 w-8 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
         <div className="flex mx-auto">
-          {mesesExtrato.map((mes) => (
-            <button
+        {mesesExtrato.map((mes) => (
+          <button
               id={`mes-${mes.abreviacao}`}
-              key={mes.abreviacao}
+            key={mes.abreviacao}
               onClick={() => centralizarMesSelecionado(mes.abreviacao)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex flex-col items-center whitespace-nowrap mx-1 
                 ${mesSelecionado === mes.abreviacao
@@ -366,18 +366,18 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
                     : 'bg-blue-600 text-white transform scale-110 shadow-md'
                   : isIOS
                     ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }
                 ${isIOS ? 'active:opacity-70' : 'active:opacity-80'}
               `}
-            >
-              <div className="flex items-center">
-                <FaCalendarAlt className="mr-2" />
-                <span>{mes.abreviacao}</span>
-              </div>
-              <div className="text-xs font-normal mt-1">{mes.periodo}</div>
-            </button>
-          ))}
+          >
+            <div className="flex items-center">
+              <FaCalendarAlt className="mr-2" />
+              <span>{mes.abreviacao}</span>
+            </div>
+            <div className="text-xs font-normal mt-1">{mes.periodo}</div>
+          </button>
+        ))}
         </div>
         <div className="absolute top-0 bottom-0 right-0 w-8 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
       </div>
