@@ -678,7 +678,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
         <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-primary">
+              <h3 className="text-xl font-bold text-blue-600">
                 {etapaRecuperacao === 'cartao' && 'Recuperação de Senha'}
                 {etapaRecuperacao === 'codigo' && 'Verificação de Código'}
                 {etapaRecuperacao === 'nova_senha' && 'Definir Nova Senha'}
@@ -734,7 +734,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                     }}
                     placeholder="Digite o número do seu cartão"
                     maxLength={16}
-                    className="w-full p-2 border rounded focus:ring-primary focus:border-primary"
+                    className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
@@ -746,7 +746,8 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                     
                     <div className="space-y-2">
                       {dadosUsuarioRecuperacao.temEmail && (
-                        <div className="flex items-center p-3 border rounded-md cursor-pointer">
+                        <div className="flex items-center p-3 border rounded-md cursor-pointer hover:bg-gray-50"
+                             onClick={() => setMetodoRecuperacao('email')}>
                           <input
                             type="radio"
                             id="metodoEmail"
@@ -754,9 +755,9 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                             value="email"
                             checked={metodoRecuperacao === 'email'}
                             onChange={() => setMetodoRecuperacao('email')}
-                            className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                           />
-                          <label htmlFor="metodoEmail" className="ml-2 flex items-center">
+                          <label htmlFor="metodoEmail" className="ml-2 flex items-center w-full cursor-pointer">
                             <FaEnvelope className="text-blue-500 mr-2" />
                             <div>
                               <p className="text-sm font-medium">E-mail</p>
@@ -767,7 +768,8 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                       )}
                       
                       {dadosUsuarioRecuperacao.temCelular && (
-                        <div className="flex items-center p-3 border rounded-md cursor-pointer">
+                        <div className="flex items-center p-3 border rounded-md cursor-pointer hover:bg-gray-50"
+                             onClick={() => setMetodoRecuperacao('sms')}>
                           <input
                             type="radio"
                             id="metodoSMS"
@@ -775,9 +777,9 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                             value="sms"
                             checked={metodoRecuperacao === 'sms'}
                             onChange={() => setMetodoRecuperacao('sms')}
-                            className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                           />
-                          <label htmlFor="metodoSMS" className="ml-2 flex items-center">
+                          <label htmlFor="metodoSMS" className="ml-2 flex items-center w-full cursor-pointer">
                             <FaPhone className="text-green-500 mr-2" />
                             <div>
                               <p className="text-sm font-medium">SMS</p>
@@ -788,7 +790,8 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                       )}
                       
                       {dadosUsuarioRecuperacao.temWhatsapp && (
-                        <div className="flex items-center p-3 border rounded-md cursor-pointer">
+                        <div className="flex items-center p-3 border rounded-md cursor-pointer hover:bg-gray-50"
+                             onClick={() => setMetodoRecuperacao('whatsapp')}>
                           <input
                             type="radio"
                             id="metodoWhatsapp"
@@ -796,9 +799,9 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                             value="whatsapp"
                             checked={metodoRecuperacao === 'whatsapp'}
                             onChange={() => setMetodoRecuperacao('whatsapp')}
-                            className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                           />
-                          <label htmlFor="metodoWhatsapp" className="ml-2 flex items-center">
+                          <label htmlFor="metodoWhatsapp" className="ml-2 flex items-center w-full cursor-pointer">
                             <FaWhatsapp className="text-green-600 mr-2" />
                             <div>
                               <p className="text-sm font-medium">WhatsApp</p>
@@ -816,9 +819,10 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                     type="button"
                     onClick={handleRecuperarSenha}
                     disabled={enviandoRecuperacao || !cartaoRecuperacao || !metodoRecuperacao}
-                    className={`px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors ${
+                    className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
                       (enviandoRecuperacao || !cartaoRecuperacao || !metodoRecuperacao) ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
+                    style={{ display: 'flex', alignItems: 'center', height: '40px' }}
                   >
                     {enviandoRecuperacao ? (
                       <span className="flex items-center">
@@ -846,7 +850,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                     onChange={(e) => setCodigoRecuperacao(e.target.value.replace(/\D/g, ''))}
                     placeholder="Digite o código de 6 dígitos"
                     maxLength={6}
-                    className="w-full p-2 border rounded focus:ring-primary focus:border-primary text-center text-lg tracking-widest"
+                    className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500 text-center text-lg tracking-widest"
                   />
                   <p className="text-sm text-gray-500 mt-1">
                     Digite o código de 6 dígitos enviado para {destinoMascarado || 'seu contato cadastrado'}.
@@ -865,7 +869,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                     type="button"
                     onClick={handleValidarCodigo}
                     disabled={enviandoCodigo || !codigoRecuperacao || codigoRecuperacao.length < 6}
-                    className={`px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors ${
+                    className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
                       (enviandoCodigo || !codigoRecuperacao || codigoRecuperacao.length < 6) ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
@@ -896,7 +900,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                       onChange={(e) => setNovaSenha(e.target.value.replace(/\D/g, '').substring(0, 6))}
                       placeholder="Apenas 6 dígitos numéricos"
                       maxLength={6}
-                      className="w-full p-2 border rounded focus:ring-primary focus:border-primary pr-10"
+                      className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500 pr-10"
                     />
                     <button
                       type="button"
@@ -924,7 +928,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                       onChange={(e) => setConfirmacaoSenha(e.target.value.replace(/\D/g, '').substring(0, 6))}
                       placeholder="Repita a mesma senha"
                       maxLength={6}
-                      className="w-full p-2 border rounded focus:ring-primary focus:border-primary pr-10"
+                      className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500 pr-10"
                     />
                     <button
                       type="button"
@@ -952,7 +956,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                     type="button"
                     onClick={handleDefinirNovaSenha}
                     disabled={enviandoNovaSenha || !novaSenha || novaSenha !== confirmacaoSenha || !/^\d{6}$/.test(novaSenha)}
-                    className={`px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors ${
+                    className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
                       (enviandoNovaSenha || !novaSenha || novaSenha !== confirmacaoSenha || !/^\d{6}$/.test(novaSenha)) ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
