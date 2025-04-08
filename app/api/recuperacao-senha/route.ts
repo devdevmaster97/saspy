@@ -130,9 +130,39 @@ export async function POST(request: NextRequest) {
       );
       
       console.log('Resposta da inserção do código:', responseInsert.data);
+      
+      if (responseInsert.data.status === 'sucesso') {
+        console.log('✅ Código inserido com sucesso no banco de dados!');
+      } else {
+        console.warn('⚠️ Resposta da inserção do código não foi de sucesso:', responseInsert.data);
+      }
     } catch (insertError) {
-      console.error('Erro ao inserir código no banco:', insertError);
-      // Continuar com o processo mesmo se houver erro na inserção
+      console.error('❌ Erro ao inserir código no banco:', insertError);
+      // Tentar inserir usando um método alternativo - diretamente na API admin_codigos_recuperacao.php
+      try {
+        console.log('Tentando método alternativo para inserir o código no banco...');
+        
+        const paramsAlternative = new URLSearchParams();
+        paramsAlternative.append('admin_token', 'chave_segura_123');
+        paramsAlternative.append('operacao', 'inserir_direto');
+        paramsAlternative.append('cartao', cartaoLimpo);
+        paramsAlternative.append('codigo', codigo.toString());
+        
+        const responseAlternative = await axios.post(
+          'https://qrcred.makecard.com.br/admin_codigos_recuperacao.php',
+          paramsAlternative,
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            timeout: 8000
+          }
+        );
+        
+        console.log('Resposta da inserção alternativa do código:', responseAlternative.data);
+      } catch (alternativeError) {
+        console.error('❌ Erro ao inserir código pelo método alternativo:', alternativeError);
+      }
     }
 
     // Preparar parâmetros para enviar à API de envio de código
