@@ -1,11 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 
 export default function UpdateNotification() {
   // Estado para controlar se há uma atualização disponível
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  // Ref para controlar se uma notificação já está sendo exibida
+  const notificationShownRef = useRef(false);
+  // Ref para armazenar o ID do toast atual (se houver)
+  const currentToastIdRef = useRef<string | null>(null);
   
   // Função para forçar a atualização da aplicação
   const forceUpdate = async () => {
@@ -40,6 +44,12 @@ export default function UpdateNotification() {
   // Verificar se há atualizações manualmente
   const checkForUpdates = async () => {
     try {
+      // Se já houver uma notificação sendo exibida, não verificar novamente
+      if (notificationShownRef.current) {
+        console.log('Notificação de atualização já está sendo exibida, ignorando verificação');
+        return;
+      }
+      
       const response = await fetch('/version.json?t=' + new Date().getTime(), { cache: 'no-store' });
       if (response.ok) {
         const currentCache = localStorage.getItem('app_version');
@@ -60,7 +70,22 @@ export default function UpdateNotification() {
   
   // Mostrar notificação de atualização
   const showUpdateNotification = (message = 'Nova versão disponível!') => {
-    toast.success(
+    // Evitar mostrar notificação duplicada
+    if (notificationShownRef.current) {
+      console.log('Evitando notificação duplicada');
+      return;
+    }
+    
+    // Marcar que uma notificação está sendo exibida
+    notificationShownRef.current = true;
+    
+    // Se houver um toast anterior, remove-o
+    if (currentToastIdRef.current) {
+      toast.dismiss(currentToastIdRef.current);
+    }
+    
+    // Exibir nova notificação
+    const toastId = toast.success(
       (t) => (
         <div className="flex flex-col gap-2">
           <p>{message}</p>
@@ -77,9 +102,13 @@ export default function UpdateNotification() {
       ),
       {
         duration: Infinity,
-        position: 'top-center'
+        position: 'top-center',
+        id: 'update-notification' // ID fixo para garantir que não haverá duplicação
       }
     );
+    
+    // Armazenar o ID do toast atual
+    currentToastIdRef.current = toastId;
   };
 
   useEffect(() => {
@@ -93,7 +122,12 @@ export default function UpdateNotification() {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'UPDATE_AVAILABLE') {
         setUpdateAvailable(true);
-        showUpdateNotification();
+        
+        // Verificar se já existe uma notificação
+        if (!notificationShownRef.current) {
+          const notes = event.data.notes || 'Nova versão disponível!';
+          showUpdateNotification(notes);
+        }
       }
     };
     

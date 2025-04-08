@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const cartao = formData.get('cartao') as string;
     const novaSenha = formData.get('senha') as string;
+    const confirmacaoSenha = formData.get('confirmacao') as string;
     const token = formData.get('token') as string;
 
     // Validar campos obrigatórios
@@ -37,10 +38,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validar formato da senha
-    if (novaSenha.length < 4) {
+    // Validar formato da senha - agora exigimos exatamente 6 dígitos
+    if (!/^\d{6}$/.test(novaSenha)) {
       return NextResponse.json(
-        { success: false, message: 'A senha deve ter pelo menos 4 caracteres' },
+        { success: false, message: 'A senha deve conter exatamente 6 dígitos numéricos' },
         { status: 400 }
       );
     }
@@ -80,31 +81,43 @@ export async function POST(request: NextRequest) {
       const params = new URLSearchParams();
       params.append('cartao', cartaoLimpo);
       params.append('senha', novaSenha);
-  
+      
       console.log('Redefinindo senha para o cartão:', cartaoLimpo);
   
-      // Chamar API para redefinir a senha
+      // Chamar API para redefinir a senha - agora usando altera_senha_associado.php
       const response = await axios.post(
-        'https://qrcred.makecard.com.br/atualiza_senha_associado.php',
+        'https://qrcred.makecard.com.br/altera_senha_associado.php',
         params,
         {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-          }
+          },
+          timeout: 10000 // 10 segundos de timeout
         }
       );
   
       console.log('Resposta da redefinição de senha:', response.data);
   
       // Verificar resposta da redefinição
-      if (response.data === 'atualizado') {
+      // A API pode retornar "alterado" como string ou ter um campo de status
+      if (response.data === 'alterado' || 
+          (typeof response.data === 'object' && response.data.status === 'alterado')) {
         return NextResponse.json({
           success: true,
           message: 'Senha redefinida com sucesso. Você já pode fazer login com sua nova senha.'
         });
       } else {
+        // Extrair mensagem de erro, se disponível
+        let mensagemErro = 'Erro ao redefinir senha no servidor.';
+        
+        if (typeof response.data === 'object' && response.data.erro) {
+          mensagemErro = response.data.erro;
+        } else if (typeof response.data === 'string' && response.data !== 'alterado') {
+          mensagemErro = response.data;
+        }
+        
         return NextResponse.json(
-          { success: false, message: 'Erro ao redefinir senha no servidor. Tente novamente.' },
+          { success: false, message: mensagemErro },
           { status: 500 }
         );
       }
@@ -121,9 +134,32 @@ export async function POST(request: NextRequest) {
         });
       }
       
+      // Extrair mensagem de erro do Axios
+      let mensagemErro = 'Erro na conexão com o servidor.';
+      let statusCode = 500;
+      
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNABORTED') {
+          mensagemErro = 'Tempo limite de conexão excedido. Tente novamente mais tarde.';
+        } else if (error.response) {
+          statusCode = error.response.status;
+          mensagemErro = `Erro ${statusCode} do servidor.`;
+          
+          // Verificar detalhes da resposta
+          if (error.response.data) {
+            console.log('Detalhes do erro:', error.response.data);
+            if (typeof error.response.data === 'string') {
+              mensagemErro = error.response.data;
+            } else if (typeof error.response.data === 'object' && error.response.data.erro) {
+              mensagemErro = error.response.data.erro;
+            }
+          }
+        }
+      }
+      
       return NextResponse.json(
-        { success: false, message: 'Erro na conexão com o servidor. Tente novamente mais tarde.' },
-        { status: 500 }
+        { success: false, message: mensagemErro },
+        { status: statusCode }
       );
     }
   } catch (error) {

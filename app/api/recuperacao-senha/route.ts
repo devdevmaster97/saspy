@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { randomInt } from 'crypto';
 
+// Armazenamento temporário dos códigos de recuperação (apenas para desenvolvimento)
+// Formato: { cartao: { codigo: string, timestamp: number, metodo: string } }
+export const codigosRecuperacao: Record<string, { codigo: string, timestamp: number, metodo: string }> = {};
+
+// Interface para a resposta da API de recuperação
+interface RecuperacaoResponse {
+  success: boolean;
+  message: string;
+  destino?: string;
+  codigoTemp?: string;
+}
+
 /**
  * API para recuperação de senha
  * Envia um código para o e-mail ou celular cadastrado
@@ -45,7 +57,8 @@ export async function POST(request: NextRequest) {
       {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-        }
+        },
+        timeout: 10000 // 10 segundos de timeout
       }
     );
 
@@ -79,7 +92,50 @@ export async function POST(request: NextRequest) {
     // Gerar código de recuperação (6 dígitos)
     const codigo = randomInt(100000, 999999);
 
-    // Salvar código temporário no sistema
+    // Armazenar localmente apenas para debug e desenvolvimento
+    codigosRecuperacao[cartaoLimpo] = {
+      codigo: codigo.toString(),
+      timestamp: Date.now(),
+      metodo: metodo
+    };
+    
+    console.log('Código de recuperação gerado:', {
+      cartao: cartaoLimpo,
+      codigo: codigo.toString(),
+      metodo
+    });
+
+    // Debug: Verificar todos os códigos de recuperação armazenados
+    console.log('Códigos de recuperação locais (apenas para debug):', Object.keys(codigosRecuperacao));
+
+    // Primeiro, tentar inserir o código no banco de dados através da API gerencia_codigo_recuperacao.php
+    try {
+      const paramsInsert = new URLSearchParams();
+      paramsInsert.append('cartao', cartaoLimpo);
+      paramsInsert.append('codigo', codigo.toString());
+      paramsInsert.append('operacao', 'inserir');
+      paramsInsert.append('admin_token', 'chave_segura_123');
+      
+      console.log('Enviando solicitação para inserção do código no banco:', paramsInsert.toString());
+      
+      const responseInsert = await axios.post(
+        'https://qrcred.makecard.com.br/gerencia_codigo_recuperacao.php',
+        paramsInsert,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          timeout: 8000 // 8 segundos de timeout
+        }
+      );
+      
+      console.log('Resposta da inserção do código:', responseInsert.data);
+    } catch (insertError) {
+      console.error('Erro ao inserir código no banco:', insertError);
+      // Continuar com o processo mesmo se houver erro na inserção
+    }
+
+    // Preparar parâmetros para enviar à API de envio de código
     const paramsCodigo = new URLSearchParams();
     paramsCodigo.append('cartao', cartaoLimpo);
     paramsCodigo.append('codigo', codigo.toString());
@@ -92,40 +148,102 @@ export async function POST(request: NextRequest) {
       paramsCodigo.append('celular', dadosAssociado.cel);
     }
 
-    console.log('Enviando solicitação de recuperação:', paramsCodigo.toString());
+    console.log('Enviando solicitação para envio do código:', paramsCodigo.toString());
 
-    // Chamar API para salvar e enviar o código
-    const responseEnvio = await axios.post(
-      'https://qrcred.makecard.com.br/envia_codigo_recuperacao.php',
-      paramsCodigo,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+    try {
+      // Chamar API para enviar o código
+      const responseEnvio = await axios.post(
+        'https://qrcred.makecard.com.br/envia_codigo_recuperacao.php',
+        paramsCodigo,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          timeout: 30000 // 30 segundos de timeout para permitir tempo de envio de email
         }
+      );
+
+      console.log('Resposta do envio do código:', responseEnvio.data);
+
+      // Verificar resposta do envio 
+      // A resposta "enviado" é um texto simples, não um JSON
+      if (responseEnvio.data === 'enviado') {
+        const resposta: RecuperacaoResponse = {
+          success: true,
+          message: `Código de recuperação enviado com sucesso para o ${metodo === 'email' ? 'e-mail' : metodo === 'sms' ? 'celular via SMS' : 'WhatsApp'} cadastrado.`,
+          destino: metodo === 'email' 
+            ? mascaraEmail(dadosAssociado.email) 
+            : mascaraTelefone(dadosAssociado.cel)
+        };
+        
+        // Adicionar código temporário em ambiente de desenvolvimento para facilitar testes
+        if (process.env.NODE_ENV === 'development') {
+          resposta.codigoTemp = codigo.toString();
+        }
+        
+        return NextResponse.json(resposta);
+      } else {
+        // Resposta diferente de "enviado" - pode ser um JSON com erro
+        const mensagemErro = typeof responseEnvio.data === 'object' && responseEnvio.data.erro
+          ? responseEnvio.data.erro
+          : 'Erro desconhecido ao enviar código de recuperação';
+        
+        console.error('Erro no envio do código:', mensagemErro);
+        
+        // Em ambiente de desenvolvimento, permitir continuar mesmo com erro
+        if (process.env.NODE_ENV === 'development') {
+          const resposta: RecuperacaoResponse = {
+            success: true,
+            message: `AMBIENTE DE DESENVOLVIMENTO: Código gerado, mas ocorreu um erro no envio: ${mensagemErro}`,
+            destino: metodo === 'email'
+              ? mascaraEmail(dadosAssociado.email)
+              : mascaraTelefone(dadosAssociado.cel),
+            codigoTemp: codigo.toString()
+          };
+          
+          return NextResponse.json(resposta);
+        }
+        
+        return NextResponse.json(
+          { success: false, message: `Erro ao enviar código de recuperação: ${mensagemErro}` },
+          { status: 500 }
+        );
       }
-    );
-
-    console.log('Resposta do envio do código:', responseEnvio.data);
-
-    // Verificar resposta do envio
-    if (responseEnvio.data === 'enviado') {
-      return NextResponse.json({
-        success: true,
-        message: `Código de recuperação enviado com sucesso para o ${metodo === 'email' ? 'e-mail' : metodo === 'sms' ? 'celular via SMS' : 'WhatsApp'} cadastrado.`,
-        destino: metodo === 'email' 
-          ? mascaraEmail(dadosAssociado.email) 
-          : mascaraTelefone(dadosAssociado.cel)
-      });
-    } else {
+    } catch (envioError) {
+      console.error('Erro ao enviar código:', envioError);
+      
+      // Em ambiente de desenvolvimento, permitir continuar mesmo com erro
+      if (process.env.NODE_ENV === 'development') {
+        const errorMessage = envioError instanceof Error ? envioError.message : String(envioError);
+        const resposta: RecuperacaoResponse = {
+          success: true,
+          message: `AMBIENTE DE DESENVOLVIMENTO: Código gerado, mas ocorreu um erro no envio: ${errorMessage}`,
+          destino: metodo === 'email'
+            ? mascaraEmail(dadosAssociado.email)
+            : mascaraTelefone(dadosAssociado.cel),
+          codigoTemp: codigo.toString()
+        };
+        
+        return NextResponse.json(resposta);
+      }
+      
       return NextResponse.json(
-        { success: false, message: 'Erro ao enviar código de recuperação' },
-        { status: 500 }
+        { 
+          success: false, 
+          message: 'Erro ao enviar código de recuperação. Tente novamente mais tarde.',
+          error: envioError instanceof Error ? envioError.message : String(envioError)
+        },
+        { status: 503 }
       );
     }
   } catch (error) {
     console.error('Erro na recuperação de senha:', error);
     return NextResponse.json(
-      { success: false, message: 'Erro ao processar solicitação de recuperação de senha' },
+      { 
+        success: false, 
+        message: 'Erro ao processar solicitação de recuperação de senha',
+        error: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }

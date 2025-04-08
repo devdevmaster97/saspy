@@ -74,8 +74,18 @@ self.addEventListener('activate', (event) => {
 // Função para verificar atualizações
 const checkForUpdates = async () => {
   try {
+    // Verificar se já notificou sobre esta versão recentemente
+    const lastNotificationTime = self.lastUpdateNotification || 0;
+    const now = Date.now();
+    
+    // Evita notificações duplicadas em curto período de tempo (5 minutos)
+    if (now - lastNotificationTime < 5 * 60 * 1000) {
+      console.log('[Service Worker] Ignorando verificação, notificação recente enviada');
+      return;
+    }
+    
     // Adiciona um timestamp para evitar cache
-    const response = await fetch('/version.json?t=' + Date.now(), { 
+    const response = await fetch('/version.json?t=' + now, { 
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache'
@@ -89,15 +99,22 @@ const checkForUpdates = async () => {
       if (data.version !== CACHE_VERSION || data.timestamp > CACHE_TIMESTAMP) {
         console.log('[Service Worker] Nova versão disponível:', data.version);
         
-        // Notifica todos os clientes conectados
+        // Armazena que notificou sobre esta versão
+        self.lastUpdateNotification = now;
+        self.lastNotifiedVersion = data.version;
+        
+        // Envia apenas uma mensagem para o cliente principal (evita duplicatas)
         const clients = await self.clients.matchAll();
-        clients.forEach(client => {
-          client.postMessage({
+        if (clients.length > 0) {
+          // Enviar apenas para o cliente mais recente
+          clients[0].postMessage({
             type: 'UPDATE_AVAILABLE',
             version: data.version,
             notes: data.notes || 'Nova versão disponível!'
           });
-        });
+          
+          console.log('[Service Worker] Notificação enviada para o cliente');
+        }
         
         // Força o service worker a atualizar
         self.registration.update();

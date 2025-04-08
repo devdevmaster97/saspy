@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const cartao = formData.get('cartao') as string;
     const codigo = formData.get('codigo') as string;
+    const forcarValidacao = formData.get('forcarValidacao') === 'true';
 
     // Validar campos obrigatórios
     if (!cartao) {
@@ -33,83 +34,187 @@ export async function POST(request: NextRequest) {
     // Limpar o cartão (remover não numéricos)
     const cartaoLimpo = cartao.replace(/\D/g, '');
     
-    console.log('Validando código de recuperação:', { cartao: cartaoLimpo, codigo });
+    console.log('Validando código de recuperação:', { cartao: cartaoLimpo, codigo, forcarValidacao });
 
-    // SOLUÇÃO TEMPORÁRIA: Validar o código armazenado localmente
-    const dadosCodigo = codigosRecuperacao[cartaoLimpo];
-    
-    if (!dadosCodigo) {
-      return NextResponse.json(
-        { success: false, message: 'Nenhum código solicitado para este cartão' },
-        { status: 400 }
-      );
+    // Em ambiente de desenvolvimento, permitir códigos específicos para teste
+    const isDev = process.env.NODE_ENV === 'development';
+    if (isDev && (codigo === '123456' || forcarValidacao)) {
+      console.log('Modo de desenvolvimento: validação de código permitida para teste');
+      return NextResponse.json({
+        success: true,
+        message: 'Código válido (modo desenvolvimento)',
+        token: gerarTokenRecuperacao(cartaoLimpo),
+        dev: true
+      });
     }
     
-    // Verificar se o código é válido e não expirou (10 minutos)
-    const agora = Date.now();
-    const tempoExpirado = agora - dadosCodigo.timestamp > 10 * 60 * 1000;
-    
-    if (tempoExpirado) {
-      delete codigosRecuperacao[cartaoLimpo];
-      return NextResponse.json(
-        { success: false, message: 'Código expirado. Solicite um novo código.' },
-        { status: 400 }
-      );
+    // Verificar se temos o código no armazenamento local (apenas desenvolvimento)
+    if (isDev && codigosRecuperacao[cartaoLimpo]?.codigo === codigo) {
+      console.log('Validação local: código encontrado no armazenamento local:', codigosRecuperacao[cartaoLimpo]);
+      
+      // Verificar se o código não expirou (10 minutos)
+      const tempoCodigo = (Date.now() - codigosRecuperacao[cartaoLimpo].timestamp) / 1000;
+      if (tempoCodigo < 600) {
+        return NextResponse.json({
+          success: true,
+          message: 'Código válido (armazenamento local)',
+          token: gerarTokenRecuperacao(cartaoLimpo),
+          dev: true,
+          tempo: Math.floor(tempoCodigo)
+        });
+      } else {
+        console.log('Código local expirado. Tempo decorrido:', Math.floor(tempoCodigo), 'segundos');
+      }
     }
-    
-    // Verificar se o código corresponde
-    if (dadosCodigo.codigo !== codigo) {
-      return NextResponse.json(
-        { success: false, message: 'Código inválido.' },
-        { status: 400 }
-      );
+
+    // Antes, tentamos inserir o código no banco de dados para garantir que está lá
+    if (isDev) {
+      try {
+        // Primeiro, verificar se o código existe no banco
+        console.log('Verificando se o código já existe no banco...');
+        
+        // Preparar parâmetros para inserir o código
+        const paramsInsert = new URLSearchParams();
+        paramsInsert.append('cartao', cartaoLimpo);
+        paramsInsert.append('codigo', codigo);
+        paramsInsert.append('operacao', 'inserir');
+        paramsInsert.append('admin_token', 'chave_segura_123');
+        
+        // Inserir o código (ou substituir se já existir)
+        await axios.post(
+          'https://qrcred.makecard.com.br/gerencia_codigo_recuperacao.php',
+          paramsInsert,
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            timeout: 5000
+          }
+        );
+        
+        console.log('Código inserido/atualizado no banco com sucesso');
+      } catch (insertError) {
+        console.error('Erro ao inserir código no banco:', insertError);
+        // Continuar mesmo com erro
+      }
     }
-    
-    // Na versão de produção, esta parte seria descomentada quando a API estiver funcionando:
-    /*
+
     // Preparar parâmetros para validação
     const params = new URLSearchParams();
     params.append('cartao', cartaoLimpo);
     params.append('codigo', codigo);
 
-    // Chamar API para validar o código
-    const response = await axios.post(
-      'https://qrcred.makecard.com.br/valida_codigo_recuperacao.php',
-      params,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+    try {
+      console.log(`Enviando requisição para validar código: cartão=${cartaoLimpo}, código=${codigo}`);
+      
+      // Chamar API para validar o código
+      const response = await axios.post(
+        'https://qrcred.makecard.com.br/valida_codigo_recuperacao.php',
+        params,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          timeout: 10000 // 10 segundos de timeout
+        }
+      );
+
+      console.log('Resposta da validação do código (API):', response.data);
+
+      // Verificar resposta da validação
+      // A API PHP pode retornar:
+      // 1. Um objeto JSON com "status": "valido" para sucesso
+      // 2. Um objeto JSON com "erro": "mensagem" para falha
+      // 3. String "valido" para sucesso (versão antiga)
+      // 4. Outros formatos de erro
+
+      // Vamos verificar cada caso:
+      if (
+        (typeof response.data === 'object' && response.data.status === 'valido') ||
+        response.data === 'valido'
+      ) {
+        // Código válido, gerar token para redefinição
+        return NextResponse.json({
+          success: true,
+          message: 'Código válido',
+          token: gerarTokenRecuperacao(cartaoLimpo)
+        });
+      } else {
+        // Extrai a mensagem de erro da resposta, ou usa uma mensagem padrão
+        let mensagemErro = 'Código inválido ou expirado';
+        
+        if (typeof response.data === 'object' && response.data.erro) {
+          mensagemErro = response.data.erro;
+        } else if (typeof response.data === 'object' && response.data.status === 'erro' && response.data.message) {
+          mensagemErro = response.data.message;
+        } else if (typeof response.data === 'string' && response.data !== 'valido') {
+          // Se a resposta for uma string diferente de "valido", pode conter a mensagem de erro
+          mensagemErro = response.data;
+        }
+        
+        console.log(`Código inválido: ${mensagemErro}`);
+        
+        // Verificar se é o erro específico de "nenhum código solicitado"
+        if (mensagemErro === 'Nenhum código solicitado para este cartão.' && isDev) {
+          // Em ambiente de desenvolvimento, podemos prosseguir se o código existir no armazenamento local
+          if (codigosRecuperacao[cartaoLimpo]?.codigo === codigo) {
+            console.log('Código não encontrado no banco, mas existe no armazenamento local. Permitindo em modo DEV.');
+            return NextResponse.json({
+              success: true,
+              message: 'Código válido (armazenamento local após erro)',
+              token: gerarTokenRecuperacao(cartaoLimpo),
+              dev: true
+            });
+          }
+        }
+        
+        return NextResponse.json(
+          { 
+            success: false, 
+            message: mensagemErro
+          },
+          { status: 400 }
+        );
+      }
+    } catch (error) {
+      console.error('Erro ao chamar API de validação:', error);
+      
+      // Em ambiente de desenvolvimento, permitir que continue mesmo com erro
+      if (isDev) {
+        // Verificar se temos o código localmente antes de permitir
+        if (codigosRecuperacao[cartaoLimpo]?.codigo === codigo) {
+          console.log('Ambiente de desenvolvimento: usando validação local após erro de API');
+          return NextResponse.json({
+            success: true,
+            message: 'Código válido (modo desenvolvimento - API indisponível)',
+            token: gerarTokenRecuperacao(cartaoLimpo),
+            dev: true,
+            codigoInfo: codigosRecuperacao[cartaoLimpo]
+          });
+        }
+        
+        // Ou se o forçar validação estiver ativo
+        if (forcarValidacao) {
+          console.log('Ambiente de desenvolvimento: forçando validação após erro');
+          return NextResponse.json({
+            success: true,
+            message: 'Código válido (modo desenvolvimento - validação forçada)',
+            token: gerarTokenRecuperacao(cartaoLimpo),
+            dev: true
+          });
         }
       }
-    );
-
-    console.log('Resposta da validação do código:', response.data);
-
-    // Verificar resposta da validação
-    if (response.data === 'valido') {
-      return NextResponse.json({
-        success: true,
-        message: 'Código válido',
-        token: gerarTokenRecuperacao(cartaoLimpo)
-      });
-    } else {
+      
+      // Em caso de erro de comunicação, fornecer uma mensagem amigável
       return NextResponse.json(
         { 
           success: false, 
-          message: 'Código inválido ou expirado',
-          tentativa: true
+          message: 'Não foi possível validar o código no momento. Tente novamente mais tarde.',
+          error: error instanceof Error ? error.message : String(error)
         },
-        { status: 400 }
+        { status: 503 }
       );
     }
-    */
-    
-    // Código válido, gerar token para redefinição
-    return NextResponse.json({
-      success: true,
-      message: 'Código válido',
-      token: gerarTokenRecuperacao(cartaoLimpo)
-    });
   } catch (error) {
     console.error('Erro na validação do código:', error);
     return NextResponse.json(

@@ -107,7 +107,15 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           {children}
-          <Toaster position="top-right" />
+          <Toaster 
+            position="top-right" 
+            toastOptions={{
+              // Configurações para limitar toasts
+              success: {
+                duration: 5000,
+              }
+            }}
+          />
           <ServiceWorkerRegistration />
           <PWAInstallPrompt />
           <IOSInstallPrompt />
