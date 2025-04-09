@@ -150,8 +150,33 @@ export async function POST(request: NextRequest) {
     // Incluir o destino específico (email ou celular)
     if (metodo === 'email') {
       paramsCodigo.append('email', dadosAssociado.email);
+      paramsCodigo.append('destino', dadosAssociado.email);
     } else {
-      paramsCodigo.append('celular', dadosAssociado.cel);
+      // Para SMS e WhatsApp, enviar o número do celular
+      // Garantir que o celular esteja no formato internacional (55 + DDD + número)
+      let celular = dadosAssociado.cel.replace(/\D/g, '');
+      // Se não começar com 55, adicionar
+      if (!celular.startsWith('55')) {
+        celular = `55${celular}`;
+      }
+      // Garantir que tenha pelo menos 12 dígitos (55 + 10 dígitos)
+      if (celular.length < 12) {
+        console.warn('Número de celular possivelmente inválido:', celular);
+      }
+      
+      paramsCodigo.append('celular', celular);
+      paramsCodigo.append('destino', celular);
+      
+      // Formatar a mensagem para SMS/WhatsApp
+      const mensagem = `Seu código de recuperação de senha QRCred: ${codigo}. Não compartilhe este código com ninguém.`;
+      paramsCodigo.append('mensagem', mensagem);
+      
+      // Parâmetros específicos para cada método
+      if (metodo === 'whatsapp') {
+        paramsCodigo.append('whatsapp', 'true');
+      } else if (metodo === 'sms') {
+        paramsCodigo.append('sms', 'true');
+      }
     }
 
     console.log('Enviando solicitação para envio do código:', paramsCodigo.toString());
@@ -165,7 +190,7 @@ export async function POST(request: NextRequest) {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
-          timeout: 30000 // 30 segundos de timeout para permitir tempo de envio de email
+          timeout: 30000 // 30 segundos de timeout para permitir tempo de envio de email/SMS
         }
       );
 
@@ -203,6 +228,55 @@ export async function POST(request: NextRequest) {
         }
         
         console.error('Erro no envio do código:', mensagemErro);
+        
+        // Se o erro ocorreu com SMS ou WhatsApp, tentar enviar via endpoint alternativo diretamente
+        if (metodo === 'sms' || metodo === 'whatsapp') {
+          try {
+            console.log('Tentando enviar por endpoint alternativo para SMS/WhatsApp...');
+            
+            // Preparar parâmetros para o endpoint alternativo
+            const paramsSmsAlternativo = new URLSearchParams();
+            paramsSmsAlternativo.append('celular', paramsCodigo.get('celular') || '');
+            paramsSmsAlternativo.append('mensagem', `Seu código de recuperação QRCred: ${codigo}. Não compartilhe com ninguém.`);
+            
+            if (metodo === 'whatsapp') {
+              paramsSmsAlternativo.append('whatsapp', 'true');
+            } else {
+              paramsSmsAlternativo.append('sms', 'true');
+            }
+            
+            // Adicionar token de autenticação se necessário
+            paramsSmsAlternativo.append('token', 'chave_segura_123');
+            
+            // Chamar API alternativa para SMS ou WhatsApp
+            const responseSmsAlternativo = await axios.post(
+              'https://qrcred.makecard.com.br/envia_sms_direto.php',
+              paramsSmsAlternativo,
+              {
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                timeout: 15000
+              }
+            );
+            
+            console.log('Resposta do envio alternativo:', responseSmsAlternativo.data);
+            
+            // Se o envio alternativo foi bem-sucedido, retornar sucesso
+            if (responseSmsAlternativo.data === 'enviado' || 
+                (typeof responseSmsAlternativo.data === 'object' && responseSmsAlternativo.data.success)) {
+              const resposta: RecuperacaoResponse = {
+                success: true,
+                message: `Código de recuperação enviado com sucesso para o ${metodo === 'sms' ? 'celular via SMS' : 'WhatsApp'} cadastrado.`,
+                destino: mascaraTelefone(dadosAssociado.cel)
+              };
+              
+              return NextResponse.json(resposta);
+            }
+          } catch (smsError) {
+            console.error('Erro ao enviar por endpoint alternativo:', smsError);
+          }
+        }
         
         // Tenta seguir mesmo com erro para garantir que o código seja válido
         // já que o código foi gerado e armazenado no banco, podemos permitir que o usuário tente usá-lo
