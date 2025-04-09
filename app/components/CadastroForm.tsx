@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaArrowLeft, FaSpinner, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import { FaArrowLeft, FaSpinner, FaCheckCircle, FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import axios from 'axios';
 import { API_URL } from '@/app/utils/constants';
 
@@ -34,7 +34,6 @@ export default function CadastroForm() {
     bairro: '',
     cidade: '',
     uf: '',
-    whatsapp: false,
   });
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -42,6 +41,7 @@ export default function CadastroForm() {
   const [cepLoading, setCepLoading] = useState(false);
   const [estados, setEstados] = useState<Estado[]>([]);
   const [cidades, setCidades] = useState<Cidade[]>([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     // Carregar estados quando o componente montar
@@ -192,7 +192,6 @@ export default function CadastroForm() {
       cadastroData.append('C_Email_assoc', formData.email);
       cadastroData.append('C_cel_assoc', formData.celular);
       cadastroData.append('C_telres', formData.telefoneResidencial);
-      cadastroData.append('SwitchCelular', formData.whatsapp ? 'true' : 'false');
       
       // Endereço
       cadastroData.append('C_cep_assoc', formData.cep);
@@ -223,8 +222,9 @@ export default function CadastroForm() {
       console.log('Resposta da API:', result);
 
       if (result.success) {
-        setStatusMessage('Cadastro realizado com sucesso! Você será redirecionado para confirmar a assinatura digital para desbloqueio do cartão convênio.');
         setStatusType('success');
+        // Mostrar o modal de sucesso
+        setShowSuccessModal(true);
         
         // Limpar formulário
         setFormData({
@@ -242,7 +242,6 @@ export default function CadastroForm() {
           bairro: '',
           cidade: '',
           uf: '',
-          whatsapp: false,
         });
         
         // Redirecionar para a página de assinatura digital após alguns segundos
@@ -287,16 +286,10 @@ export default function CadastroForm() {
           <h1 className="text-2xl font-bold text-center text-gray-800">Cadastro de Associado</h1>
         </div>
 
-        {statusMessage && (
-          <div className={`mb-6 p-4 rounded-md ${
-            statusType === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }`}>
+        {statusMessage && statusType === 'error' && (
+          <div className="mb-6 p-4 rounded-md bg-red-100 text-red-800">
             <div className="flex items-center">
-              {statusType === 'success' ? (
-                <FaCheckCircle className="mr-2" />
-              ) : (
-                <FaExclamationTriangle className="mr-2" />
-              )}
+              <FaExclamationTriangle className="mr-2" />
               <span>{statusMessage}</span>
             </div>
           </div>
@@ -420,20 +413,6 @@ export default function CadastroForm() {
                     Formato: {formatTelefone(formData.celular)}
                   </p>
                 )}
-                <div className="mt-2">
-                  <label className="inline-flex items-center">
-                    <input
-                      type="checkbox"
-                      id="whatsapp"
-                      name="whatsapp"
-                      checked={formData.whatsapp}
-                      onChange={(e) => setFormData(prev => ({ ...prev, whatsapp: e.target.checked }))}
-                      className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                      disabled={loading}
-                    />
-                    <span className="ml-2 text-sm text-gray-600">Este celular tem WhatsApp</span>
-                  </label>
-                </div>
               </div>
 
               <div>
@@ -615,6 +594,47 @@ export default function CadastroForm() {
           </div>
         </form>
       </div>
+
+      {/* Modal de Sucesso */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-green-600">Cadastro Realizado</h3>
+              <button 
+                onClick={() => setShowSuccessModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimes />
+              </button>
+            </div>
+            
+            <div className="mb-6 flex flex-col items-center text-center">
+              <FaCheckCircle className="text-green-500 text-5xl mb-4" />
+              <p className="text-gray-800 text-lg">
+                Cadastro realizado com sucesso!
+              </p>
+              <p className="text-gray-600 mt-2">
+                Você será redirecionado para confirmar a assinatura digital para desbloqueio do cartão convênio.
+              </p>
+              <div className="mt-4 text-sm text-gray-500">
+                Redirecionando em 5 segundos...
+              </div>
+            </div>
+            
+            <div className="flex justify-center">
+              <button
+                onClick={() => {
+                  window.location.href = 'https://app.zapsign.com.br/verificar/doc/31ef234f-66c4-4ca4-8298-b504b15e90a3';
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline"
+              >
+                Ir para assinatura digital
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
