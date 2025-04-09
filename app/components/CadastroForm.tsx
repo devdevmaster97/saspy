@@ -109,21 +109,46 @@ export default function CadastroForm() {
       }
     }
     
-    // Caso especial para o campo UF - resetar cidade
-    if (name === 'uf') {
-      setFormData({
-        ...formData,
-        uf: finalValue,
-        cidade: ''
-      });
-    } else {
-      // Atualizar estado
-      setFormData({
-        ...formData,
-        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : finalValue,
-      });
-    }
+    // Atualizar estado
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : finalValue,
+    });
   };
+
+  // Efeito adicional para lidar com a mudança de UF e carregamento de cidades
+  useEffect(() => {
+    if (formData.uf) {
+      // Resetar cidade quando o estado mudar
+      setFormData(prev => ({
+        ...prev,
+        cidade: ''
+      }));
+      
+      // Forçar carregamento de cidades
+      const carregarCidades = async () => {
+        try {
+          const response = await fetch(`/api/convenio/cidades?uf=${formData.uf}`);
+          const data = await response.json();
+          
+          if (data.success) {
+            console.log(`Cidades carregadas para UF ${formData.uf}:`, data.data);
+            setCidades(data.data);
+          } else {
+            console.error('Erro ao carregar cidades:', data.message);
+            setCidades([]);
+          }
+        } catch (error) {
+          console.error('Erro ao buscar cidades:', error);
+          setCidades([]);
+        }
+      };
+      
+      carregarCidades();
+    } else {
+      setCidades([]);
+    }
+  }, [formData.uf]);
 
   // Função para buscar informações do CEP
   const buscarCep = async (cep: string) => {
@@ -559,12 +584,21 @@ export default function CadastroForm() {
                   disabled={loading || !formData.uf}
                 >
                   <option value="">Selecione uma cidade</option>
-                  {cidades.map((cidade) => (
-                    <option key={cidade.id} value={cidade.nome}>
-                      {cidade.nome}
-                    </option>
-                  ))}
+                  {cidades && cidades.length > 0 ? (
+                    cidades.map((cidade) => (
+                      <option key={cidade.id} value={cidade.nome}>
+                        {cidade.nome}
+                      </option>
+                    ))
+                  ) : formData.uf ? (
+                    <option value="">Carregando cidades...</option>
+                  ) : null}
                 </select>
+                {formData.uf && cidades.length === 0 && (
+                  <p className="text-xs text-blue-600 mt-1 flex items-center">
+                    <FaSpinner className="animate-spin mr-1" /> Carregando cidades...
+                  </p>
+                )}
               </div>
             </div>
           </div>
