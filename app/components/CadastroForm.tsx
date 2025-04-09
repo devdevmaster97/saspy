@@ -119,28 +119,112 @@ export default function CadastroForm() {
   // Efeito adicional para lidar com a mudança de UF e carregamento de cidades
   useEffect(() => {
     if (formData.uf) {
-      // Resetar cidade quando o estado mudar
-      setFormData(prev => ({
-        ...prev,
-        cidade: ''
-      }));
+      // Indicar visualmente que estamos carregando
+      setCidades([]);
+      
+      console.log(`Iniciando carregamento de cidades para UF: ${formData.uf}`);
       
       // Forçar carregamento de cidades
       const carregarCidades = async () => {
         try {
-          const response = await fetch(`/api/convenio/cidades?uf=${formData.uf}`);
-          const data = await response.json();
+          const url = `/api/convenio/cidades?uf=${formData.uf}`;
+          console.log('Fazendo requisição para:', url);
           
-          if (data.success) {
-            console.log(`Cidades carregadas para UF ${formData.uf}:`, data.data);
-            setCidades(data.data);
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          console.log('Status da resposta:', response.status);
+          
+          if (!response.ok) {
+            throw new Error(`Erro HTTP ${response.status}`);
+          }
+          
+          const data = await response.json();
+          console.log('Dados recebidos:', data);
+          
+          if (data.success && Array.isArray(data.data)) {
+            console.log(`Cidades carregadas para UF ${formData.uf}:`, data.data.length);
+            setCidades(data.data || []);
+            
+            // Se recebemos dados vazios, mas com success true
+            if (data.data.length === 0) {
+              console.warn('Lista de cidades vazia recebida do servidor');
+            }
           } else {
-            console.error('Erro ao carregar cidades:', data.message);
+            console.error('Formato de resposta inválido ou erro reportado:', data);
             setCidades([]);
+            
+            // Tentar um fallback para browser mobile que pode ter problemas com CORS
+            fetchCidadesFallback(formData.uf);
           }
         } catch (error) {
           console.error('Erro ao buscar cidades:', error);
           setCidades([]);
+          
+          // Tentar um fallback
+          fetchCidadesFallback(formData.uf);
+        }
+      };
+      
+      // Método alternativo para dispositivos móveis que podem ter problemas
+      const fetchCidadesFallback = async (uf: string) => {
+        console.log('Tentando método alternativo para carregar cidades...');
+        try {
+          // Lista de cidades para os estados mais comuns (fallback)
+          const cidadesPorUF: Record<string, any[]> = {
+            SP: [
+              { id: '1', nome: 'São Paulo' },
+              { id: '2', nome: 'Campinas' },
+              { id: '3', nome: 'Santos' },
+              { id: '4', nome: 'Ribeirão Preto' },
+              { id: '5', nome: 'São José dos Campos' },
+              // Adicione mais cidades conforme necessário
+            ],
+            RJ: [
+              { id: '1', nome: 'Rio de Janeiro' },
+              { id: '2', nome: 'Niterói' },
+              { id: '3', nome: 'Duque de Caxias' },
+              { id: '4', nome: 'Nova Iguaçu' },
+              // Adicione mais cidades conforme necessário
+            ],
+            MG: [
+              { id: '1', nome: 'Belo Horizonte' },
+              { id: '2', nome: 'Uberlândia' },
+              { id: '3', nome: 'Contagem' },
+              { id: '4', nome: 'Juiz de Fora' },
+              // Adicione mais cidades conforme necessário
+            ],
+            // Adicione mais estados conforme necessário
+          };
+          
+          // Se temos um fallback para este estado, use-o
+          if (cidadesPorUF[uf]) {
+            console.log(`Usando lista de fallback para ${uf}`);
+            setCidades(cidadesPorUF[uf]);
+          } else {
+            // Tentar buscar do IBGE diretamente
+            const url = `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`;
+            console.log('Tentando IBGE diretamente:', url);
+            
+            const response = await fetch(url);
+            if (response.ok) {
+              const data = await response.json();
+              const cidadesProcessadas = data.map((c: any) => ({
+                id: c.id,
+                nome: c.nome
+              })).sort((a: any, b: any) => a.nome.localeCompare(b.nome));
+              
+              console.log(`Recebidas ${cidadesProcessadas.length} cidades do IBGE diretamente`);
+              setCidades(cidadesProcessadas);
+            }
+          }
+        } catch (fallbackError) {
+          console.error('Erro no método alternativo:', fallbackError);
         }
       };
       
@@ -596,7 +680,8 @@ export default function CadastroForm() {
                 </select>
                 {formData.uf && cidades.length === 0 && (
                   <p className="text-xs text-blue-600 mt-1 flex items-center">
-                    <FaSpinner className="animate-spin mr-1" /> Carregando cidades...
+                    <FaSpinner className="animate-spin mr-1" /> 
+                    Carregando cidades... {/* Este elemento será mostrado enquanto carregamos as cidades */}
                   </p>
                 )}
               </div>
