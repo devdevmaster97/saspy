@@ -47,7 +47,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header title="Login" showBackButton onBackClick={handleVoltar} />
+      <Header title="Login do Associado" showBackButton onBackClick={handleVoltar} />
       
       <main className="flex-1 flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">

@@ -46,7 +46,7 @@ export default function MenuPage() {
   };
 
   const handleConvenioCardClick = () => {
-    router.push('/convenio');
+    router.push('/convenio/login');
   };
 
   const handlePoliticaPrivacidadeClick = () => {

@@ -58,7 +58,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [readOnly, setReadOnly] = useState(false);
-  const [associadoNome, setAssociadoNome] = useState('Login do Usuário');
+  const [associadoNome, setAssociadoNome] = useState('Login do Associado');
   const [debugInfo, setDebugInfo] = useState<string>('');
   const [showSavedCards, setShowSavedCards] = useState(false);
   const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
@@ -121,14 +121,14 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
   const handleSelectCard = (card: SavedCard) => {
     setValue('cartao', card.numero);
     setShowSavedCards(false);
-    setAssociadoNome(card.nome ? `Olá, ${card.nome}` : 'Login do Usuário');
+    setAssociadoNome(card.nome ? `Olá, ${card.nome}` : 'Login do Associado');
   };
 
   // Função para lidar com a troca de cartão
   const handleTrocarCartao = () => {
     setReadOnly(false);
     setShowSavedCards(true);
-    setAssociadoNome('Login do Usuário');
+    setAssociadoNome('Login do Associado');
   };
 
   // Função para processar o login
@@ -1020,12 +1020,14 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
         {!showSavedCards && (
           <>
             <div className="space-y-1">
-              <div className="flex items-center border rounded-md px-3 py-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-                <FaCreditCard className="text-gray-400 mr-2" />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaCreditCard className="h-5 w-5 text-gray-400" />
+                </div>
                 <input
                   type="text"
                   placeholder="Número do Cartão"
-                  className="flex-1 outline-none bg-transparent"
+                  className="block w-full pl-10 py-2 sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   readOnly={readOnly}
                   maxLength={10}
                   {...register('cartao')}
@@ -1037,12 +1039,14 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
             </div>
 
             <div className="space-y-1">
-              <div className="flex items-center border rounded-md px-3 py-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-                <FaLock className="text-gray-400 mr-2" />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaLock className="h-5 w-5 text-gray-400" />
+                </div>
                 <input
                   type="password"
                   placeholder="Senha"
-                  className="flex-1 outline-none bg-transparent"
+                  className="block w-full pl-10 py-2 sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   maxLength={20}
                   {...register('senha')}
                 />

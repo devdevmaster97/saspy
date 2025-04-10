@@ -48,7 +48,7 @@ export default function CadastroConvenio() {
   });
 
   const handleVoltar = () => {
-    router.push('/convenio');
+    router.push('/convenio/login');
   };
 
   useEffect(() => {
