@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaSpinner, FaUserCircle, FaChevronDown, FaTrash, FaUser, FaLock } from 'react-icons/fa';
+import { FaSpinner, FaUserCircle, FaChevronDown, FaTrash, FaUser, FaLock, FaEnvelope, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import Header from '@/app/components/Header';
 import Logo from '@/app/components/Logo';
+import { Dialog, Transition } from '@headlessui/react';
+import { X, Loader2 } from 'lucide-react';
 
 interface UsuarioSalvo {
   usuario: string;
@@ -22,6 +24,22 @@ export default function LoginConvenio() {
   const [usuariosSalvos, setUsuariosSalvos] = useState<UsuarioSalvo[]>([]);
   const [mostrarUsuariosSalvos, setMostrarUsuariosSalvos] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  
+  // Estados para recuperação de senha
+  const [mostrarRecuperacao, setMostrarRecuperacao] = useState(false);
+  const [usuarioRecuperacao, setUsuarioRecuperacao] = useState('');
+  const [codigoRecuperacao, setCodigoRecuperacao] = useState('');
+  const [etapaRecuperacao, setEtapaRecuperacao] = useState<'usuario' | 'codigo' | 'nova_senha'>('usuario');
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmacaoSenha, setConfirmacaoSenha] = useState('');
+  const [enviandoRecuperacao, setEnviandoRecuperacao] = useState(false);
+  const [enviandoCodigo, setEnviandoCodigo] = useState(false);
+  const [enviandoNovaSenha, setEnviandoNovaSenha] = useState(false);
+  const [mensagemRecuperacao, setMensagemRecuperacao] = useState('');
+  const [destinoMascarado, setDestinoMascarado] = useState('');
+  const [tokenRecuperacao, setTokenRecuperacao] = useState('');
+  const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
+  const [mostrarConfirmacaoSenha, setMostrarConfirmacaoSenha] = useState(false);
 
   // Carregar usuários salvos quando o componente é montado
   useEffect(() => {
@@ -114,6 +132,418 @@ export default function LoginConvenio() {
     setUsuariosSalvos(usuariosAtualizados);
     localStorage.setItem('convenioUsuariosSalvos', JSON.stringify(usuariosAtualizados));
     toast.success('Usuário removido');
+  };
+
+  // Função para abrir o modal de recuperação de senha
+  const abrirModalRecuperacao = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMostrarRecuperacao(true);
+    resetarFormularioRecuperacao();
+  };
+
+  // Função para resetar o formulário de recuperação
+  const resetarFormularioRecuperacao = () => {
+    setUsuarioRecuperacao('');
+    setCodigoRecuperacao('');
+    setNovaSenha('');
+    setConfirmacaoSenha('');
+    setEtapaRecuperacao('usuario');
+    setTokenRecuperacao('');
+    setDestinoMascarado('');
+    setMensagemRecuperacao('');
+  };
+
+  // Função para voltar etapa da recuperação
+  const voltarEtapaRecuperacao = () => {
+    if (etapaRecuperacao === 'codigo') {
+      setEtapaRecuperacao('usuario');
+    } else if (etapaRecuperacao === 'nova_senha') {
+      setEtapaRecuperacao('codigo');
+    }
+    setMensagemRecuperacao('');
+  };
+
+  // Função para solicitar código de recuperação
+  const handleRecuperarSenha = async () => {
+    if (!usuarioRecuperacao) {
+      setMensagemRecuperacao('Por favor, informe o usuário');
+      return;
+    }
+    
+    setEnviandoRecuperacao(true);
+    setMensagemRecuperacao('');
+    
+    try {
+      console.log(`Solicitando código de recuperação para usuário: ${usuarioRecuperacao}`);
+      
+      // Chamar a API de recuperação de senha
+      const response = await fetch('/api/convenio/recuperacao-senha', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ usuario: usuarioRecuperacao })
+      });
+      
+      const result = await response.json();
+      console.log('Resposta da solicitação de código:', result);
+      
+      if (result.success) {
+        // Atualizar mensagem e mostrar campo para código
+        setMensagemRecuperacao(result.message || 'Código enviado com sucesso');
+        setDestinoMascarado(result.destino);
+        
+        // Mover para próxima etapa (validação de código)
+        setTimeout(() => {
+          setEtapaRecuperacao('codigo');
+        }, 1500);
+      } else {
+        const errorMsg = result.message || 'Erro ao solicitar recuperação de senha';
+        console.error('Erro detalhado:', errorMsg);
+        setMensagemRecuperacao(errorMsg);
+      }
+    } catch (error) {
+      console.error('Erro ao solicitar recuperação de senha:', error);
+      setMensagemRecuperacao('Erro ao conectar com o servidor. Tente novamente mais tarde.');
+    } finally {
+      setEnviandoRecuperacao(false);
+    }
+  };
+
+  // Função para validar o código de recuperação
+  const handleValidarCodigo = async () => {
+    if (!codigoRecuperacao || codigoRecuperacao.length < 6) {
+      setMensagemRecuperacao('Por favor, informe o código de verificação completo');
+      return;
+    }
+    
+    setEnviandoCodigo(true);
+    setMensagemRecuperacao('');
+    
+    try {
+      // Chamar a API de validação do código
+      const response = await fetch('/api/convenio/validar-codigo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          usuario: usuarioRecuperacao,
+          codigo: codigoRecuperacao
+        })
+      });
+      
+      const result = await response.json();
+      console.log('Resposta da validação de código:', result);
+      
+      if (result.success) {
+        // Salvar o token e avançar para a próxima etapa
+        setTokenRecuperacao(result.token);
+        setMensagemRecuperacao('Código validado com sucesso. Agora defina sua nova senha.');
+        // Mover para a etapa final (nova senha)
+        setTimeout(() => {
+          setEtapaRecuperacao('nova_senha');
+          setMensagemRecuperacao('');
+        }, 1500);
+      } else {
+        setMensagemRecuperacao(result.message || 'Código inválido ou expirado.');
+      }
+    } catch (error) {
+      console.error('Erro ao validar código:', error);
+      setMensagemRecuperacao('Erro ao validar código. Tente novamente.');
+    } finally {
+      setEnviandoCodigo(false);
+    }
+  };
+
+  // Função para definir a nova senha
+  const handleDefinirNovaSenha = async () => {
+    if (!novaSenha) {
+      setMensagemRecuperacao('Por favor, informe a nova senha');
+      return;
+    }
+    
+    if (novaSenha.length < 6) {
+      setMensagemRecuperacao('A senha deve ter no mínimo 6 caracteres');
+      return;
+    }
+    
+    if (novaSenha !== confirmacaoSenha) {
+      setMensagemRecuperacao('As senhas não conferem');
+      return;
+    }
+    
+    setEnviandoNovaSenha(true);
+    setMensagemRecuperacao('');
+    
+    try {
+      // Chamar a API de redefinição de senha
+      const response = await fetch('/api/convenio/redefinir-senha', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          usuario: usuarioRecuperacao,
+          senha: novaSenha,
+          token: tokenRecuperacao
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setMensagemRecuperacao('Senha redefinida com sucesso!');
+        
+        // Após 3 segundos, fechar o modal e limpar os campos
+        setTimeout(() => {
+          setMostrarRecuperacao(false);
+          resetarFormularioRecuperacao();
+          // Preencher o campo de usuário no formulário de login
+          setFormData({...formData, usuario: usuarioRecuperacao, senha: ''});
+        }, 3000);
+      } else {
+        setMensagemRecuperacao(result.message || 'Erro ao redefinir senha.');
+      }
+    } catch (error) {
+      console.error('Erro ao redefinir senha:', error);
+      setMensagemRecuperacao('Erro ao redefinir senha. Tente novamente mais tarde.');
+    } finally {
+      setEnviandoNovaSenha(false);
+    }
+  };
+
+  // Função para mascarar o email
+  const mascaraEmail = (email: string): string => {
+    if (!email || email.indexOf('@') === -1) return '***@***.com';
+    
+    const [usuario, dominio] = email.split('@');
+    const dominioPartes = dominio.split('.');
+    const extensao = dominioPartes.pop() || '';
+    const nomeUsuarioMascarado = usuario.substring(0, Math.min(2, usuario.length)) + '***';
+    const nomeDominioMascarado = dominioPartes.join('.').substring(0, Math.min(2, dominioPartes.join('.').length)) + '***';
+    
+    return `${nomeUsuarioMascarado}@${nomeDominioMascarado}.${extensao}`;
+  };
+
+  // Modal de recuperação de senha
+  const renderRecuperacaoSenha = () => {
+    if (!mostrarRecuperacao) return null;
+
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-blue-600">
+                {etapaRecuperacao === 'usuario' && 'Recuperação de Senha'}
+                {etapaRecuperacao === 'codigo' && 'Verificação de Código'}
+                {etapaRecuperacao === 'nova_senha' && 'Definir Nova Senha'}
+              </h3>
+              <button 
+                onClick={() => setMostrarRecuperacao(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {mensagemRecuperacao && (
+              <div className={`p-3 mb-4 rounded ${
+                mensagemRecuperacao.includes('sucesso') || mensagemRecuperacao.includes('enviado')
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                <p>{mensagemRecuperacao}</p>
+                {destinoMascarado && etapaRecuperacao === 'codigo' && (
+                  <p className="text-sm mt-1">
+                    Enviado para: <span className="font-semibold">{destinoMascarado}</span>
+                  </p>
+                )}
+              </div>
+            )}
+
+            {etapaRecuperacao === 'usuario' && (
+              <div>
+                <div className="mb-4">
+                  <label htmlFor="usuarioRecuperacao" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nome de Usuário
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FaUser className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      id="usuarioRecuperacao"
+                      value={usuarioRecuperacao}
+                      onChange={(e) => setUsuarioRecuperacao(e.target.value)}
+                      placeholder="Digite seu nome de usuário"
+                      className="block w-full pl-10 py-2 sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Informe o nome de usuário cadastrado. Enviaremos um código de recuperação para o email do conveniado.
+                  </p>
+                </div>
+
+                <div className="flex justify-end mt-6">
+                  <button
+                    type="button"
+                    onClick={handleRecuperarSenha}
+                    disabled={enviandoRecuperacao || !usuarioRecuperacao}
+                    className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
+                      (enviandoRecuperacao || !usuarioRecuperacao) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {enviandoRecuperacao ? (
+                      <span className="flex items-center">
+                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                        Enviando...
+                      </span>
+                    ) : (
+                      'Enviar Código'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {etapaRecuperacao === 'codigo' && (
+              <div>
+                <div className="mb-4">
+                  <label htmlFor="codigoRecuperacao" className="block text-sm font-medium text-gray-700 mb-1">
+                    Código de Verificação
+                  </label>
+                  <input
+                    type="text"
+                    id="codigoRecuperacao"
+                    value={codigoRecuperacao}
+                    onChange={(e) => setCodigoRecuperacao(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Digite o código de 6 dígitos"
+                    maxLength={6}
+                    className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500 text-center text-lg tracking-widest"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Digite o código de 6 dígitos enviado para {destinoMascarado || 'seu email cadastrado'}.
+                  </p>
+                </div>
+
+                <div className="flex justify-between mt-6">
+                  <button
+                    type="button"
+                    onClick={voltarEtapaRecuperacao}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                  >
+                    Voltar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleValidarCodigo}
+                    disabled={enviandoCodigo || !codigoRecuperacao || codigoRecuperacao.length < 6}
+                    className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
+                      (enviandoCodigo || !codigoRecuperacao || codigoRecuperacao.length < 6) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {enviandoCodigo ? (
+                      <span className="flex items-center">
+                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                        Verificando...
+                      </span>
+                    ) : (
+                      'Verificar Código'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {etapaRecuperacao === 'nova_senha' && (
+              <div>
+                <div className="mb-4">
+                  <label htmlFor="novaSenha" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nova senha
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FaLock className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type={mostrarNovaSenha ? "text" : "password"}
+                      id="novaSenha"
+                      value={novaSenha}
+                      onChange={(e) => setNovaSenha(e.target.value)}
+                      placeholder="Mínimo de 6 caracteres"
+                      className="block w-full pl-10 pr-10 py-2 sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                      onClick={() => setMostrarNovaSenha(!mostrarNovaSenha)}
+                    >
+                      {mostrarNovaSenha ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <label htmlFor="confirmacaoSenha" className="block text-sm font-medium text-gray-700 mb-1">
+                    Confirmar senha
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FaLock className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type={mostrarConfirmacaoSenha ? "text" : "password"}
+                      id="confirmacaoSenha"
+                      value={confirmacaoSenha}
+                      onChange={(e) => setConfirmacaoSenha(e.target.value)}
+                      placeholder="Repita a mesma senha"
+                      className="block w-full pl-10 pr-10 py-2 sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                      onClick={() => setMostrarConfirmacaoSenha(!mostrarConfirmacaoSenha)}
+                    >
+                      {mostrarConfirmacaoSenha ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex justify-between mt-6">
+                  <button
+                    type="button"
+                    onClick={voltarEtapaRecuperacao}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                  >
+                    Voltar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDefinirNovaSenha}
+                    disabled={enviandoNovaSenha || !novaSenha || novaSenha !== confirmacaoSenha || novaSenha.length < 6}
+                    className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
+                      (enviandoNovaSenha || !novaSenha || novaSenha !== confirmacaoSenha || novaSenha.length < 6) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {enviandoNovaSenha ? (
+                      <span className="flex items-center">
+                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                        Salvando...
+                      </span>
+                    ) : (
+                      'Salvar Nova Senha'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -231,7 +661,7 @@ export default function LoginConvenio() {
             <div className="mt-4 text-center">
               <button
                 type="button"
-                onClick={() => router.push('/esqueci-senha')}
+                onClick={abrirModalRecuperacao}
                 className="text-sm text-blue-600 hover:text-blue-500"
               >
                 Esqueci minha senha
@@ -242,7 +672,7 @@ export default function LoginConvenio() {
               <button
                 type="button"
                 onClick={() => router.push('/convenio/cadastro')}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-gray-600 hover:text-blue-500 focus:outline-none"
               >
                 Não tem cadastro? Clique aqui para se cadastrar
               </button>
@@ -253,6 +683,8 @@ export default function LoginConvenio() {
           </div>
         </div>
       </div>
+      
+      {renderRecuperacaoSenha()}
     </div>
   );
 } 
