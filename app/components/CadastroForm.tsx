@@ -25,7 +25,7 @@ interface Empregador {
   id: string;
   nome: string;
 }
-
+//teste
 export default function CadastroForm() {
   const router = useRouter();
   const [formData, setFormData] = useState({
