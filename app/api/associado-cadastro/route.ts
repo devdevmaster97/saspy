@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     console.log('Dados recebidos para cadastro:', formDataEntries);
     
     // Verificar campos obrigatórios
-    const camposObrigatorios = ['C_nome_assoc', 'C_cpf_assoc', 'C_Email_assoc', 'C_cel_assoc'];
+    const camposObrigatorios = ['C_nome_assoc', 'C_cpf_assoc', 'C_Email_assoc', 'C_cel_assoc', 'C_codigo_assoc'];
     for (const campo of camposObrigatorios) {
       if (!formData.get(campo)) {
         console.error(`Campo obrigatório não fornecido: ${campo}`);

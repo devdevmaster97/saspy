@@ -2,13 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaSpinner, FaCheckCircle, FaExclamationTriangle, FaUser, FaIdCard, FaCalendarAlt, FaPhone, FaEnvelope, FaMapMarkerAlt, FaHome } from 'react-icons/fa';
+import { FaSpinner, FaCheckCircle, FaExclamationTriangle, FaUser, FaIdCard, FaCalendarAlt, FaPhone, FaEnvelope, FaMapMarkerAlt, FaHome, FaBarcode, FaBuilding } from 'react-icons/fa';
 import axios from 'axios';
 
 interface AssociadoCadastroFormProps {
   cartao: string;
   matricula: string;
   userInfo: any;
+}
+
+interface Empregador {
+  id: number;
+  nome: string;
 }
 
 export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: AssociadoCadastroFormProps) {
@@ -34,6 +39,8 @@ export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: A
     whatsapp: userInfo?.celwatzap === true || userInfo?.celwatzap === 'S' || userInfo?.celwatzap === '1',
     local: userInfo?.local || '',
     secretaria: userInfo?.secretaria || '0',
+    C_codigo_assoc: userInfo?.codigo || '',
+    C_empregador_assoc: userInfo?.empregador || '',
   });
   
   // Estado de carregamento e mensagens
@@ -41,6 +48,32 @@ export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: A
   const [statusMessage, setStatusMessage] = useState('');
   const [statusType, setStatusType] = useState<'success' | 'error' | ''>('');
   const [cepLoading, setCepLoading] = useState(false);
+  const [empregadores, setEmpregadores] = useState<Empregador[]>([]);
+  const [carregandoEmpregadores, setCarregandoEmpregadores] = useState(false);
+  
+  // Buscar lista de empregadores ao carregar o componente
+  useEffect(() => {
+    buscarEmpregadores();
+  }, []);
+  
+  // Função para buscar a lista de empregadores
+  const buscarEmpregadores = async () => {
+    setCarregandoEmpregadores(true);
+    try {
+      const response = await axios.get('/api/empregadores');
+      if (response.data && Array.isArray(response.data)) {
+        setEmpregadores(response.data);
+      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        setEmpregadores(response.data.data);
+      } else {
+        console.error('Formato de resposta inválido para empregadores:', response.data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar empregadores:', error);
+    } finally {
+      setCarregandoEmpregadores(false);
+    }
+  };
   
   // Atualizar o estado do formulário quando as userInfo forem alteradas
   useEffect(() => {
@@ -62,7 +95,9 @@ export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: A
         uf: userInfo.uf || prev.uf,
         whatsapp: userInfo.celwatzap === true || userInfo.celwatzap === 'S' || userInfo.celwatzap === '1',
         local: userInfo.local || prev.local,
-        secretaria: userInfo.secretaria || prev.secretaria
+        secretaria: userInfo.secretaria || prev.secretaria,
+        C_codigo_assoc: userInfo.codigo || prev.C_codigo_assoc,
+        C_empregador_assoc: userInfo.empregador || prev.C_empregador_assoc
       }));
     }
   }, [userInfo]);
@@ -129,7 +164,7 @@ export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: A
     
     try {
       // Validar campos obrigatórios
-      if (!formData.nome || !formData.cpf || !formData.email || !formData.celular) {
+      if (!formData.nome || !formData.cpf || !formData.email || !formData.celular || !formData.C_codigo_assoc) {
         setStatusMessage('Por favor, preencha todos os campos obrigatórios.');
         setStatusType('error');
         setIsLoading(false);
@@ -138,16 +173,35 @@ export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: A
       
       // Criar FormData para envio
       const submitData = new FormData();
-      submitData.append('cartao', cartao);
       
-      // Adicionar todos os campos do formulário
-      Object.entries(formData).forEach(([key, value]) => {
-        if (key === 'whatsapp') {
-          submitData.append(key, value ? 'true' : 'false');
-        } else if (value !== null && value !== undefined) {
-          submitData.append(key, String(value));
-        }
-      });
+      // Adicionar dados do cartão
+      submitData.append('cartao', cartao);
+      submitData.append('matricula', matricula);
+      
+      // Adicionar campos específicos com nomes esperados pela API
+      submitData.append('C_nome_assoc', formData.nome);
+      submitData.append('C_cpf_assoc', formData.cpf);
+      submitData.append('C_Email_assoc', formData.email);
+      submitData.append('C_cel_assoc', formData.celular);
+      submitData.append('C_codigo_assoc', formData.C_codigo_assoc);
+      submitData.append('C_empregador_assoc', formData.C_empregador_assoc);
+      
+      // Mapeamento de outros campos do formulário
+      if (formData.rg) submitData.append('C_rg_assoc', formData.rg);
+      if (formData.nascimento) submitData.append('C_nascimento', formData.nascimento);
+      if (formData.telefone_residencial) submitData.append('C_telres', formData.telefone_residencial);
+      if (formData.telefone_comercial) submitData.append('C_telcom', formData.telefone_comercial);
+      if (formData.cep) submitData.append('C_cep_assoc', formData.cep);
+      if (formData.endereco) submitData.append('C_endereco_assoc', formData.endereco);
+      if (formData.numero) submitData.append('C_numero_assoc', formData.numero);
+      if (formData.complemento) submitData.append('C_complemento_assoc', formData.complemento);
+      if (formData.bairro) submitData.append('C_bairro_assoc', formData.bairro);
+      if (formData.cidade) submitData.append('C_cidade_assoc', formData.cidade);
+      if (formData.uf) submitData.append('C_uf_assoc', formData.uf);
+      if (formData.local) submitData.append('C_local_trabalho', formData.local);
+      
+      // Adicionar outros campos complementares
+      submitData.append('whatsapp', formData.whatsapp ? 'S' : 'N');
       
       // Enviar para a API
       const response = await fetch('/api/associado-cadastro', {
@@ -237,6 +291,25 @@ export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: A
         <div>
           <h3 className="text-lg font-semibold text-gray-700 mb-4">Informações Pessoais</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border-2 border-blue-200 p-3 rounded">
+              <label htmlFor="C_codigo_assoc" className="block text-sm font-bold text-blue-700 mb-1">Código *</label>
+              <div className="mt-1 flex rounded-md shadow-sm">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                  <FaBarcode className="h-4 w-4" />
+                </span>
+                <input
+                  type="text"
+                  id="C_codigo_assoc"
+                  name="C_codigo_assoc"
+                  value={formData.C_codigo_assoc}
+                  onChange={handleChange}
+                  required
+                  className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300"
+                />
+              </div>
+              <span className="text-xs text-red-600">Este campo é obrigatório</span>
+            </div>
+            
             <div>
               <label htmlFor="nome" className="block text-sm font-medium text-gray-700">Nome Completo *</label>
               <div className="mt-1 flex rounded-md shadow-sm">
@@ -524,9 +597,36 @@ export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: A
         </div>
         
         {/* Informações adicionais */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Informações Adicionais</h3>
+        <div className="bg-gray-50 p-4 rounded-md border-2 border-blue-300">
+          <h3 className="text-lg font-semibold text-blue-700 mb-4">Informações Adicionais</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border-2 border-blue-200 p-3 rounded">
+              <label htmlFor="C_empregador_assoc" className="block text-sm font-bold text-blue-700">Empregador</label>
+              <div className="mt-1 flex rounded-md shadow-sm">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                  <FaBuilding className="h-4 w-4" />
+                </span>
+                <select
+                  id="C_empregador_assoc"
+                  name="C_empregador_assoc"
+                  value={formData.C_empregador_assoc}
+                  onChange={handleChange}
+                  className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300"
+                >
+                  <option value="">Selecione um empregador</option>
+                  {carregandoEmpregadores ? (
+                    <option disabled>Carregando...</option>
+                  ) : (
+                    empregadores.map(emp => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.nome}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+            </div>
+            
             <div>
               <label htmlFor="local" className="block text-sm font-medium text-gray-700">Local de Trabalho</label>
               <input

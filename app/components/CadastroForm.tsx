@@ -3,9 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaArrowLeft, FaSpinner, FaCheckCircle, FaExclamationTriangle, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft, FaSpinner, FaCheckCircle, FaExclamationTriangle, FaTimes, FaBarcode, FaBuilding, FaIdCard } from 'react-icons/fa';
 import axios from 'axios';
 import { API_URL } from '@/app/utils/constants';
+import Image from 'next/image';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { FaUser, FaEnvelope, FaPhone, FaHome, FaCity, FaMapMarkerAlt, FaCalendarAlt } from 'react-icons/fa';
 
 interface Estado {
   sigla: string;
@@ -13,6 +17,11 @@ interface Estado {
 }
 
 interface Cidade {
+  id: string;
+  nome: string;
+}
+
+interface Empregador {
   id: string;
   nome: string;
 }
@@ -34,6 +43,8 @@ export default function CadastroForm() {
     bairro: '',
     cidade: '',
     uf: '',
+    C_codigo_assoc: '',
+    C_empregador_assoc: '',
   });
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -42,6 +53,10 @@ export default function CadastroForm() {
   const [estados, setEstados] = useState<Estado[]>([]);
   const [cidades, setCidades] = useState<Cidade[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [empregadores, setEmpregadores] = useState<Empregador[]>([]);
+  const [carregandoEmpregadores, setCarregandoEmpregadores] = useState(false);
+  const [empregadorSearch, setEmpregadorSearch] = useState('');
+  const [showEmpregadorDropdown, setShowEmpregadorDropdown] = useState(false);
 
   useEffect(() => {
     // Carregar estados quando o componente montar
@@ -80,6 +95,56 @@ export default function CadastroForm() {
 
     fetchCidades();
   }, [formData.uf]);
+
+  useEffect(() => {
+    // Buscar lista de empregadores ao carregar o componente
+    buscarEmpregadores();
+  }, []);
+
+  // Função para buscar a lista de empregadores
+  const buscarEmpregadores = async () => {
+    setCarregandoEmpregadores(true);
+    try {
+      const response = await axios.get('/api/empregadores');
+      
+      // Diferentes possíveis estruturas de resposta da API
+      if (response.data && Array.isArray(response.data)) {
+        // Resposta direta como array
+        setEmpregadores(response.data);
+      } else if (response.data && response.data.empregadores && Array.isArray(response.data.empregadores)) {
+        // Resposta com propriedade 'empregadores'
+        setEmpregadores(response.data.empregadores);
+      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        // Resposta com propriedade 'data'
+        setEmpregadores(response.data.data);
+      } else if (response.data && typeof response.data === 'object') {
+        // Tentar construir um array a partir de um objeto
+        try {
+          const empregadoresArray = Object.entries(response.data).map(([id, nome]) => ({
+            id,
+            nome: typeof nome === 'string' ? nome : String(nome)
+          }));
+          
+          if (empregadoresArray.length > 0) {
+            setEmpregadores(empregadoresArray);
+          } else {
+            throw new Error('Array de empregadores vazio');
+          }
+        } catch (parseError) {
+          console.error('Erro ao processar objeto de empregadores:', parseError);
+          toast.error('Formato de dados inválido');
+        }
+      } else {
+        console.error('Formato de resposta inválido:', response.data);
+        toast.error('Erro ao carregar a lista de empregadores');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar empregadores:', error);
+      toast.error('Não foi possível carregar a lista de empregadores');
+    } finally {
+      setCarregandoEmpregadores(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -290,11 +355,17 @@ export default function CadastroForm() {
       cadastroData.append('operation', 'Add'); // Operação de inclusão
       
       // Dados pessoais
+      cadastroData.append('C_codigo_assoc', formData.C_codigo_assoc);
       cadastroData.append('C_nome_assoc', formData.nome);
       cadastroData.append('C_cpf_assoc', formData.cpf);
       cadastroData.append('C_rg_assoc', formData.rg);
       if (dataNascimentoFormatada) {
         cadastroData.append('C_nascimento', dataNascimentoFormatada);
+      }
+      
+      // Empregador
+      if (formData.C_empregador_assoc) {
+        cadastroData.append('C_empregador_assoc', formData.C_empregador_assoc);
       }
       
       // Contato
@@ -351,6 +422,8 @@ export default function CadastroForm() {
           bairro: '',
           cidade: '',
           uf: '',
+          C_codigo_assoc: '',
+          C_empregador_assoc: '',
         });
         
         // Redirecionar para a página de assinatura digital após alguns segundos
@@ -385,6 +458,10 @@ export default function CadastroForm() {
     return telefone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
   };
 
+  const handleEmpregadorSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmpregadorSearch(e.target.value);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
       <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-6 mb-4">
@@ -409,6 +486,26 @@ export default function CadastroForm() {
           <div>
             <h2 className="text-lg font-semibold text-gray-700 mb-4">Dados Pessoais</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                
+                  <label
+                    htmlFor="C_codigo_assoc"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Código ou matricula do funcionário
+                  </label>
+                  <input
+                    type="text"
+                    id="C_codigo_assoc"
+                    name="C_codigo_assoc"
+                    value={formData.C_codigo_assoc}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                    placeholder="Digite o código"
+                  />
+              
+              </div>
+              
               <div>
                 <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-1">
                   Nome Completo *
@@ -444,6 +541,33 @@ export default function CadastroForm() {
                 {formData.cpf && (
                   <p className="text-xs text-gray-500 mt-1">
                     Formato: {formatCPF(formData.cpf)}
+                  </p>
+                )}
+              </div>
+              
+              <div>
+                <label htmlFor="C_empregador_assoc" className="block text-sm font-medium text-gray-700 mb-1">
+                  Empregador
+                </label>
+                <select
+                  id="C_empregador_assoc"
+                  name="C_empregador_assoc"
+                  value={formData.C_empregador_assoc}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading || carregandoEmpregadores}
+                >
+                  <option value="">Selecione um empregador</option>
+                  {empregadores.map((empregador) => (
+                    <option key={empregador.id} value={empregador.id}>
+                      {empregador.nome}
+                    </option>
+                  ))}
+                </select>
+                {carregandoEmpregadores && (
+                  <p className="text-xs text-blue-600 mt-1 flex items-center">
+                    <FaSpinner className="animate-spin mr-1" /> 
+                    Carregando empregadores...
                   </p>
                 )}
               </div>
