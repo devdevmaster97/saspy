@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import axios from 'axios';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     // Obter o token do cookie

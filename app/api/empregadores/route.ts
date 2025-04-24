@@ -14,8 +14,6 @@ export async function GET(request: NextRequest) {
       // Usar axios para a consulta
       const response = await axios.get(`${API_URL}/api_empregadores.php`);
       
-      console.log('Resposta da API de empregadores:', response.data);
-      
       // Verificar o formato da resposta e garantir uma estrutura consistente
       let empregadores = [];
       

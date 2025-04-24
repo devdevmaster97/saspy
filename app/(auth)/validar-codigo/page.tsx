@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'react-hot-toast'
 import { FaArrowLeft, FaCheckCircle } from 'react-icons/fa'
@@ -8,7 +8,8 @@ import Button from '@/app/components/Button'
 import Header from '@/app/components/Header'
 import ThemeToggle from '@/app/components/ThemeToggle'
 
-export default function ValidarCodigo() {
+// Componente para usar os parâmetros de busca com Suspense
+function ValidarCodigoContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const username = searchParams.get('username') || ''
@@ -123,5 +124,23 @@ export default function ValidarCodigo() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function ValidarCodigo() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background">
+        <div className="w-full max-w-md p-8 bg-card-bg border border-card-border rounded-lg shadow-lg text-center">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded mb-4"></div>
+            <div className="h-32 bg-gray-300 dark:bg-gray-700 rounded"></div>
+          </div>
+          <p className="mt-4 text-foreground">Carregando...</p>
+        </div>
+      </div>
+    }>
+      <ValidarCodigoContent />
+    </Suspense>
   )
 } 

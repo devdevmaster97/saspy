@@ -12,6 +12,8 @@ interface Cidade {
   nome: string;
 }
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   // Adicionar headers CORS para garantir acesso em todos dispositivos
   const headers = {
