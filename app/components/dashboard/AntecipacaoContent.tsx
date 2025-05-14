@@ -364,6 +364,9 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
+    // Se já estiver carregando, não permita nova submissão
+    if (loading) return;
+    
     if (!valorSolicitado || parseFloat(valorSolicitado) / 100 <= 0) {
       setErro("Digite o valor desejado");
       return;
@@ -380,6 +383,10 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
     }
 
     setLoading(true);
+    
+    // Criar um ID único para essa solicitação para prevenir duplicações
+    const requestId = Date.now().toString();
+    
     try {
       const valorNumerico = parseFloat(valorSolicitado) / 100;
       
@@ -391,7 +398,8 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
         taxa: taxa.toFixed(2),
         valor_descontar: valorTotal.toFixed(2),
         mes_corrente: saldoData?.mesCorrente,
-        chave_pix: chavePix
+        chave_pix: chavePix,
+        request_id: requestId // Adicionar ID único para cada solicitação
       });
 
       if (response.data.success === false) {
@@ -417,8 +425,10 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
         setSenha("");
         setErro("");
         
-        // Atualizar o histórico de solicitações
-        await fetchHistoricoSolicitacoes();
+        // Pequeno atraso antes de buscar o histórico para garantir que o backend foi atualizado
+        setTimeout(() => {
+          fetchHistoricoSolicitacoes();
+        }, 1000);
       }
     } catch (error) {
       console.error('Erro ao enviar solicitação:', error);
@@ -779,7 +789,11 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
             {/* Botão de Envio */}
             <button
               type="submit"
-              className="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className={`w-full p-3 ${
+                loading 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+              } text-white rounded-lg transition-colors font-medium`}
               disabled={loading}
             >
               {loading ? (
