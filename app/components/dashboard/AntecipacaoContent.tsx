@@ -367,12 +367,6 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
-    // Verificação de segurança contra múltiplos envios
-    if (isSubmitting || loading) {
-      console.log('Tentativa de envio duplicado bloqueada');
-      return;
-    }
-    
     if (!valorSolicitado || parseFloat(valorSolicitado) / 100 <= 0) {
       setErro("Digite o valor desejado");
       return;
@@ -388,10 +382,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
       return;
     }
 
-    // Marcar que estamos processando
-    isSubmitting = true;
     setLoading(true);
-    
     try {
       const valorNumerico = parseFloat(valorSolicitado) / 100;
       
@@ -403,14 +394,27 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
         taxa: taxa.toFixed(2),
         valor_descontar: valorTotal.toFixed(2),
         mes_corrente: saldoData?.mesCorrente,
-        chave_pix: chavePix,
-        // Adicionar timestamp para reduzir chance de duplicação
-        timestamp: new Date().getTime()
+        chave_pix: chavePix
       });
 
       if (response.data.success === false) {
-        if (response.data.message.includes("Senha")) {
-          setErro("Senha incorreta!");
+        // Verificar especificamente se é um erro de senha
+        if (response.data.message && 
+            (response.data.message.toLowerCase().includes("senha") || 
+             response.data.message.toLowerCase().includes("password"))) {
+          setErro("Senha incorreta! Use a mesma senha que você utiliza para acessar o aplicativo.");
+          
+          // Destacar visualmente o campo de senha
+          const senhaInput = document.getElementById('senha');
+          if (senhaInput) {
+            senhaInput.classList.add('border-red-500', 'bg-red-50');
+            setTimeout(() => {
+              senhaInput.classList.remove('border-red-500', 'bg-red-50');
+            }, 3000);
+          }
+          
+          // Limpar apenas o campo de senha para nova tentativa
+          setSenha("");
         } else {
           setErro(response.data.message);
         }
@@ -431,20 +435,40 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
         setSenha("");
         setErro("");
         
-        // Aguardar um pouco antes de atualizar o histórico
-        setTimeout(() => {
-          fetchHistoricoSolicitacoes();
-        }, 1000);
+        // Atualizar o histórico de solicitações
+        await fetchHistoricoSolicitacoes();
       }
     } catch (error) {
       console.error('Erro ao enviar solicitação:', error);
+      
+      // Verificar se o erro está relacionado à senha
+      if (axios.isAxiosError(error) && error.response?.data) {
+        const errorData = error.response.data;
+        if (errorData.message && 
+            (errorData.message.toLowerCase().includes("senha") || 
+             errorData.message.toLowerCase().includes("password"))) {
+          setErro("Senha incorreta! Use a mesma senha que você utiliza para acessar o aplicativo.");
+          
+          // Limpar apenas o campo de senha para nova tentativa
+          setSenha("");
+          
+          // Destacar visualmente o campo de senha
+          const senhaInput = document.getElementById('senha');
+          if (senhaInput) {
+            senhaInput.classList.add('border-red-500', 'bg-red-50');
+            setTimeout(() => {
+              senhaInput.classList.remove('border-red-500', 'bg-red-50');
+            }, 3000);
+          }
+          
+          setLoading(false);
+          return;
+        }
+      }
+      
       setErro('Não foi possível processar sua solicitação. Tente novamente.');
     } finally {
       setLoading(false);
-      // Resetar apenas após um breve intervalo para evitar cliques rápidos
-      setTimeout(() => {
-        isSubmitting = false;
-      }, 2000);
     }
   };
 
@@ -781,21 +805,35 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
               <input
                 type="password"
                 id="senha"
-                placeholder="Digite sua senha"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Digite sua senha de acesso ao app"
+                className={`w-full p-3 border ${
+                  erro.toLowerCase().includes("senha") ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 disabled={loading}
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Use a mesma senha que você utiliza para entrar no aplicativo.
+              <p className="text-xs mt-1 font-medium flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span className="text-blue-600">Importante: Use a mesma senha do seu login no aplicativo</span>
               </p>
             </div>
             
             {/* Mensagem de Erro */}
-            {erro && valorSolicitado && (
-              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">
-                {erro}
+            {erro && (
+              <div className={`mb-4 p-3 rounded-lg flex items-start ${
+                erro.toLowerCase().includes("senha") 
+                  ? "bg-red-100 text-red-800 border border-red-300" 
+                  : "bg-red-50 text-red-700"
+              }`}>
+                {erro.toLowerCase().includes("senha") && (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                )}
+                <span>{erro}</span>
               </div>
             )}
             
