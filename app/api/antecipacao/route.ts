@@ -1,26 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-// Armazenar IDs de solicitações recentes para evitar duplicações
-const recentRequests = new Set<string>();
-// Limitar o tamanho do conjunto para evitar crescimento infinito
-const MAX_RECENT_REQUESTS = 100;
+// Registro de solicitações recentes para evitar duplicação
+const processedRequests = new Map<string, Date>();
 
-// Função para limpar solicitações antigas (manter apenas as 100 mais recentes)
-function cleanupOldRequests() {
-  if (recentRequests.size > MAX_RECENT_REQUESTS) {
-    const requestsArray = Array.from(recentRequests);
-    const toRemove = requestsArray.slice(0, requestsArray.length - MAX_RECENT_REQUESTS);
-    toRemove.forEach(id => recentRequests.delete(id));
+// Limpar registros mais antigos que 1 hora
+const cleanupOldRequests = () => {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  
+  for (const [key, timestamp] of processedRequests.entries()) {
+    if (timestamp < oneHourAgo) {
+      processedRequests.delete(key);
+    }
   }
-}
+};
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
     // Verificar parâmetros necessários
-    const { matricula, pass, empregador, valor_pedido, taxa, valor_descontar, mes_corrente, chave_pix, request_id } = body;
+    const { matricula, pass, empregador, valor_pedido, taxa, valor_descontar, mes_corrente, chave_pix } = body;
     
     if (!matricula || !pass || !empregador || !valor_pedido || !taxa || !valor_descontar || !mes_corrente || !chave_pix) {
       return NextResponse.json(
@@ -32,16 +32,27 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Verificar se esta solicitação já foi processada recentemente (evitar duplicação)
-    if (request_id && recentRequests.has(request_id)) {
-      console.log('Solicitação duplicada detectada e ignorada:', request_id);
-      return NextResponse.json(
-        { 
-          success: true, 
-          message: 'Solicitação já processada anteriormente'
-        }
-      );
+    // Criar uma chave única baseada nos parâmetros da solicitação para evitar duplicação
+    const requestKey = `${matricula}_${empregador}_${valor_pedido}_${mes_corrente}`;
+    
+    // Verificar se esta solicitação específica já foi processada recentemente
+    if (processedRequests.has(requestKey)) {
+      const timeElapsed = Date.now() - processedRequests.get(requestKey)!.getTime();
+      
+      // Se a mesma solicitação foi feita nos últimos 30 segundos, considerar duplicada
+      if (timeElapsed < 30000) {
+        console.log('Solicitação duplicada detectada e bloqueada:', requestKey);
+        return NextResponse.json(
+          { 
+            success: true, 
+            message: 'Sua solicitação já foi processada. Aguarde a análise.'
+          }
+        );
+      }
     }
+    
+    // Limpar registros antigos periodicamente
+    cleanupOldRequests();
     
     // Preparar os dados para enviar ao backend
     const payload = new URLSearchParams();
@@ -78,14 +89,25 @@ export async function POST(request: NextRequest) {
     
     console.log('Resposta da API de antecipação:', response.data);
     
-    // Registrar esta solicitação como processada para evitar duplicações
-    if (request_id) {
-      recentRequests.add(request_id);
-      cleanupOldRequests();
+    // Verificar se a resposta tem uma mensagem específica relacionada à senha
+    if (response.data && 
+        (response.data.message?.includes('Senha') || 
+         response.data.message?.includes('senha') || 
+         response.data.mensagem?.includes('Senha') || 
+         response.data.mensagem?.includes('senha'))) {
+      
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Senha incorreta. Por favor, use a mesma senha de acesso ao app.'
+        },
+        { status: 401 }
+      );
     }
     
-    // Verificar a resposta
+    // Se for bem-sucedido, registrar esta solicitação para evitar duplicações
     if (response.data && response.data.success) {
+      processedRequests.set(requestKey, new Date());
       return NextResponse.json(response.data);
     } else {
       // Se a API retornou algum erro específico
@@ -107,6 +129,23 @@ export async function POST(request: NextRequest) {
         statusCode = error.response.status;
         errorMessage = `Erro ${statusCode} do servidor`;
         console.log('Dados do erro:', error.response.data);
+        
+        // Verificar se a resposta do erro contém mensagem sobre senha incorreta
+        const responseData = error.response.data;
+        if (responseData && 
+            (responseData.message?.includes('Senha') || 
+             responseData.message?.includes('senha') || 
+             responseData.mensagem?.includes('Senha') || 
+             responseData.mensagem?.includes('senha'))) {
+          
+          return NextResponse.json(
+            { 
+              success: false, 
+              message: 'Senha incorreta. Por favor, use a mesma senha de acesso ao app.'
+            },
+            { status: 401 }
+          );
+        }
       } else if (error.request) {
         errorMessage = 'Sem resposta do servidor';
       }

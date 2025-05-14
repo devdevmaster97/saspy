@@ -773,7 +773,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
               />
             </div>
             
-            {/* Senha */}
+            {/* Seção senha com informação adicional */}
             <div className="mb-6">
               <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-1">
                 Senha (para confirmar)
@@ -787,6 +787,9 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
                 onChange={(e) => setSenha(e.target.value)}
                 disabled={loading}
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Use a mesma senha que você utiliza para entrar no aplicativo.
+              </p>
             </div>
             
             {/* Mensagem de Erro */}
