@@ -45,11 +45,11 @@ interface SolicitacaoAntecipacao {
   valor_descontar: string;
   mes_corrente: string;
   chave_pix: string;
-  status: string;
+  status: string | boolean | null;
 }
 
 export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoProps) {
-  const { data: session } = useSession();
+  const { data: session } = useSession({ required: false });
   const [loading, setLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [associadoData, setAssociadoData] = useState<AssociadoData | null>(null);
@@ -71,6 +71,12 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
   const [valorConfirmado, setValorConfirmado] = useState("");
   const [taxaConfirmada, setTaxaConfirmada] = useState(0);
   const [totalConfirmado, setTotalConfirmado] = useState(0);
+
+  // Função segura para verificar se uma string está em um array
+  const isStringInArray = (str: any, arr: string[]): boolean => {
+    if (typeof str !== 'string') return false;
+    return arr.includes(str.toLowerCase());
+  };
 
   // Função para buscar o mês corrente
   const fetchMesCorrente = useCallback(async (cartaoParam: string) => {
@@ -423,7 +429,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
   };
 
   // Formatar status para exibição amigável
-  const formatarStatus = (status: string | null | undefined | boolean) => {
+  const formatarStatus = (status: string | boolean | null | undefined) => {
     // Se for booleano, converter para string
     if (typeof status === 'boolean') {
       return status 
@@ -432,36 +438,38 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
     }
     
     // Se for nulo ou indefinido, retornar pendente
-    if (!status) {
+    if (status === null || status === undefined) {
       return <span className="text-yellow-600 font-medium">Pendente</span>;
     }
     
     // Se for string, verificar os valores
-    switch (status.toLowerCase()) {
-      case 'aprovado':
-      case 'aprovada':
-      case 's':
-      case 'sim':
+    if (typeof status === 'string') {
+      const statusLower = status.toLowerCase();
+      
+      if (isStringInArray(status, ['aprovado', 'aprovada', 's', 'sim'])) {
         return <span className="text-green-600 font-medium">Aprovada</span>;
-      case 'recusado':
-      case 'recusada':
-      case 'n':
-      case 'nao':
-      case 'não':
+      }
+      
+      if (isStringInArray(status, ['recusado', 'recusada', 'n', 'nao', 'não'])) {
         return <span className="text-red-600 font-medium">Recusada</span>;
-      case 'pendente':
-      case 'analise':
-      case 'análise':
+      }
+      
+      if (isStringInArray(status, ['pendente', 'analise', 'análise'])) {
         return <span className="text-yellow-600 font-medium">Em análise</span>;
-      default:
-        return <span className="text-yellow-600 font-medium">Pendente</span>;
+      }
     }
+    
+    // Padrão para qualquer outro valor
+    return <span className="text-yellow-600 font-medium">Pendente</span>;
   };
 
   // Função para verificar se a solicitação está pendente
   const isPendente = (solicitacao: SolicitacaoAntecipacao) => {
+    // Verificar se a solicitação existe
+    if (!solicitacao) return true;
+    
     // Verificar se o status não existe ou é nulo
-    if (!solicitacao || !solicitacao.status) {
+    if (solicitacao.status === null || solicitacao.status === undefined) {
       return true;
     }
     
@@ -471,8 +479,39 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
     }
     
     // Se for string, verificar se é um status pendente
-    const statusLower = solicitacao.status.toLowerCase();
-    return !['aprovado', 'aprovada', 's', 'sim', 'recusado', 'recusada', 'n', 'nao', 'não'].includes(statusLower);
+    if (typeof solicitacao.status === 'string') {
+      return !isStringInArray(
+        solicitacao.status, 
+        ['aprovado', 'aprovada', 's', 'sim', 'recusado', 'recusada', 'n', 'nao', 'não']
+      );
+    }
+    
+    // Por padrão, considerar pendente
+    return true;
+  };
+  
+  // Função para obter classe CSS com base no status
+  const getStatusClass = (status: string | boolean | null | undefined) => {
+    // Se for booleano
+    if (typeof status === 'boolean') {
+      return status 
+        ? 'bg-green-50 border-green-200' 
+        : 'bg-red-50 border-red-200';
+    }
+    
+    // Se for string
+    if (typeof status === 'string') {
+      if (isStringInArray(status, ['aprovado', 'aprovada', 's', 'sim'])) {
+        return 'bg-green-50 border-green-200';
+      }
+      
+      if (isStringInArray(status, ['recusado', 'recusada', 'n', 'nao', 'não'])) {
+        return 'bg-red-50 border-red-200';
+      }
+    }
+    
+    // Padrão para pendente ou qualquer outro caso
+    return 'bg-yellow-50 border-yellow-200';
   };
   
   // Filtrar apenas solicitações pendentes
@@ -550,13 +589,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
                   {ultimasSolicitacoes.slice(0, 3).map((solicitacao) => (
                     <div 
                       key={solicitacao.id} 
-                      className={`p-3 rounded-lg border ${
-                        solicitacao.status && ['aprovado', 'aprovada', 's', 'sim'].includes(solicitacao.status.toLowerCase())
-                          ? 'bg-green-50 border-green-200' 
-                          : solicitacao.status && ['recusado', 'recusada', 'n', 'nao', 'não'].includes(solicitacao.status.toLowerCase())
-                            ? 'bg-red-50 border-red-200'
-                            : 'bg-yellow-50 border-yellow-200'
-                      }`}
+                      className={`p-3 rounded-lg border ${getStatusClass(solicitacao.status)}`}
                     >
                       <div className="flex justify-between items-start">
                         <div>
