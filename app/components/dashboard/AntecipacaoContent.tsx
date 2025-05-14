@@ -48,6 +48,9 @@ interface SolicitacaoAntecipacao {
   status: string | boolean | null;
 }
 
+// Adicione essa variável fora do componente para compartilhar entre renderizações
+let isSubmitting = false;
+
 export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoProps) {
   const { data: session } = useSession({ required: false });
   const [loading, setLoading] = useState(false);
@@ -364,8 +367,11 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
-    // Se já estiver carregando, não permita nova submissão
-    if (loading) return;
+    // Verificação de segurança contra múltiplos envios
+    if (isSubmitting || loading) {
+      console.log('Tentativa de envio duplicado bloqueada');
+      return;
+    }
     
     if (!valorSolicitado || parseFloat(valorSolicitado) / 100 <= 0) {
       setErro("Digite o valor desejado");
@@ -382,10 +388,9 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
       return;
     }
 
+    // Marcar que estamos processando
+    isSubmitting = true;
     setLoading(true);
-    
-    // Criar um ID único para essa solicitação para prevenir duplicações
-    const requestId = Date.now().toString();
     
     try {
       const valorNumerico = parseFloat(valorSolicitado) / 100;
@@ -399,7 +404,8 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
         valor_descontar: valorTotal.toFixed(2),
         mes_corrente: saldoData?.mesCorrente,
         chave_pix: chavePix,
-        request_id: requestId // Adicionar ID único para cada solicitação
+        // Adicionar timestamp para reduzir chance de duplicação
+        timestamp: new Date().getTime()
       });
 
       if (response.data.success === false) {
@@ -425,7 +431,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
         setSenha("");
         setErro("");
         
-        // Pequeno atraso antes de buscar o histórico para garantir que o backend foi atualizado
+        // Aguardar um pouco antes de atualizar o histórico
         setTimeout(() => {
           fetchHistoricoSolicitacoes();
         }, 1000);
@@ -435,6 +441,10 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
       setErro('Não foi possível processar sua solicitação. Tente novamente.');
     } finally {
       setLoading(false);
+      // Resetar apenas após um breve intervalo para evitar cliques rápidos
+      setTimeout(() => {
+        isSubmitting = false;
+      }, 2000);
     }
   };
 
@@ -795,6 +805,14 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
                   : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
               } text-white rounded-lg transition-colors font-medium`}
               disabled={loading}
+              onClick={(e) => {
+                // Verificação extra para prevenir múltiplos cliques
+                if (loading) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  return false;
+                }
+              }}
             >
               {loading ? (
                 <span className="flex items-center justify-center">
