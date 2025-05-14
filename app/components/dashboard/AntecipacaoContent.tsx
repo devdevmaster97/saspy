@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { FaSpinner, FaClockRotateLeft, FaArrowRotateLeft } from 'react-icons/fa6';
+import { FaSpinner, FaClockRotateLeft, FaArrowRotateLeft, FaCheckCircle, FaTimesCircle, FaHourglassHalf } from 'react-icons/fa6';
 
 interface AntecipacaoProps {
   cartao?: string;
@@ -427,13 +427,13 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
     // Se for booleano, converter para string
     if (typeof status === 'boolean') {
       return status 
-        ? <span className="text-green-600 font-medium">Aprovada</span>
-        : <span className="text-red-600 font-medium">Recusada</span>;
+        ? <span className="text-green-600 font-medium flex items-center"><FaCheckCircle className="mr-1" /> Aprovada</span>
+        : <span className="text-red-600 font-medium flex items-center"><FaTimesCircle className="mr-1" /> Recusada</span>;
     }
     
     // Se for nulo ou indefinido, retornar pendente
     if (!status) {
-      return <span className="text-yellow-600 font-medium">Pendente</span>;
+      return <span className="text-yellow-600 font-medium flex items-center"><FaHourglassHalf className="mr-1" /> Pendente</span>;
     }
     
     // Se for string, verificar os valores
@@ -442,41 +442,59 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
       case 'aprovada':
       case 's':
       case 'sim':
-        return <span className="text-green-600 font-medium">Aprovada</span>;
+        return <span className="text-green-600 font-medium flex items-center"><FaCheckCircle className="mr-1" /> Aprovada</span>;
       case 'recusado':
       case 'recusada':
       case 'n':
       case 'nao':
       case 'não':
-        return <span className="text-red-600 font-medium">Recusada</span>;
+        return <span className="text-red-600 font-medium flex items-center"><FaTimesCircle className="mr-1" /> Recusada</span>;
       case 'pendente':
       case 'analise':
       case 'análise':
-        return <span className="text-yellow-600 font-medium">Em análise</span>;
+        return <span className="text-yellow-600 font-medium flex items-center"><FaHourglassHalf className="mr-1" /> Em análise</span>;
       default:
-        return <span className="text-yellow-600 font-medium">Pendente</span>;
+        return <span className="text-yellow-600 font-medium flex items-center"><FaHourglassHalf className="mr-1" /> Pendente</span>;
     }
+  };
+
+  // Função para verificar se a solicitação está aprovada
+  const isAprovada = (solicitacao: SolicitacaoAntecipacao) => {
+    if (typeof solicitacao.status === 'boolean') {
+      return solicitacao.status;
+    }
+    
+    if (!solicitacao.status) {
+      return false;
+    }
+    
+    const statusLower = solicitacao.status.toLowerCase();
+    return ['aprovado', 'aprovada', 's', 'sim'].includes(statusLower);
+  };
+
+  // Função para verificar se a solicitação está recusada
+  const isRecusada = (solicitacao: SolicitacaoAntecipacao) => {
+    if (typeof solicitacao.status === 'boolean') {
+      return solicitacao.status === false;
+    }
+    
+    if (!solicitacao.status) {
+      return false;
+    }
+    
+    const statusLower = solicitacao.status.toLowerCase();
+    return ['recusado', 'recusada', 'n', 'nao', 'não'].includes(statusLower);
   };
 
   // Função para verificar se a solicitação está pendente
   const isPendente = (solicitacao: SolicitacaoAntecipacao) => {
-    // Verificar se o status não existe ou é nulo
-    if (!solicitacao.status) {
-      return true;
-    }
-    
-    // Se for booleano, não está pendente se for true (aprovado)
-    if (typeof solicitacao.status === 'boolean') {
-      return !solicitacao.status;
-    }
-    
-    // Se for string, verificar se é um status pendente
-    const statusLower = solicitacao.status.toLowerCase();
-    return !['aprovado', 'aprovada', 's', 'sim', 'recusado', 'recusada', 'n', 'nao', 'não'].includes(statusLower);
+    return !isAprovada(solicitacao) && !isRecusada(solicitacao);
   };
   
-  // Filtrar apenas solicitações pendentes
+  // Filtrar solicitações
   const solicitacoesPendentes = ultimasSolicitacoes.filter(isPendente);
+  const solicitacoesAprovadas = ultimasSolicitacoes.filter(isAprovada);
+  const solicitacoesRecusadas = ultimasSolicitacoes.filter(isRecusada);
 
   if (isInitialLoading && !associadoData) {
     return (
@@ -519,46 +537,77 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
           )}
         </div>
         
-        {/* Últimas Solicitações Pendentes */}
-        {solicitacoesPendentes.length > 0 && (
+        {/* Status de Solicitações */}
+        {ultimasSolicitacoes.length > 0 && (
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-md font-medium text-gray-700 flex items-center">
-                <FaClockRotateLeft className="mr-1" /> Solicitações Pendentes
-              </h3>
-              {loadingHistorico && (
-                <FaSpinner className="animate-spin text-blue-600" />
-              )}
+              <h3 className="text-md font-medium text-gray-700">Status de Solicitações</h3>
+              <button 
+                onClick={() => fetchHistoricoSolicitacoes()}
+                className="text-blue-600 p-1 rounded hover:bg-blue-50"
+                title="Atualizar histórico"
+                disabled={loadingHistorico}
+                type="button"
+              >
+                {loadingHistorico ? <FaSpinner className="animate-spin" /> : <FaArrowRotateLeft />}
+              </button>
             </div>
-            <div className="overflow-x-auto">
-              <div className="flex space-x-3 py-2">
-                {solicitacoesPendentes.map((solicitacao) => (
-                  <div 
-                    key={solicitacao.id} 
-                    className="bg-gray-50 rounded-lg border border-gray-200 p-3 flex-shrink-0 w-48"
-                  >
-                    <div className="text-sm text-gray-500">
-                      {format(new Date(solicitacao.data_solicitacao), "dd/MM/yyyy", { locale: ptBR })}
+            
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              {loadingHistorico ? (
+                <div className="flex justify-center py-4">
+                  <FaSpinner className="animate-spin text-blue-600" />
+                </div>
+              ) : ultimasSolicitacoes.length === 0 ? (
+                <p className="text-gray-500 text-center py-2">Nenhuma solicitação encontrada</p>
+              ) : (
+                <div className="space-y-3">
+                  {/* Solicitações Mais Recentes (limitando a 3) */}
+                  {ultimasSolicitacoes.slice(0, 3).map((solicitacao) => (
+                    <div 
+                      key={solicitacao.id} 
+                      className={`p-3 rounded-lg border ${
+                        isAprovada(solicitacao) 
+                          ? 'bg-green-50 border-green-200' 
+                          : isRecusada(solicitacao)
+                            ? 'bg-red-50 border-red-200'
+                            : 'bg-yellow-50 border-yellow-200'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-semibold">
+                            {Number(solicitacao.valor_solicitado).toLocaleString('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL'
+                            })}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {format(new Date(solicitacao.data_solicitacao), "dd/MM/yyyy", { locale: ptBR })}
+                          </div>
+                        </div>
+                        <div className="font-medium">
+                          {formatarStatus(solicitacao.status)}
+                        </div>
+                      </div>
                     </div>
-                    <div className="font-semibold">
-                      {Number(solicitacao.valor_solicitado).toLocaleString('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL'
-                      })}
-                    </div>
-                    <div className="text-xs text-gray-600">
-                      Mês: {solicitacao.mes_corrente}
-                    </div>
-                    <div className="mt-1 text-xs">
-                      Status: {formatarStatus(solicitacao.status)}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                  
+                  {ultimasSolicitacoes.length > 3 && (
+                    <button
+                      onClick={() => fetchHistoricoSolicitacoes()}
+                      className="text-blue-600 text-sm hover:underline w-full text-center py-1"
+                      type="button"
+                    >
+                      Ver mais solicitações
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
-
+        
         {solicitado ? (
           /* Resumo da Solicitação */
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
