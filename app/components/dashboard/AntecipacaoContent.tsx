@@ -623,7 +623,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
               <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                 <h4 className="font-medium text-gray-700 mb-2">Simulação:</h4>
                 <div className="grid grid-cols-2 gap-2">
-                  <p className="text-sm text-gray-600">Taxa ({saldoData?.porcentagem || 0}%):</p>
+                  <p className="text-sm text-gray-600">Taxas :</p>
                   <p className="text-sm text-gray-800 font-medium">{formatarValor(taxa)}</p>
                   <p className="text-sm text-gray-600">Total a Descontar:</p>
                   <p className="text-sm text-gray-800 font-medium">{formatarValor(valorTotal)}</p>
