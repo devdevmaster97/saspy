@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaSpinner, FaFilter, FaUndo, FaExclamationTriangle, FaTimes, FaCheck } from 'react-icons/fa';
+import { FaSpinner, FaFilter, FaUndo, FaExclamationTriangle, FaTimes, FaCheck, FaReceipt, FaFileAlt, FaPrint } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 
@@ -27,6 +27,7 @@ export default function RelatoriosPage() {
   const [loadingLancamentos, setLoadingLancamentos] = useState(true);
   const [estornandoId, setEstornandoId] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showComprovanteModal, setShowComprovanteModal] = useState(false);
   const [lancamentoSelecionado, setLancamentoSelecionado] = useState<Lancamento | null>(null);
 
   // Função para gerar o mês corrente no formato abreviado (ex: JAN/2024)
@@ -159,6 +160,24 @@ export default function RelatoriosPage() {
     }
   };
 
+  // Função para abrir o modal do comprovante
+  const abrirComprovante = (lancamento: Lancamento) => {
+    setLancamentoSelecionado(lancamento);
+    setShowComprovanteModal(true);
+  };
+
+  // Função para formatar a data
+  const formatarData = (data: string) => {
+    if (!data) return '-';
+    return data; // Manter o formato atual
+  };
+
+  // Função para formatar o valor monetário
+  const formatarValor = (valor: string) => {
+    if (!valor) return 'R$ 0,00';
+    return `R$ ${valor}`;
+  };
+
   return (
     <div>
       <div className="mb-6">
@@ -253,17 +272,27 @@ export default function RelatoriosPage() {
                         {lancamento.data_fatura || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <button
-                          onClick={() => confirmarEstorno(lancamento)}
-                          disabled={estornandoId === lancamento.id}
-                          className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {estornandoId === lancamento.id ? (
-                            <FaSpinner className="animate-spin h-5 w-5" />
-                          ) : (
-                            <FaUndo className="h-5 w-5" />
-                          )}
-                        </button>
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={() => abrirComprovante(lancamento)}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="Ver comprovante"
+                          >
+                            <FaReceipt className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => confirmarEstorno(lancamento)}
+                            disabled={estornandoId === lancamento.id}
+                            className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Estornar lançamento"
+                          >
+                            {estornandoId === lancamento.id ? (
+                              <FaSpinner className="animate-spin h-5 w-5" />
+                            ) : (
+                              <FaUndo className="h-5 w-5" />
+                            )}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -310,7 +339,14 @@ export default function RelatoriosPage() {
                     )}
                   </div>
                   
-                  <div className="mt-2 border-t pt-2 flex justify-end">
+                  <div className="mt-2 border-t pt-2 flex justify-end space-x-2">
+                    <button
+                      onClick={() => abrirComprovante(lancamento)}
+                      className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                    >
+                      <FaReceipt className="mr-2 h-4 w-4" />
+                      Comprovante
+                    </button>
                     <button
                       onClick={() => confirmarEstorno(lancamento)}
                       disabled={estornandoId === lancamento.id}
@@ -389,6 +425,113 @@ export default function RelatoriosPage() {
               >
                 Cancelar
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal do Comprovante Digital */}
+      {showComprovanteModal && lancamentoSelecionado && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full overflow-hidden shadow-xl transform transition-all">
+            <div className="relative bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <button
+                onClick={() => setShowComprovanteModal(false)}
+                className="absolute top-2 right-2 text-gray-400 hover:text-gray-500"
+              >
+                <FaTimes className="h-5 w-5" />
+              </button>
+              
+              <div className="mt-2 text-center">
+                <div className="flex justify-center mb-4">
+                  <FaFileAlt className="h-12 w-12 text-blue-600" />
+                </div>
+                <h3 className="text-lg leading-6 font-bold text-gray-900 mb-4">
+                  Comprovante Digital
+                </h3>
+                
+                <div className="border-t border-b border-dashed border-gray-300 py-6 px-2">
+                  <div className="text-center mb-4">
+                    <p className="font-bold text-gray-900">QRCRED - SISTEMA DE CRÉDITO</p>
+                    <p className="text-sm text-gray-600">Comprovante de Transação</p>
+                  </div>
+                  
+                  <div className="space-y-2 text-left">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Transação:</span>
+                      <span className="text-sm font-semibold">#{lancamentoSelecionado.id}</span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Data/Hora:</span>
+                      <span className="text-sm font-semibold">{formatarData(lancamentoSelecionado.data)} {lancamentoSelecionado.hora}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Associado:</span>
+                      <span className="text-sm font-semibold">{lancamentoSelecionado.associado}</span>
+                    </div>
+                    
+                    {lancamentoSelecionado.matricula && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Matrícula:</span>
+                        <span className="text-sm font-semibold">{lancamentoSelecionado.matricula}</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Empregador:</span>
+                      <span className="text-sm font-semibold">{lancamentoSelecionado.empregador}</span>
+                    </div>
+                    
+                    <div className="border-t border-gray-200 my-2 pt-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Descrição:</span>
+                        <span className="text-sm font-semibold">{lancamentoSelecionado.descricao || 'Lançamento Convênio'}</span>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Mês Referência:</span>
+                        <span className="text-sm font-semibold">{lancamentoSelecionado.mes}</span>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Parcela:</span>
+                        <span className="text-sm font-semibold">{lancamentoSelecionado.parcela} de {lancamentoSelecionado.parcela}</span>
+                      </div>
+                      
+                      {lancamentoSelecionado.data_fatura && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Data Fatura:</span>
+                          <span className="text-sm font-semibold">{lancamentoSelecionado.data_fatura}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="border-t border-gray-200 my-2 pt-2">
+                      <div className="flex justify-between font-bold">
+                        <span className="text-gray-700">VALOR TOTAL:</span>
+                        <span className="text-gray-900">{formatarValor(lancamentoSelecionado.valor)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 text-center">
+                    <p className="text-xs text-gray-500">TRANSAÇÃO AUTORIZADA - CRÉDITO NO CONVÊNIO</p>
+                    <p className="text-xs text-gray-500 mt-1">ESTE DOCUMENTO É UMA REPRESENTAÇÃO DIGITAL DO COMPROVANTE</p>
+                  </div>
+                </div>
+                
+                <div className="mt-4 flex justify-center">
+                  <button
+                    onClick={() => window.print()}
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <FaPrint className="mr-2 -ml-1 h-4 w-4" />
+                    Imprimir
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
