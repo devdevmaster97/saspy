@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Logout realizado com sucesso'
+      message: 'ut realizado com sucesso'
     });
   } catch (error) {
     console.error('Erro ao fazer logout:', error);

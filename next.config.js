@@ -9,7 +9,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['localhost', 'qrcred.vercel.app'],
+    domains: ['localhost', 'saspy.vercel.app'],
   },
   // Ignore errors on build
   onDemandEntries: {

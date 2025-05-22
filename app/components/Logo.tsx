@@ -14,7 +14,7 @@ export default function Logo({ size = 'md' }: LogoProps) {
   return (
     <div className="flex justify-center">
       <div className={`font-bold text-blue-600 ${sizeClasses[size]}`}>
-        QRCred
+        SASPY
         <span className="text-green-500">.</span>
       </div>
     </div>
