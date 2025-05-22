@@ -8,11 +8,11 @@ const processedRequests = new Map<string, Date>();
 const cleanupOldRequests = () => {
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
   
-  for (const [key, timestamp] of processedRequests.entries()) {
+  processedRequests.forEach((timestamp, key) => {
     if (timestamp < oneHourAgo) {
       processedRequests.delete(key);
     }
-  }
+  });
 };
 
 export async function POST(request: NextRequest) {
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     
     // Enviar a requisição para o backend
     const response = await axios.post(
-      'https://qrcred.makecard.com.br/grava_antecipacao_app.php',
+      'https://saspy.makecard.com.br/grava_antecipacao_app.php',
       payload,
       {
         headers: {

@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     params.append('passconv', senha);
 
     // Enviar requisição para o backend
-    const response = await axios.post('https://qrcred.makecard.com.br/convenio_autenticar_app.php', 
+    const response = await axios.post('https://saspy.makecard.com.br/convenio_autenticar_app.php', 
       params, 
       {
         headers: {

@@ -11,46 +11,46 @@ import Providers from './components/Providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'QRCred',
-  description: 'Sistema de Cartão de Crédito QRCred',
+  title: 'SASPY',
+  description: 'Sistema SASPY',
   manifest: '/manifest.json',
   themeColor: '#1e40af',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'QRCred',
+    title: 'SASPY',
   },
   formatDetection: {
     telephone: false,
   },
-  applicationName: 'QRCred',
+  applicationName: 'SASPY',
   referrer: 'origin-when-cross-origin',
-  keywords: ['cartão de crédito', 'finanças', 'pagamentos'],
-  authors: [{ name: 'QRCred' }],
-  creator: 'QRCred',
-  publisher: 'QRCred',
+  keywords: ['saspy', 'sistema', 'gestão'],
+  authors: [{ name: 'SASPY' }],
+  creator: 'SASPY',
+  publisher: 'SASPY',
   robots: 'index, follow',
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
-    url: 'https://qrcred.vercel.app',
-    siteName: 'QRCred',
-    title: 'QRCred - Sistema de Cartão de Crédito',
-    description: 'Sistema de Cartão de Crédito QRCred',
+    url: 'https://saspy.vercel.app',
+    siteName: 'SASPY',
+    title: 'SASPY - Sistema de Gestão',
+    description: 'Sistema SASPY',
     images: [
       {
         url: '/icons/icon-512x512.png',
         width: 512,
         height: 512,
-        alt: 'QRCred Logo',
+        alt: 'SASPY Logo',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'QRCred - Sistema de Cartão de Crédito',
-    description: 'Sistema de Cartão de Crédito QRCred',
+    title: 'SASPY - Sistema de Gestão',
+    description: 'Sistema SASPY',
     images: ['/icons/icon-512x512.png'],
   },
   verification: {
@@ -69,18 +69,18 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="QRCred" />
+        <meta name="apple-mobile-web-app-title" content="SASPY" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#1e40af" />
-        <meta name="application-name" content="QRCred" />
+        <meta name="application-name" content="SASPY" />
         <meta name="msapplication-TileColor" content="#1e40af" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-touch-fullscreen" content="yes" />
         <meta name="apple-mobile-web-app-orientations" content="portrait" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="QRCred" />
+        <meta name="application-name" content="SASPY" />
         <meta name="theme-color" content="#1e40af" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
         

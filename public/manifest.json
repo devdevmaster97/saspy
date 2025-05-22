@@ -1,7 +1,7 @@
 {
-  "name": "QRCred",
-  "short_name": "QRCred",
-  "description": "Sistema de Cartão de Crédito QRCred",
+  "name": "SASPY",
+  "short_name": "SASPY",
+  "description": "Sistema SASPY",
   "theme_color": "#1e40af",
   "background_color": "#ffffff",
   "display": "standalone",
@@ -32,14 +32,14 @@
       "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
     }
   ],
-  "categories": ["finance", "shopping"],
+  "categories": ["business", "productivity"],
   "screenshots": [
     {
       "src": "/screenshots/home.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "platform": "narrow",
-      "label": "Tela inicial do QRCred"
+      "label": "Tela inicial do SASPY"
     }
   ],
   "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
