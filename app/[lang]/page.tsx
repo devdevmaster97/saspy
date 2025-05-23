@@ -1,9 +1,13 @@
 'use client';
 
-import { LanguageSelector } from './components/LanguageSelector';
+import { LanguageSelector } from '../components/LanguageSelector';
 import { useTranslation } from 'next-i18next';
 
-export default function Home() {
+export default function Home({
+  params: { lang },
+}: {
+  params: { lang: string };
+}) {
   const { t } = useTranslation('common');
 
   return (
@@ -20,4 +24,4 @@ export default function Home() {
       </div>
     </main>
   );
-}
+} 

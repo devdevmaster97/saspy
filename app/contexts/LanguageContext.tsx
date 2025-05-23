@@ -1,5 +1,7 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { usePathname, useRouter } from 'next/navigation';
 
 type Language = 'pt-BR' | 'es';
 
@@ -12,6 +14,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [language, setLanguageState] = useState<Language>('pt-BR');
 
   useEffect(() => {
@@ -19,21 +22,27 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const savedLanguage = localStorage.getItem('language') as Language;
     if (savedLanguage) {
       setLanguageState(savedLanguage);
-      router.push(router.pathname, router.pathname, { locale: savedLanguage });
+      // Atualizar o idioma na URL
+      const newPath = `/${savedLanguage}${pathname}`;
+      router.push(newPath);
     } else {
       // Detectar idioma do navegador
       const browserLang = navigator.language;
       const defaultLang: Language = browserLang.startsWith('es') ? 'es' : 'pt-BR';
       setLanguageState(defaultLang);
       localStorage.setItem('language', defaultLang);
-      router.push(router.pathname, router.pathname, { locale: defaultLang });
+      // Atualizar o idioma na URL
+      const newPath = `/${defaultLang}${pathname}`;
+      router.push(newPath);
     }
   }, []);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('language', lang);
-    router.push(router.pathname, router.pathname, { locale: lang });
+    // Atualizar o idioma na URL
+    const newPath = `/${lang}${pathname}`;
+    router.push(newPath);
   };
 
   return (
