@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 type Language = 'pt-BR' | 'es';
 
@@ -23,8 +24,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     if (savedLanguage) {
       setLanguageState(savedLanguage);
       // Atualizar o idioma na URL
-      const newPath = `/${savedLanguage}${pathname}`;
-      router.push(newPath);
+      const currentPath = pathname.split('/').slice(2).join('/');
+      router.push(`/${savedLanguage}/${currentPath}`);
     } else {
       // Detectar idioma do navegador
       const browserLang = navigator.language;
@@ -32,8 +33,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       setLanguageState(defaultLang);
       localStorage.setItem('language', defaultLang);
       // Atualizar o idioma na URL
-      const newPath = `/${defaultLang}${pathname}`;
-      router.push(newPath);
+      const currentPath = pathname.split('/').slice(2).join('/');
+      router.push(`/${defaultLang}/${currentPath}`);
     }
   }, []);
 
@@ -41,8 +42,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     setLanguageState(lang);
     localStorage.setItem('language', lang);
     // Atualizar o idioma na URL
-    const newPath = `/${lang}${pathname}`;
-    router.push(newPath);
+    const currentPath = pathname.split('/').slice(2).join('/');
+    router.push(`/${lang}/${currentPath}`);
   };
 
   return (

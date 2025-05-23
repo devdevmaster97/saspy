@@ -1,5 +1,3 @@
-'use client';
-
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import '../globals.css';
@@ -9,56 +7,63 @@ import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import IOSInstallPrompt from '../components/IOSInstallPrompt';
 import UpdateNotification from '../components/UpdateNotification';
 import Providers from '../components/Providers';
+import { i18n } from '../i18n-config';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export const metadata: Metadata = {
-  title: 'SASPY',
-  description: 'Sistema SASPY',
-  manifest: '/manifest.json',
-  themeColor: '#1e40af',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'black-translucent',
+export async function generateMetadata({ params: { lang } }: { params: { lang: string } }): Promise<Metadata> {
+  return {
     title: 'SASPY',
-  },
-  formatDetection: {
-    telephone: false,
-  },
-  applicationName: 'SASPY',
-  referrer: 'origin-when-cross-origin',
-  keywords: ['saspy', 'sistema', 'gestão'],
-  authors: [{ name: 'SASPY' }],
-  creator: 'SASPY',
-  publisher: 'SASPY',
-  robots: 'index, follow',
-  openGraph: {
-    type: 'website',
-    locale: 'pt_BR',
-    url: 'https://saspy.vercel.app',
-    siteName: 'SASPY',
-    title: 'SASPY - Sistema de Gestão',
     description: 'Sistema SASPY',
-    images: [
-      {
-        url: '/icons/icon-512x512.png',
-        width: 512,
-        height: 512,
-        alt: 'SASPY Logo',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'SASPY - Sistema de Gestão',
-    description: 'Sistema SASPY',
-    images: ['/icons/icon-512x512.png'],
-  },
-  verification: {
-    google: 'adicione_seu_codigo_de_verificacao_aqui',
-  },
-};
+    manifest: '/manifest.json',
+    themeColor: '#1e40af',
+    viewport: 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover',
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'black-translucent',
+      title: 'SASPY',
+    },
+    formatDetection: {
+      telephone: false,
+    },
+    applicationName: 'SASPY',
+    referrer: 'origin-when-cross-origin',
+    keywords: ['saspy', 'sistema', 'gestão'],
+    authors: [{ name: 'SASPY' }],
+    creator: 'SASPY',
+    publisher: 'SASPY',
+    robots: 'index, follow',
+    openGraph: {
+      type: 'website',
+      locale: lang,
+      url: 'https://saspy.vercel.app',
+      siteName: 'SASPY',
+      title: 'SASPY - Sistema de Gestão',
+      description: 'Sistema SASPY',
+      images: [
+        {
+          url: '/icons/icon-512x512.png',
+          width: 512,
+          height: 512,
+          alt: 'SASPY Logo',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'SASPY - Sistema de Gestão',
+      description: 'Sistema SASPY',
+      images: ['/icons/icon-512x512.png'],
+    },
+    verification: {
+      google: 'adicione_seu_codigo_de_verificacao_aqui',
+    },
+  };
+}
+
+export async function generateStaticParams() {
+  return i18n.locales.map((locale) => ({ lang: locale }));
+}
 
 export default function RootLayout({
   children,

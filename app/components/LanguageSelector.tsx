@@ -1,15 +1,35 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useTranslation } from 'next-i18next';
+import { getDictionary } from '../dictionaries';
+
+interface Dictionary {
+  common: {
+    select_language: string;
+  };
+}
 
 export function LanguageSelector() {
   const { language, setLanguage } = useLanguage();
-  const { t } = useTranslation('common');
+  const [dictionary, setDictionary] = useState<Dictionary | null>(null);
+
+  useEffect(() => {
+    const loadDictionary = async () => {
+      const dict = await getDictionary(language);
+      setDictionary(dict);
+    };
+    loadDictionary();
+  }, [language]);
+
+  if (!dictionary) {
+    return null;
+  }
 
   return (
     <div className="flex items-center gap-4 p-4">
       <label className="text-sm font-medium text-gray-700">
-        {t('common.select_language')}:
+        {dictionary.common.select_language}:
       </label>
       <div className="flex gap-2">
         <button
