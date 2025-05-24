@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     console.log('Dados recebidos para cadastro:', formDataEntries);
     
     // Verificar campos obrigatórios
-    const camposObrigatorios = ['C_nome_assoc', 'C_cpf_assoc', 'C_Email_assoc', 'C_cel_assoc', 'C_codigo_assoc'];
+    const camposObrigatorios = ['C_nome_assoc', 'C_Email_assoc', 'C_cel_assoc', 'C_codigo_assoc'];
     for (const campo of camposObrigatorios) {
       if (!formData.get(campo)) {
         console.error(`Campo obrigatório não fornecido: ${campo}`);
@@ -67,12 +67,12 @@ export async function POST(request: NextRequest) {
       }
       
       // Verificar se o erro é de CPF duplicado
-      if (axiosError.response?.data?.error === 'duplicate_cpf' || 
-          (typeof errorMessage === 'string' && errorMessage.includes('CPF já cadastrado'))) {
+      if (axiosError.response?.data?.error === 'duplicate_rg' || 
+          (typeof errorMessage === 'string' && errorMessage.includes('C.I. já cadastrado'))) {
         return NextResponse.json({
           success: false,
-          message: 'CPF já cadastrado no sistema',
-          error: 'duplicate_cpf'
+          message: 'C.I. já cadastrado no sistema',
+          error: 'duplicate_rg'
         }, { status: 400 });
       }
       
@@ -93,31 +93,28 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * API para consultar dados de um associado por CPF
- * @param request Requisição com o CPF do associado
+ * API para consultar dados de um associado por RG
+ * @param request Requisição com o RG do associado
  * @returns Resposta com dados do associado
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const cpf = searchParams.get('cpf');
+    const rg = searchParams.get('rg');
     
-    if (!cpf) {
+    if (!rg) {
       return NextResponse.json(
-        { success: false, message: 'O CPF é obrigatório' },
+        { success: false, message: 'O C.I. é obrigatório' },
         { status: 400 }
       );
     }
     
-    // Remover caracteres não numéricos do CPF
-    const cpfLimpo = cpf.replace(/\D/g, '');
-    
-    console.log('Consultando associado com CPF:', cpfLimpo);
+    console.log('Consultando associado com C.I.:', rg);
     
     try {
       // Usar axios para a consulta
-      const response = await axios.get(`${API_URL}/consulta_associado_cpf.php`, {
-        params: { cpf: cpfLimpo }
+      const response = await axios.get(`${API_URL}/consulta_associado_rg.php`, {
+        params: { rg: rg }
       });
       
       console.log('Resposta da API de consulta:', response.data);
@@ -125,7 +122,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(response.data);
       
     } catch (axiosError: any) {
-      console.error('Erro na consulta por CPF:', axiosError.message);
+      console.error('Erro na consulta por C.I.:', axiosError.message);
       
       let errorMessage = 'Erro ao consultar associado';
       if (axiosError.response) {

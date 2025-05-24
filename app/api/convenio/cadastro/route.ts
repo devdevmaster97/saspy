@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       'email',
       'responsavel',
       'categoria',
-      'tipoEmpresa'
+      'ruc'
     ];
 
     for (const campo of camposObrigatorios) {
@@ -37,21 +37,6 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-    }
-
-    // Validar CPF/CNPJ baseado no tipo de empresa
-    const tipoEmpresa = formData.get('tipoEmpresa') as string;
-    if (tipoEmpresa === '2' && !formData.get('cnpj')) {
-      return NextResponse.json(
-        { success: false, message: 'CNPJ é obrigatório para Pessoa Jurídica' },
-        { status: 400 }
-      );
-    }
-    if (tipoEmpresa === '1' && !formData.get('cpf')) {
-      return NextResponse.json(
-        { success: false, message: 'CPF é obrigatório para Pessoa Física' },
-        { status: 400 }
-      );
     }
 
     // Preparar dados para envio ao backend
@@ -72,8 +57,8 @@ export async function POST(request: NextRequest) {
     params.append('C_contato', formData.get('responsavel') as string);
     params.append('C_prolabore', '0');
     params.append('C_prolabore2', '4');
-    params.append('C_cnpj', formData.get('cnpj') as string || '');
-    params.append('C_cpf', formData.get('cpf') as string || '');
+    params.append('C_cnpj', formData.get('ruc') as string || '');
+    params.append('C_cpf', '');
     params.append('C_Inscestadual', '');
     params.append('C_categoria', formData.get('categoria') as string);
     params.append('C_categoriarecibo', '0');
@@ -83,7 +68,7 @@ export async function POST(request: NextRequest) {
     params.append('C_email', formData.get('email') as string);
     params.append('C_email2', '');
     params.append('C_inscmunicipal', '');
-    params.append('C_tipoempresa', tipoEmpresa);
+    params.append('C_tipoempresa', '2'); // Fixo como pessoa jurídica
     params.append('C_cobranca', '1');
     params.append('C_desativado', '0');
     params.append('C_app', '1');
@@ -111,7 +96,7 @@ export async function POST(request: NextRequest) {
     if (response.data.situacao === '3' || response.data.situacao === 3) {
       return NextResponse.json({
         success: false,
-        message: `CNPJ ${response.data.cnpj} já cadastrado. Use outro CNPJ ou entre em contato para revalidar sua senha.`,
+        message: `RUC ${response.data.cnpj} já cadastrado. Use outro RUC ou entre em contato para revalidar sua senha.`,
         data: response.data
       }, { status: 400 });
     }
@@ -152,7 +137,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Verificar CPF/CNPJ já cadastrado no erro
+    // Verificar CPF/RUC já cadastrado no erro
     if (responseData?.situacao === '2' || responseData?.situacao === 2) {
       return NextResponse.json({
         success: false,
@@ -164,7 +149,7 @@ export async function POST(request: NextRequest) {
     if (responseData?.situacao === '3' || responseData?.situacao === 3) {
       return NextResponse.json({
         success: false,
-        message: `CNPJ ${responseData.cnpj} já cadastrado. Use outro CNPJ ou entre em contato para revalidar sua senha.`,
+        message: `RUC ${responseData.cnpj} já cadastrado. Use outro RUC ou entre em contato para revalidar sua senha.`,
         data: responseData
       }, { status: 400 });
     }
@@ -178,4 +163,4 @@ export async function POST(request: NextRequest) {
       { status: axiosError.response?.status || 500 }
     );
   }
-} 
+}

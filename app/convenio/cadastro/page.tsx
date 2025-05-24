@@ -29,7 +29,6 @@ export default function CadastroConvenio() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [estados, setEstados] = useState<Estado[]>([]);
   const [cidades, setCidades] = useState<Cidade[]>([]);
-  const [tipoEmpresa, setTipoEmpresa] = useState<'1' | '2'>('1');
   const [formData, setFormData] = useState({
     razaoSocial: '',
     nomeFantasia: '',
@@ -45,8 +44,7 @@ export default function CadastroConvenio() {
     email: '',
     responsavel: '',
     categoria: '',
-    cpf: '',
-    cnpj: ''
+    ruc: ''
   });
 
   const handleVoltar = () => {
@@ -101,22 +99,116 @@ export default function CadastroConvenio() {
   }, [formData.uf]);
 
   const handleBuscarCep = async () => {
-    if (formData.cep.length === 8) {
+    // Código postal do Paraguai tem 4 dígitos
+    if (formData.cep.length === 4) {
       try {
-        const response = await fetch(`https://viacep.com.br/ws/${formData.cep}/json/`);
-        const data = await response.json();
-        if (!data.erro) {
+        // Base de dados de códigos postais do Paraguai para teste
+        const codigosParaguai: { [key: string]: any } = {
+          '1001': { // Asunción Centro
+            cidade: 'Asunción',
+            uf: 'AS',
+            bairro: 'Centro'
+          },
+          '1209': { // San Roque, Asunción
+            cidade: 'Asunción',
+            uf: 'AS',
+            bairro: 'San Roque'
+          },
+          '1425': { // Recoleta, Asunción
+            cidade: 'Asunción',
+            uf: 'AS',
+            bairro: 'Recoleta'
+          },
+          '1536': { // Villa Morra, Asunción
+            cidade: 'Asunción',
+            uf: 'AS',
+            bairro: 'Villa Morra'
+          },
+          '2160': { // San Lorenzo
+            cidade: 'San Lorenzo',
+            uf: 'CN',
+            bairro: 'Centro'
+          },
+          '2300': { // Luque
+            cidade: 'Luque',
+            uf: 'CN',
+            bairro: 'Centro'
+          },
+          '2640': { // Lambaré
+            cidade: 'Lambaré',
+            uf: 'CN',
+            bairro: 'Centro'
+          },
+          '2740': { // Fernando de la Mora
+            cidade: 'Fernando de la Mora',
+            uf: 'CN',
+            bairro: 'Centro'
+          },
+          '7000': { // Ciudad del Este
+            cidade: 'Ciudad del Este',
+            uf: 'AP',
+            bairro: 'Centro'
+          },
+          '7220': { // Hernandarias
+            cidade: 'Hernandarias',
+            uf: 'AP',
+            bairro: 'Centro'
+          },
+          '6000': { // Encarnación
+            cidade: 'Encarnación',
+            uf: 'IT',
+            bairro: 'Centro'
+          }
+        };
+
+        const dadosCep = codigosParaguai[formData.cep];
+        if (dadosCep) {
           setFormData(prev => ({
             ...prev,
-            endereco: data.logradouro,
-            bairro: data.bairro,
-            cidade: data.localidade,
-            uf: data.uf
+            bairro: dadosCep.bairro,
+            cidade: dadosCep.cidade,
+            uf: dadosCep.uf
           }));
+          toast.success('Código postal encontrado!');
+        } else {
+          toast.success('Código postal não encontrado em nossa base. Preencha os dados manualmente.');
         }
       } catch (error) {
         console.error(t.error_loading_cep, error);
+        toast.error('Erro ao buscar código postal');
       }
+    }
+  };
+
+  // Função para formatar código postal (máscara de 4 dígitos)
+  const formatarCodigoPostal = (valor: string) => {
+    // Remove tudo que não for dígito
+    const apenasNumeros = valor.replace(/\D/g, '');
+    // Limita a 4 dígitos
+    return apenasNumeros.substring(0, 4);
+  };
+
+  // Função para lidar com mudanças nos campos com formatação
+  const handleInputChange = (campo: string, valor: string) => {
+    let valorFormatado = valor;
+
+    if (campo === 'cep') {
+      valorFormatado = formatarCodigoPostal(valor);
+    } else if (campo === 'ruc') {
+      // Remove caracteres não numéricos e limita o tamanho
+      valorFormatado = valor.replace(/\D/g, '').substring(0, 11);
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      [campo]: valorFormatado
+    }));
+
+    // Se é CEP e completou 4 dígitos, busca automaticamente
+    if (campo === 'cep' && valorFormatado.length === 4) {
+      setTimeout(() => {
+        handleBuscarCep();
+      }, 500);
     }
   };
 
@@ -143,13 +235,8 @@ export default function CadastroConvenio() {
       }
     }
 
-    if (tipoEmpresa === '2' && !formData.cnpj) {
-      toast.error(t.cnpj_required);
-      return false;
-    }
-
-    if (tipoEmpresa === '1' && !formData.cpf) {
-      toast.error(t.cpf_required);
+    if (!formData.ruc) {
+      toast.error(t.ruc_required);
       return false;
     }
 
@@ -170,7 +257,6 @@ export default function CadastroConvenio() {
       Object.entries(formData).forEach(([key, value]) => {
         formDataToSend.append(key, value);
       });
-      formDataToSend.append('tipoEmpresa', tipoEmpresa);
 
       const response = await fetch('/api/convenio/cadastro', {
         method: 'POST',
@@ -205,30 +291,6 @@ export default function CadastroConvenio() {
               </h3>
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Tipo de Empresa */}
-                <div className="flex space-x-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      value="1"
-                      checked={tipoEmpresa === '1'}
-                      onChange={(e) => setTipoEmpresa(e.target.value as '1' | '2')}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">{t.natural_person}</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      value="2"
-                      checked={tipoEmpresa === '2'}
-                      onChange={(e) => setTipoEmpresa(e.target.value as '1' | '2')}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">{t.legal_person}</span>
-                  </label>
-                </div>
-
                 {/* Dados Principais */}
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   <div>
@@ -258,14 +320,16 @@ export default function CadastroConvenio() {
                   </div>
 
                   <div>
-                    <label htmlFor={tipoEmpresa === '1' ? 'cpf' : 'cnpj'} className="block text-sm font-medium text-gray-700">
-                      {tipoEmpresa === '1' ? t.cpf_label : t.cnpj_label}
+                    <label htmlFor="ruc" className="block text-sm font-medium text-gray-700">
+                      {t.ruc_label}
                     </label>
                     <input
                       type="text"
-                      id={tipoEmpresa === '1' ? 'cpf' : 'cnpj'}
-                      value={tipoEmpresa === '1' ? formData.cpf : formData.cnpj}
-                      onChange={(e) => setFormData({ ...formData, [tipoEmpresa === '1' ? 'cpf' : 'cnpj']: e.target.value })}
+                      id="ruc"
+                      value={formData.ruc}
+                      onChange={(e) => handleInputChange('ruc', e.target.value)}
+                      placeholder="Solo números"
+                      maxLength={11}
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
@@ -301,8 +365,9 @@ export default function CadastroConvenio() {
                         type="text"
                         id="cep"
                         value={formData.cep}
-                        onChange={(e) => setFormData({ ...formData, cep: e.target.value })}
-                        onBlur={handleBuscarCep}
+                        onChange={(e) => handleInputChange('cep', e.target.value)}
+                        placeholder="0000"
+                        maxLength={4}
                         className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       />
                       <button

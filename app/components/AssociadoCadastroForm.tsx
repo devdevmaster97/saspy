@@ -22,7 +22,6 @@ export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: A
   // Estados do formulário
   const [formData, setFormData] = useState({
     nome: userInfo?.nome || '',
-    cpf: userInfo?.cpf || '',
     rg: '',
     nascimento: '',
     email: userInfo?.email || '',
@@ -81,7 +80,6 @@ export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: A
       setFormData(prev => ({
         ...prev,
         nome: userInfo.nome || prev.nome,
-        cpf: userInfo.cpf || prev.cpf,
         email: userInfo.email || prev.email,
         celular: userInfo.cel || prev.celular,
         telefone_residencial: userInfo.telres || prev.telefone_residencial,
@@ -109,9 +107,7 @@ export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: A
     let finalValue = value;
     
     // Formatação para campos específicos
-    if (name === 'cpf') {
-      finalValue = value.replace(/\D/g, '');
-    } else if (name === 'cep') {
+    if (name === 'cep') {
       const cepFormatado = value.replace(/\D/g, '');
       finalValue = cepFormatado;
       
@@ -164,7 +160,7 @@ export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: A
     
     try {
       // Validar campos obrigatórios
-      if (!formData.nome || !formData.cpf || !formData.email || !formData.celular || !formData.C_codigo_assoc) {
+      if (!formData.nome || !formData.email || !formData.celular || !formData.C_codigo_assoc) {
         setStatusMessage('Por favor, preencha todos os campos obrigatórios.');
         setStatusType('error');
         setIsLoading(false);
@@ -180,14 +176,13 @@ export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: A
       
       // Adicionar campos específicos com nomes esperados pela API
       submitData.append('C_nome_assoc', formData.nome);
-      submitData.append('C_cpf_assoc', formData.cpf);
+      submitData.append('C_rg_assoc', formData.rg);
       submitData.append('C_Email_assoc', formData.email);
       submitData.append('C_cel_assoc', formData.celular);
       submitData.append('C_codigo_assoc', formData.C_codigo_assoc);
       submitData.append('C_empregador_assoc', formData.C_empregador_assoc);
       
       // Mapeamento de outros campos do formulário
-      if (formData.rg) submitData.append('C_rg_assoc', formData.rg);
       if (formData.nascimento) submitData.append('C_nascimento', formData.nascimento);
       if (formData.telefone_residencial) submitData.append('C_telres', formData.telefone_residencial);
       if (formData.telefone_comercial) submitData.append('C_telcom', formData.telefone_comercial);
@@ -329,27 +324,7 @@ export default function AssociadoCadastroForm({ cartao, matricula, userInfo }: A
             </div>
             
             <div>
-              <label htmlFor="cpf" className="block text-sm font-medium text-gray-700">CPF *</label>
-              <div className="mt-1 flex rounded-md shadow-sm">
-                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
-                  <FaIdCard className="h-4 w-4" />
-                </span>
-                <input
-                  type="text"
-                  id="cpf"
-                  name="cpf"
-                  value={formData.cpf}
-                  onChange={handleChange}
-                  required
-                  maxLength={11}
-                  placeholder="Apenas números"
-                  className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label htmlFor="rg" className="block text-sm font-medium text-gray-700">RG</label>
+              <label htmlFor="rg" className="block text-sm font-medium text-gray-700">C.I.</label>
               <input
                 type="text"
                 id="rg"

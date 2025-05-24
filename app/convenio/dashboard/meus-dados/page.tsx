@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FaSpinner, FaSave, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
+import { useTranslations } from '@/app/contexts/LanguageContext';
 
 interface ConvenioData {
   cod_convenio: string;
@@ -23,6 +24,7 @@ interface ConvenioData {
 }
 
 export default function MeusDadosPage() {
+  const translations = useTranslations('ConvenioMeusDados');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -44,18 +46,18 @@ export default function MeusDadosPage() {
           setConvenioData(data.data);
           setFormData(data.data);
         } else {
-          toast.error('Erro ao buscar dados do convênio');
+          toast.error(translations.fetch_error || 'Erro ao buscar dados do convênio');
         }
       } catch (error) {
         console.error('Erro ao buscar dados do convênio:', error);
-        toast.error('Erro ao buscar dados do convênio');
+        toast.error(translations.fetch_error || 'Erro ao buscar dados do convênio');
       } finally {
         setLoading(false);
       }
     };
 
     fetchConvenioData();
-  }, []);
+  }, [translations]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -86,10 +88,10 @@ export default function MeusDadosPage() {
       // Atualizar os dados locais
       setConvenioData(formData);
       setEditMode(false);
-      toast.success('Dados atualizados com sucesso!');
+      toast.success(translations.update_success || 'Dados atualizados com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar dados:', error);
-      toast.error('Erro ao atualizar dados');
+      toast.error(translations.update_error || 'Erro ao atualizar dados');
     } finally {
       setSaving(false);
     }
@@ -106,7 +108,7 @@ export default function MeusDadosPage() {
   if (!convenioData) {
     return (
       <div className="text-center py-12 bg-white shadow rounded-lg">
-        <p className="text-gray-500">Não foi possível carregar os dados do convênio.</p>
+        <p className="text-gray-500">{translations.data_not_found || 'Não foi possível carregar os dados do convênio.'}</p>
       </div>
     );
   }
@@ -115,8 +117,8 @@ export default function MeusDadosPage() {
     <div>
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Meus Dados</h1>
-          <p className="mt-1 text-sm text-gray-600">Visualize e edite as informações do seu convênio</p>
+          <h1 className="text-2xl font-bold text-gray-900">{translations.page_title || 'Meus Dados'}</h1>
+          <p className="mt-1 text-sm text-gray-600">{translations.page_subtitle || 'Visualize e edite as informações do seu convênio'}</p>
         </div>
         
         {!editMode ? (
@@ -124,7 +126,7 @@ export default function MeusDadosPage() {
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
             onClick={() => setEditMode(true)}
           >
-            <FaEdit className="mr-2" /> Editar
+            <FaEdit className="mr-2" /> {translations.edit_button || 'Editar'}
           </button>
         ) : (
           <button 
@@ -134,7 +136,7 @@ export default function MeusDadosPage() {
               setEditMode(false);
             }}
           >
-            Cancelar
+            {translations.cancel_button || 'Cancelar'}
           </button>
         )}
       </div>
@@ -144,7 +146,7 @@ export default function MeusDadosPage() {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
               <label htmlFor="razaosocial" className="block text-sm font-medium text-gray-700">
-                Razão Social
+                {translations.razao_social_label || 'Razão Social'}
               </label>
               <input
                 type="text"
@@ -159,7 +161,7 @@ export default function MeusDadosPage() {
 
             <div>
               <label htmlFor="nome_fantasia" className="block text-sm font-medium text-gray-700">
-                Nome Fantasia
+                {translations.nome_fantasia_label || 'Nome Fantasia'}
               </label>
               <input
                 type="text"
@@ -174,7 +176,7 @@ export default function MeusDadosPage() {
 
             <div>
               <label htmlFor="cnpj" className="block text-sm font-medium text-gray-700">
-                CNPJ
+                {translations.cnpj_label || 'CNPJ'}
               </label>
               <input
                 type="text"
@@ -189,7 +191,7 @@ export default function MeusDadosPage() {
 
             <div>
               <label htmlFor="cpf" className="block text-sm font-medium text-gray-700">
-                CPF
+                {translations.cpf_label || 'CPF'}
               </label>
               <input
                 type="text"
@@ -204,7 +206,7 @@ export default function MeusDadosPage() {
 
             <div>
               <label htmlFor="endereco" className="block text-sm font-medium text-gray-700">
-                Endereço
+                {translations.endereco_label || 'Endereço'}
               </label>
               <input
                 type="text"
@@ -219,7 +221,7 @@ export default function MeusDadosPage() {
 
             <div>
               <label htmlFor="numero" className="block text-sm font-medium text-gray-700">
-                Número
+                {translations.numero_label || 'Número'}
               </label>
               <input
                 type="text"
@@ -234,7 +236,7 @@ export default function MeusDadosPage() {
 
             <div>
               <label htmlFor="bairro" className="block text-sm font-medium text-gray-700">
-                Bairro
+                {translations.bairro_label || 'Bairro'}
               </label>
               <input
                 type="text"
@@ -249,7 +251,7 @@ export default function MeusDadosPage() {
 
             <div>
               <label htmlFor="cidade" className="block text-sm font-medium text-gray-700">
-                Cidade
+                {translations.cidade_label || 'Cidade'}
               </label>
               <input
                 type="text"
@@ -264,7 +266,7 @@ export default function MeusDadosPage() {
 
             <div>
               <label htmlFor="estado" className="block text-sm font-medium text-gray-700">
-                Estado
+                {translations.estado_label || 'Estado'}
               </label>
               <input
                 type="text"
@@ -279,7 +281,7 @@ export default function MeusDadosPage() {
 
             <div>
               <label htmlFor="cep" className="block text-sm font-medium text-gray-700">
-                CEP
+                {translations.cep_label || 'CEP'}
               </label>
               <input
                 type="text"
@@ -294,7 +296,7 @@ export default function MeusDadosPage() {
 
             <div>
               <label htmlFor="cel" className="block text-sm font-medium text-gray-700">
-                Celular
+                {translations.celular_label || 'Celular'}
               </label>
               <input
                 type="text"
@@ -309,7 +311,7 @@ export default function MeusDadosPage() {
 
             <div>
               <label htmlFor="tel" className="block text-sm font-medium text-gray-700">
-                Telefone
+                {translations.telefone_label || 'Telefone'}
               </label>
               <input
                 type="text"
@@ -324,7 +326,7 @@ export default function MeusDadosPage() {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
+                {translations.email_label || 'Email'}
               </label>
               <input
                 type="email"
@@ -339,7 +341,7 @@ export default function MeusDadosPage() {
 
             <div>
               <label htmlFor="contato" className="block text-sm font-medium text-gray-700">
-                Contato
+                {translations.contato_label || 'Contato'}
               </label>
               <input
                 type="text"
@@ -363,12 +365,12 @@ export default function MeusDadosPage() {
                 {saving ? (
                   <>
                     <FaSpinner className="animate-spin mr-2" />
-                    Salvando...
+                    {translations.saving_button || 'Salvando...'}
                   </>
                 ) : (
                   <>
                     <FaSave className="mr-2" />
-                    Salvar Alterações
+                    {translations.save_button || 'Salvar Alterações'}
                   </>
                 )}
               </button>

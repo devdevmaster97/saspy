@@ -32,7 +32,6 @@ export default function CadastroForm() {
   const translations = useTranslations('AssociateRegistration');
   const [formData, setFormData] = useState({
     nome: '',
-    cpf: '',
     email: '',
     celular: '',
     telefoneResidencial: '',
@@ -152,12 +151,7 @@ export default function CadastroForm() {
     let finalValue = value;
     
     // Formatação para campos específicos
-    if (name === 'cpf') {
-      // Remove caracteres não numéricos
-      finalValue = value.replace(/\D/g, '');
-      // Limita a 11 dígitos
-      finalValue = finalValue.substring(0, 11);
-    } else if (name === 'celular' || name === 'telefoneResidencial') {
+    if (name === 'celular' || name === 'telefoneResidencial') {
       // Remove caracteres não numéricos
       finalValue = value.replace(/\D/g, '');
       // Limita a 11 dígitos (com DDD)
@@ -165,12 +159,14 @@ export default function CadastroForm() {
     } else if (name === 'cep') {
       // Remove caracteres não numéricos
       finalValue = value.replace(/\D/g, '');
-      // Limita a 8 dígitos
-      finalValue = finalValue.substring(0, 8);
+      // Limita a 4 dígitos (código postal paraguaio)
+      finalValue = finalValue.substring(0, 4);
       
-      // Se tiver 8 dígitos, busca o CEP
-      if (finalValue.length === 8 && finalValue !== formData.cep) {
-        buscarCep(finalValue);
+      // Se tiver 4 dígitos, busca o código postal
+      if (finalValue.length === 4 && finalValue !== formData.cep) {
+        setTimeout(() => {
+          buscarCep(finalValue);
+        }, 500);
       }
     }
     
@@ -301,25 +297,94 @@ export default function CadastroForm() {
 
   // Função para buscar informações do CEP
   const buscarCep = async (cep: string) => {
-    if (cep.length !== 8) return;
-    
-    setCepLoading(true);
-    try {
-      const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
-      
-      if (!response.data.erro) {
-        setFormData(prev => ({
-          ...prev,
-          endereco: response.data.logradouro || prev.endereco,
-          bairro: response.data.bairro || prev.bairro,
-          cidade: response.data.localidade || prev.cidade,
-          uf: response.data.uf || prev.uf
-        }));
+    // Código postal do Paraguai tem 4 dígitos
+    if (cep.length === 4) {
+      setCepLoading(true);
+      try {
+        // Base de dados de códigos postais do Paraguai para teste
+        const codigosParaguai: { [key: string]: any } = {
+          '1001': { // Asunción Centro
+            cidade: 'Asunción',
+            uf: 'AS',
+            bairro: 'Centro'
+          },
+          '1209': { // San Roque, Asunción
+            cidade: 'Asunción',
+            uf: 'AS',
+            bairro: 'San Roque'
+          },
+          '1425': { // Recoleta, Asunción
+            cidade: 'Asunción',
+            uf: 'AS',
+            bairro: 'Recoleta'
+          },
+          '1536': { // Villa Morra, Asunción
+            cidade: 'Asunción',
+            uf: 'AS',
+            bairro: 'Villa Morra'
+          },
+          '2160': { // San Lorenzo
+            cidade: 'San Lorenzo',
+            uf: 'CN',
+            bairro: 'Centro'
+          },
+          '2300': { // Luque
+            cidade: 'Luque',
+            uf: 'CN',
+            bairro: 'Centro'
+          },
+          '2640': { // Lambaré
+            cidade: 'Lambaré',
+            uf: 'CN',
+            bairro: 'Centro'
+          },
+          '2740': { // Fernando de la Mora
+            cidade: 'Fernando de la Mora',
+            uf: 'CN',
+            bairro: 'Centro'
+          },
+          '7000': { // Ciudad del Este
+            cidade: 'Ciudad del Este',
+            uf: 'AP',
+            bairro: 'Centro'
+          },
+          '7220': { // Hernandarias
+            cidade: 'Hernandarias',
+            uf: 'AP',
+            bairro: 'Centro'
+          },
+          '6000': { // Encarnación
+            cidade: 'Encarnación',
+            uf: 'IT',
+            bairro: 'Centro'
+          }
+        };
+
+        const dadosCep = codigosParaguai[cep];
+        if (dadosCep) {
+          setFormData(prev => ({
+            ...prev,
+            bairro: dadosCep.bairro,
+            cidade: dadosCep.cidade,
+            uf: dadosCep.uf
+          }));
+          toast.success('Código postal encontrado!');
+        } else {
+          toast.success('Código postal não encontrado em nossa base. Preencha os dados manualmente.');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar código postal:', error);
+        toast.error('Erro ao buscar código postal');
+      } finally {
+        setCepLoading(false);
       }
-    } catch (error) {
-      console.error('Erro ao buscar CEP:', error);
-    } finally {
-      setCepLoading(false);
+    }
+  };
+
+  // Função para buscar CEP manualmente pelo botão
+  const handleBuscarCep = () => {
+    if (formData.cep.length === 4) {
+      buscarCep(formData.cep);
     }
   };
 
@@ -331,12 +396,12 @@ export default function CadastroForm() {
 
     try {
       // Validações básicas
-      if (!formData.nome || !formData.cpf || !formData.email || !formData.celular) {
+      if (!formData.nome || !formData.email || !formData.celular) {
         throw new Error('Preencha todos os campos obrigatórios');
       }
 
-      if (formData.cpf.length !== 11) {
-        throw new Error('CPF deve conter 11 dígitos');
+      if (formData.celular.length !== 11) {
+        throw new Error('Celular deve conter 11 dígitos');
       }
 
       // Formatar data de nascimento se fornecida (YYYY-MM-DD para DD/MM/YYYY)
@@ -357,7 +422,6 @@ export default function CadastroForm() {
       // Dados pessoais
       cadastroData.append('C_codigo_assoc', formData.C_codigo_assoc);
       cadastroData.append('C_nome_assoc', formData.nome);
-      cadastroData.append('C_cpf_assoc', formData.cpf);
       cadastroData.append('C_rg_assoc', formData.rg);
       if (dataNascimentoFormatada) {
         cadastroData.append('C_nascimento', dataNascimentoFormatada);
@@ -409,7 +473,6 @@ export default function CadastroForm() {
         // Limpar formulário
         setFormData({
           nome: '',
-          cpf: '',
           email: '',
           celular: '',
           telefoneResidencial: '',
@@ -441,12 +504,6 @@ export default function CadastroForm() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Formatar CPF para exibição
-  const formatCPF = (cpf: string) => {
-    if (!cpf) return '';
-    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   };
 
   // Formatar telefone para exibição
@@ -524,28 +581,6 @@ export default function CadastroForm() {
               </div>
 
               <div>
-                <label htmlFor="cpf" className="block text-sm font-medium text-gray-700 mb-1">
-                  {translations.cpf_label || 'CPF'} *
-                </label>
-                <input
-                  type="text"
-                  id="cpf"
-                  name="cpf"
-                  value={formData.cpf}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={translations.cpf_placeholder || 'Apenas números'}
-                  disabled={loading}
-                  required
-                />
-                {formData.cpf && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Formato: {formatCPF(formData.cpf)}
-                  </p>
-                )}
-              </div>
-              
-              <div>
                 <label htmlFor="C_empregador_assoc" className="block text-sm font-medium text-gray-700 mb-1">
                   {translations.employer_label || 'Empregador'}
                 </label>
@@ -574,7 +609,7 @@ export default function CadastroForm() {
 
               <div>
                 <label htmlFor="rg" className="block text-sm font-medium text-gray-700 mb-1">
-                  {translations.rg_label || 'RG'}
+                  {translations.rg_label || 'C.I.'}
                 </label>
                 <input
                   type="text"
@@ -583,7 +618,7 @@ export default function CadastroForm() {
                   value={formData.rg}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={translations.rg_placeholder || 'Número do RG'}
+                  placeholder={translations.rg_placeholder || 'Número do C.I.'}
                   disabled={loading}
                 />
               </div>
@@ -677,19 +712,34 @@ export default function CadastroForm() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label htmlFor="cep" className="block text-sm font-medium text-gray-700 mb-1">
-                  {translations.zipcode_label || 'CEP'}
+                  {translations.zipcode_label || 'Código Postal'}
                 </label>
-                <input
-                  type="text"
-                  id="cep"
-                  name="cep"
-                  value={formData.cep}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={translations.zipcode_placeholder || 'Apenas números'}
-                  disabled={loading}
-                />
-                {cepLoading && <p className="text-xs text-blue-600 mt-1 flex items-center"><FaSpinner className="animate-spin mr-1" /> {translations.search_cep_button || 'Buscando CEP...'}</p>}
+                <div className="flex rounded-md shadow-sm">
+                  <input
+                    type="text"
+                    id="cep"
+                    name="cep"
+                    value={formData.cep}
+                    onChange={handleChange}
+                    maxLength={4}
+                    className="block w-full border border-gray-300 rounded-l-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="0000"
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleBuscarCep}
+                    disabled={formData.cep.length !== 4 || cepLoading}
+                    className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-700 text-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {cepLoading ? (
+                      <FaSpinner className="animate-spin h-4 w-4" />
+                    ) : (
+                      'Buscar'
+                    )}
+                  </button>
+                </div>
+                {cepLoading && <p className="text-xs text-blue-600 mt-1 flex items-center"><FaSpinner className="animate-spin mr-1" /> Buscando código postal...</p>}
               </div>
 
               <div className="md:col-span-2">

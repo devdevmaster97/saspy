@@ -6,6 +6,7 @@ import { FaSpinner, FaQrcode, FaArrowLeft, FaCreditCard, FaCalendarAlt, FaCheckC
 import Header from '@/app/components/Header';
 import toast from 'react-hot-toast';
 import { Html5Qrcode } from 'html5-qrcode';
+import { useTranslations } from '@/app/contexts/LanguageContext';
 
 interface AssociadoData {
   nome: string;
@@ -19,6 +20,7 @@ interface AssociadoData {
 
 export default function NovoLancamentoPage() {
   const router = useRouter();
+  const translations = useTranslations('ConvenioLancamentos');
   const [loading, setLoading] = useState(false);
   const [loadingCartao, setLoadingCartao] = useState(false);
   const [cartao, setCartao] = useState('');
@@ -276,7 +278,7 @@ export default function NovoLancamentoPage() {
 
   const buscarAssociado = async () => {
     if (!cartao || cartao.length < 5) {
-      toast.error('Número de cartão inválido');
+      toast.error(translations.card_required_error || 'Número de cartão inválido');
       return;
     }
 
@@ -333,7 +335,7 @@ export default function NovoLancamentoPage() {
             } else {
               // Se a API responder mas não encontrar o cartão
               console.warn('⚠️ Cartão não encontrado ou login inválido:', data);
-              toast.error('Cartão não encontrado');
+              toast.error(translations.invalid_card_error || 'Cartão não encontrado');
               setCartao('');
               setLoadingCartao(false);
             }
@@ -966,19 +968,19 @@ export default function NovoLancamentoPage() {
     }
     
     if (!valor || parseFloat(valor.replace(/[^\d,]/g, '').replace(',', '.')) <= 0) {
-      toast.error('Informe um valor válido');
+      toast.error(translations.value_required_error || 'Informe um valor válido');
       return;
     }
     
     if (!senha || senha.length < 6) {
-      toast.error('Informe a senha do cartão (6 dígitos)');
+      toast.error(translations.password_required_error || 'Informe a senha do cartão (6 dígitos)');
       return;
     }
     
     // Verificar se o valor total não excede o saldo
     const valorTotal = parseFloat(valor.replace(/[^\d,]/g, '').replace(',', '.'));
     if (valorTotal > associado.saldo) {
-      toast.error('O valor total não pode ser maior que o saldo disponível');
+      toast.error(translations.insufficient_balance_error || 'O valor total não pode ser maior que o saldo disponível');
       return;
     }
     
@@ -1102,7 +1104,7 @@ export default function NovoLancamentoPage() {
             if (situacao === 1 || situacao === '1') {
               // Sucesso - situacao = 1
               console.log('✅ Venda registrada com sucesso! Registro:', resultadoVenda.registrolan);
-              toast.success('Pagamento realizado com sucesso!');
+              toast.success(translations.payment_success || 'Pagamento realizado com sucesso!');
               
               // Salvar dados da venda
               if (resultadoVenda.registrolan) {
@@ -1127,7 +1129,7 @@ export default function NovoLancamentoPage() {
             } else {
               // Outros erros
               console.error('❌ Erro ao processar venda:', resultadoVenda);
-              toast.error('Erro ao processar venda. Tente novamente.');
+              toast.error(translations.payment_error || 'Erro ao processar venda. Tente novamente.');
             }
           } else if (typeof resultadoVenda === 'string' && resultadoVenda.trim() !== '') {
             // Resposta é string não vazia, assumimos sucesso
@@ -1168,7 +1170,7 @@ export default function NovoLancamentoPage() {
   if (showConfirmacao) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
-        <Header title="Pagamento Confirmado" />
+        <Header title={translations.payment_confirmed_title || 'Pagamento Confirmado'} />
         
         <div className="flex-1 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8 text-center">
@@ -1176,21 +1178,35 @@ export default function NovoLancamentoPage() {
               <FaCheckCircle className="h-24 w-24 text-green-500 mx-auto" />
             </div>
             
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Pagamento Realizado!</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {translations.payment_completed_title || 'Pagamento Realizado!'}
+            </h2>
             
-            <p className="text-lg text-gray-600 mb-1">Valor: {valorPagamento}</p>
+            <p className="text-lg text-gray-600 mb-1">
+              {translations.payment_value_label || 'Valor'}: {valorPagamento}
+            </p>
             {parcelas > 1 && (
               <p className="text-md text-gray-500 mb-4">
-                Em {parcelas}x de {valorParcela.toLocaleString('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                })}
+                {translations.installments_info 
+                  ? translations.installments_info
+                    .replace('{parcelas}', parcelas.toString())
+                    .replace('{valor}', valorParcela.toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }))
+                  : `Em ${parcelas}x de ${valorParcela.toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    })}`
+                }
               </p>
             )}
             
             {associado && (
               <div className="mt-4 bg-gray-50 p-4 rounded-md mb-6">
-                <p className="text-sm font-medium text-gray-500">Cliente</p>
+                <p className="text-sm font-medium text-gray-500">
+                  {translations.client_label || 'Cliente'}
+                </p>
                 <p className="text-lg font-medium text-gray-900">{associado.nome}</p>
               </div>
             )}
@@ -1201,7 +1217,7 @@ export default function NovoLancamentoPage() {
                 onClick={handleVoltarParaDashboard}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
               >
-                Voltar para Lançamentos
+                {translations.back_to_lancamentos_button || 'Voltar para Lançamentos'}
               </button>
             </div>
           </div>
@@ -1212,12 +1228,14 @@ export default function NovoLancamentoPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header title="Novo Lançamento" showBackButton onBackClick={handleVoltar} />
+      <Header title={translations.page_title || 'Novo Lançamento'} showBackButton onBackClick={handleVoltar} />
       
       {showQrReader ? (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white p-4 rounded-lg max-w-sm w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Ler QR Code</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              {translations.qr_reader_title || 'Ler QR Code'}
+            </h3>
             <div className="mb-4">
               <div ref={qrReaderRef} className="w-full"></div>
             </div>
@@ -1226,7 +1244,7 @@ export default function NovoLancamentoPage() {
               className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md"
               onClick={handleCloseQrReader}
             >
-              Cancelar
+              {translations.cancel_button || 'Cancelar'}
             </button>
           </div>
         </div>
@@ -1234,22 +1252,38 @@ export default function NovoLancamentoPage() {
       
       <div className="flex-1 py-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
         <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">Registrar Novo Pagamento</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">
+            {translations.form_title || 'Registrar Novo Pagamento'}
+          </h2>
           
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Seção Cartão */}
             <div className="border-b border-gray-200 pb-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Dados do Cartão</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                {translations.card_data_section || 'Dados do Cartão'}
+              </h3>
               
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div className="flex-grow">
-                                    <label htmlFor="cartao" className="block text-sm font-bold text-blue-700 mb-2 flex items-center">                    <FaCreditCard className="mr-2" />                    Número do Cartão                  </label>
+                  <label htmlFor="cartao" className="block text-sm font-bold text-blue-700 mb-2 flex items-center">
+                    <FaCreditCard className="mr-2" />
+                    {translations.card_number_label || 'Número do Cartão'}
+                  </label>
                   <div className="mt-1 flex rounded-md shadow-sm">
                     <div className="relative flex items-stretch flex-grow">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <FaCreditCard className="text-gray-400" />
                       </div>
-                                            <input                        type="text"                        id="cartao"                        name="cartao"                        className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-4 py-3 text-lg font-medium border-2 border-gray-300 rounded-lg bg-white shadow-sm placeholder-gray-400 hover:border-blue-400 transition-colors"                        placeholder="Digite o número do cartão"                        value={cartao}                        onChange={(e) => setCartao(e.target.value)}                        maxLength={10}                      />
+                      <input
+                        type="text"
+                        id="cartao"
+                        name="cartao"
+                        className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-4 py-3 text-lg font-medium border-2 border-gray-300 rounded-lg bg-white shadow-sm placeholder-gray-400 hover:border-blue-400 transition-colors"
+                        placeholder={translations.card_number_placeholder || 'Digite o número do cartão'}
+                        value={cartao}
+                        onChange={(e) => setCartao(e.target.value)}
+                        maxLength={10}
+                      />
                     </div>
                   </div>
                 </div>
@@ -1260,7 +1294,7 @@ export default function NovoLancamentoPage() {
                     className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center"
                     onClick={handleLerQRCode}
                   >
-                    <FaQrcode className="mr-2" /> QR Code
+                    <FaQrcode className="mr-2" /> {translations.qr_code_button || 'QR Code'}
                   </button>
                   
                   <button
@@ -1269,7 +1303,7 @@ export default function NovoLancamentoPage() {
                     onClick={buscarAssociado}
                     disabled={!cartao || loadingCartao}
                   >
-                    {loadingCartao ? <FaSpinner className="animate-spin mx-auto" /> : 'Buscar'}
+                    {loadingCartao ? <FaSpinner className="animate-spin mx-auto" /> : (translations.search_button || 'Buscar')}
                   </button>
                 </div>
               </div>
@@ -1279,11 +1313,15 @@ export default function NovoLancamentoPage() {
                 <div className="mt-4 bg-gray-50 p-4 rounded-md">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Nome do Titular</p>
+                      <p className="text-sm font-medium text-gray-500">
+                        {translations.cardholder_name_label || 'Nome do Titular'}
+                      </p>
                       <p className="text-lg font-medium text-gray-900">{associado.nome}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Saldo Disponível</p>
+                      <p className="text-sm font-medium text-gray-500">
+                        {translations.available_balance_label || 'Saldo Disponível'}
+                      </p>
                       <p className="text-lg font-medium text-green-600">
                         {associado.saldo.toLocaleString('pt-BR', {
                           style: 'currency',
@@ -1298,19 +1336,38 @@ export default function NovoLancamentoPage() {
             
             {/* Seção Pagamento */}
             <div className="border-b border-gray-200 pb-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Configuração do Pagamento</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                {translations.payment_config_section || 'Configuração do Pagamento'}
+              </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                                    <label htmlFor="valor" className="block text-sm font-bold text-green-700 mb-2 flex items-center">                    <span className="text-green-600 mr-2">💰</span>                    Valor Total da Compra                  </label>
+                  <label htmlFor="valor" className="block text-sm font-bold text-green-700 mb-2 flex items-center">
+                    <span className="text-green-600 mr-2">💰</span>
+                    {translations.total_value_label || 'Valor Total da Compra'}
+                  </label>
                   <div className="mt-1">
-                                        <div className="relative">                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">                        <span className="text-gray-500 font-medium">R$</span>                      </div>                      <input                        type="text"                        id="valor"                        name="valor"                        className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 pr-4 py-3 text-lg font-bold border-2 border-gray-300 rounded-lg bg-white shadow-sm placeholder-gray-400 hover:border-green-400 transition-colors disabled:bg-gray-100 disabled:text-gray-500"                        placeholder="0,00"                        value={valor}                        onChange={handleValorChange}                        disabled={!associado}                      />                    </div>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 font-medium">R$</span>
+                      </div>
+                      <input
+                        type="text"
+                        id="valor"
+                        name="valor"
+                        className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 pr-4 py-3 text-lg font-bold border-2 border-gray-300 rounded-lg bg-white shadow-sm placeholder-gray-400 hover:border-green-400 transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                        placeholder={translations.total_value_placeholder || '0,00'}
+                        value={valor}
+                        onChange={handleValorChange}
+                        disabled={!associado}
+                      />
+                    </div>
                   </div>
                 </div>
                 
                 <div>
                   <label htmlFor="parcelas" className="block text-sm font-medium text-gray-700 mb-1">
-                    Quantidade de Parcelas
+                    {translations.installments_label || 'Quantidade de Parcelas'}
                   </label>
                   <div className="mt-1">
                     <select
@@ -1323,7 +1380,7 @@ export default function NovoLancamentoPage() {
                     >
                       {Array.from({ length: maxParcelas }, (_, i) => i + 1).map((num) => (
                         <option key={num} value={num}>
-                          {num}x {num > 1 ? 'parcelas' : 'à vista'}
+                          {num}x {num > 1 ? (translations.installment_option_multiple || 'parcelas') : (translations.installment_option_cash || 'à vista')}
                         </option>
                       ))}
                     </select>
@@ -1332,13 +1389,13 @@ export default function NovoLancamentoPage() {
                 
                 <div>
                   <label htmlFor="mes-corrente" className="block text-sm font-medium text-gray-700 mb-1">
-                    Mês Atual
+                    {translations.current_month_label || 'Mês Atual'}
                   </label>
                   <div className="mt-1">
                     <div className="flex items-center h-10 px-4 border border-gray-300 rounded-md bg-blue-50">
                       <FaCalendarAlt className="text-blue-500 mr-2" />
                       <span className="text-sm text-blue-700 font-medium">
-                        {mesCorrente || 'Aguardando dados...'}
+                        {mesCorrente || (translations.waiting_data || 'Aguardando dados...')}
                       </span>
                     </div>
                   </div>
@@ -1347,19 +1404,25 @@ export default function NovoLancamentoPage() {
                 {parcelas > 1 && valorParcela > 0 && (
                   <div className="col-span-2 bg-blue-50 p-3 rounded-md">
                     <p className="text-sm text-blue-700">
-                      Pagamento em <strong>{parcelas}x</strong> de <strong>
-                        {valorParcela.toLocaleString('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL'
-                        })}
-                      </strong>
+                      {translations.installment_info_text 
+                        ? translations.installment_info_text
+                          .replace('{parcelas}', parcelas.toString())
+                          .replace('{valor}', valorParcela.toLocaleString('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL'
+                          }))
+                        : `Pagamento em ${parcelas}x de ${valorParcela.toLocaleString('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL'
+                          })}`
+                      }
                     </p>
                   </div>
                 )}
                 
                 <div className="col-span-2">
                   <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-1">
-                    Descrição da Compra (opcional)
+                    {translations.purchase_description_label || 'Descrição da Compra (opcional)'}
                   </label>
                   <div className="mt-1">
                     <textarea
@@ -1367,7 +1430,7 @@ export default function NovoLancamentoPage() {
                       name="descricao"
                       rows={2}
                       className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                      placeholder="Descreva os itens ou referência da compra"
+                      placeholder={translations.purchase_description_placeholder || 'Descreva os itens ou referência da compra'}
                       value={descricao}
                       onChange={(e) => setDescricao(e.target.value)}
                       disabled={!associado}
@@ -1379,13 +1442,33 @@ export default function NovoLancamentoPage() {
             
             {/* Seção Autorização */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Autorização da Transação</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                {translations.authorization_section || 'Autorização da Transação'}
+              </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                                    <label htmlFor="senha" className="block text-sm font-bold text-orange-700 mb-2 flex items-center">                    <FaLock className="mr-2" />                    Senha do Cartão                  </label>
+                  <label htmlFor="senha" className="block text-sm font-bold text-orange-700 mb-2 flex items-center">
+                    <FaLock className="mr-2" />
+                    {translations.card_password_label || 'Senha do Cartão'}
+                  </label>
                   <div className="mt-1">
-                                        <div className="relative">                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">                        <FaLock className="text-orange-500" />                      </div>                      <input                        type="password"                        id="senha"                        name="senha"                        className="focus:ring-orange-500 focus:border-orange-500 block w-full pl-10 pr-4 py-3 text-lg font-medium border-2 border-gray-300 rounded-lg bg-white shadow-sm placeholder-gray-400 hover:border-orange-400 transition-colors disabled:bg-gray-100 disabled:text-gray-500"                        placeholder="Digite a senha de 6 dígitos"                        value={senha}                        onChange={(e) => setSenha(e.target.value)}                        maxLength={6}                        disabled={!associado}                      />                    </div>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FaLock className="text-orange-500" />
+                      </div>
+                      <input
+                        type="password"
+                        id="senha"
+                        name="senha"
+                        className="focus:ring-orange-500 focus:border-orange-500 block w-full pl-10 pr-4 py-3 text-lg font-medium border-2 border-gray-300 rounded-lg bg-white shadow-sm placeholder-gray-400 hover:border-orange-400 transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                        placeholder={translations.card_password_placeholder || 'Digite a senha de 6 dígitos'}
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)}
+                        maxLength={6}
+                        disabled={!associado}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1397,14 +1480,14 @@ export default function NovoLancamentoPage() {
                 className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-3"
                 onClick={handleVoltar}
               >
-                Cancelar
+                {translations.cancel_button || 'Cancelar'}
               </button>
               <button
                 type="submit"
                 className="bg-blue-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 disabled={!associado || loading || !valor || !senha}
               >
-                {loading ? <FaSpinner className="animate-spin mx-auto" /> : 'Autorizar Pagamento'}
+                {loading ? <FaSpinner className="animate-spin mx-auto" /> : (translations.authorize_payment_button || 'Autorizar Pagamento')}
               </button>
             </div>
           </form>

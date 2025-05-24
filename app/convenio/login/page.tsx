@@ -646,7 +646,7 @@ export default function LoginConvenio() {
               <button
                 type="button"
                 onClick={() => router.push('/convenio/cadastro')}
-                className="text-sm text-gray-600 hover:text-blue-500 focus:outline-none"
+                className="text-sm text-blue-600 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200"
               >
                 {t.register_link || "Não tem cadastro? Clique aqui para se cadastrar"}
               </button>

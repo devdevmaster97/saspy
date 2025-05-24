@@ -13,6 +13,7 @@ import {
   FaBars,
   FaTimes
 } from 'react-icons/fa';
+import { useTranslations } from '@/app/contexts/LanguageContext';
 
 interface ConvenioData {
   cod_convenio: string;
@@ -33,6 +34,7 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const translations = useTranslations('ConvenioDashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [convenioData, setConvenioData] = useState<ConvenioData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,6 +65,8 @@ export default function DashboardLayout({
           retryCountRef.current = 0; // Resetar contador de tentativas se obtiver sucesso
           
           // Mostra o toast de boas-vindas apenas uma vez quando os dados são carregados com sucesso
+          // Comentado para evitar duplicação com o toast do login
+          /*
           if (!toastShownRef.current && pathname === '/convenio/dashboard/lancamentos') {
             toast.success('Login realizado com sucesso!', {
               position: 'top-right',
@@ -70,12 +74,13 @@ export default function DashboardLayout({
             });
             toastShownRef.current = true;
           }
+          */
         } else {
           retryCountRef.current += 1;
           console.warn(`Falha ao obter dados do convênio (${retryCountRef.current}/${maxRetries}): ${data.message}`);
           
           if (retryCountRef.current >= maxRetries) {
-            toast.error('Não foi possível obter os dados do convênio. Redirecionando para o login...');
+            toast.error(translations.data_load_error || 'Não foi possível obter os dados do convênio. Redirecionando para o login...');
             setTimeout(() => {
               router.push('/convenio/login');
             }, 2000);
@@ -86,7 +91,7 @@ export default function DashboardLayout({
         console.error('Erro ao carregar dados do convênio:', error);
         
         if (retryCountRef.current >= maxRetries) {
-          toast.error('Erro ao carregar dados do convênio. Redirecionando para o login...');
+          toast.error(translations.unauthorized_redirect || 'Erro ao carregar dados do convênio. Redirecionando para o login...');
           setTimeout(() => {
             router.push('/convenio/login');
           }, 2000);
@@ -104,7 +109,7 @@ export default function DashboardLayout({
     return () => {
       clearInterval(intervalId);
     };
-  }, [router, pathname]);
+  }, [router, pathname, translations]);
 
   const handleLogout = async () => {
     // Limpar os dados de autenticação
@@ -113,7 +118,7 @@ export default function DashboardLayout({
         method: 'POST',
       });
     } catch (error) {
-      console.error('Erro ao fazer logout:', error);
+      console.error(translations.logout_error || 'Erro ao fazer logout:', error);
     }
     // Redirecionar para a página de login
     router.push('/convenio/login');
@@ -133,31 +138,31 @@ export default function DashboardLayout({
 
   const menuItems = [
     {
-      name: 'Dashboard',
+      name: translations.menu_dashboard || 'Dashboard',
       href: '/convenio/dashboard',
       icon: <FaChartLine className="w-5 h-5" />,
       current: pathname === '/convenio/dashboard'
     },
     {
-      name: 'Lançamentos',
+      name: translations.menu_lancamentos || 'Lançamentos',
       href: '/convenio/dashboard/lancamentos/novo',
       icon: <FaReceipt className="w-5 h-5" />,
       current: pathname === '/convenio/dashboard/lancamentos/novo'
     },
     {
-      name: 'Meus Dados',
+      name: translations.menu_meus_dados || 'Meus Dados',
       href: '/convenio/dashboard/meus-dados',
       icon: <FaUser className="w-5 h-5" />,
       current: pathname === '/convenio/dashboard/meus-dados'
     },
     {
-      name: 'Estornos',
+      name: translations.menu_estornos || 'Estornos',
       href: '/convenio/dashboard/estornos',
       icon: <FaChartLine className="w-5 h-5" />,
       current: pathname === '/convenio/dashboard/estornos'
     },
     {
-      name: 'Relatórios',
+      name: translations.menu_relatorios || 'Relatórios',
       href: '/convenio/dashboard/relatorios',
       icon: <FaFileAlt className="w-5 h-5" />,
       current: pathname === '/convenio/dashboard/relatorios'
@@ -170,7 +175,7 @@ export default function DashboardLayout({
         <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
           <div className="flex flex-col items-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            <span className="mt-2 text-gray-700">Carregando dados do convênio...</span>
+            <span className="mt-2 text-gray-700">{translations.loading_data || 'Carregando dados do convênio...'}</span>
           </div>
         </div>
       )}
@@ -195,7 +200,7 @@ export default function DashboardLayout({
           <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
             <div className="flex-shrink-0 flex items-center px-4">
               <h2 className="text-xl font-semibold text-gray-800">
-                {convenioData?.razaosocial || 'Dashboard Convênio'}
+                {convenioData?.razaosocial || translations.sidebar_title || 'Dashboard Convênio'}
               </h2>
             </div>
             <nav className="mt-5 px-2 space-y-1">
@@ -220,7 +225,7 @@ export default function DashboardLayout({
                 className="w-full group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               >
                 <FaSignOutAlt className="w-5 h-5" />
-                <span className="ml-3">Sair</span>
+                <span className="ml-3">{translations.menu_logout || 'Sair'}</span>
               </button>
             </nav>
           </div>
@@ -234,7 +239,7 @@ export default function DashboardLayout({
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <div className="flex items-center flex-shrink-0 px-4">
                 <h2 className="text-xl font-semibold text-gray-800">
-                  {convenioData?.razaosocial || 'Dashboard Convênio'}
+                  {convenioData?.razaosocial || translations.sidebar_title || 'Dashboard Convênio'}
                 </h2>
               </div>
               <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
@@ -258,7 +263,7 @@ export default function DashboardLayout({
                   className="w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 >
                   <FaSignOutAlt className="w-5 h-5" />
-                  <span className="ml-3">Sair</span>
+                  <span className="ml-3">{translations.menu_logout || 'Sair'}</span>
                 </button>
               </nav>
             </div>
