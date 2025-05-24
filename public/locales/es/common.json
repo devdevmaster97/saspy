@@ -1,0 +1,27 @@
+{
+  "login": {
+    "title": "Bienvenido",
+    "subtitle": "Inicia sesión para continuar",
+    "matricula": "Matrícula",
+    "senha": "Contraseña",
+    "entrar": "Entrar",
+    "esqueci_senha": "Olvidé mi contraseña",
+    "primeiro_acesso": "Primer acceso"
+  },
+  "menu": {
+    "inicio": "Inicio",
+    "perfil": "Perfil",
+    "configuracoes": "Configuración",
+    "sair": "Salir"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Se produjo un error",
+    "success": "Operación realizada con éxito",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "select_language": "Seleccione el idioma"
+  }
+} 

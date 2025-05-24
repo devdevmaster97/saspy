@@ -2,32 +2,35 @@
 
 import { SessionProvider } from 'next-auth/react';
 import { Toaster } from 'react-hot-toast';
+import { LanguageProvider } from '../contexts/LanguageContext';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <Toaster
-        position="top-center"
-        reverseOrder={false}
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#363636',
-            color: '#fff',
-          },
-          success: {
+      <LanguageProvider>
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          toastOptions={{
+            duration: 3000,
             style: {
-              background: '#00875f',
+              background: '#363636',
+              color: '#fff',
             },
-          },
-          error: {
-            style: {
-              background: '#e53e3e',
+            success: {
+              style: {
+                background: '#00875f',
+              },
             },
-          },
-        }}
-      />
-      {children}
+            error: {
+              style: {
+                background: '#e53e3e',
+              },
+            },
+          }}
+        />
+        {children}
+      </LanguageProvider>
     </SessionProvider>
   );
 } 

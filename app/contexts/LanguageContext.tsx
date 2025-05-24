@@ -32,9 +32,8 @@ const translations = {
       submit_button: 'Entrar',
       loading_text: 'Autenticando...',
       generic_error: 'Erro de conexão. Verifique sua internet.',
-      hello_user: 'Olá', // Usado como "Olá, {nome}"
+      hello_user: 'Olá',
       forgot_password_link: 'Esqueceu sua senha?',
-      // Recuperação de Senha
       recover_password_title: 'Recuperar Senha',
       card_number_label: 'Número do Cartão',
       continue_button: 'Continuar',
@@ -42,7 +41,7 @@ const translations = {
       back_button: 'Voltar',
       select_method_title: 'Selecione como deseja receber o código:',
       send_code_button: 'Enviar Código',
-      code_sent_message: 'Enviamos um código para', // Usado como "Enviamos um código para {destinoMascarado}"
+      code_sent_message: 'Enviamos um código para',
       verification_code_label: 'Código de Verificação',
       verify_code_button: 'Verificar Código',
       new_password_label: 'Nova Senha',
@@ -153,9 +152,8 @@ const translations = {
       submit_button: 'Entrar',
       loading_text: 'Autenticando...',
       generic_error: 'Error de conexión. Verifique su internet.',
-      hello_user: 'Hola', // Usado como "Hola, {nombre}"
+      hello_user: 'Hola',
       forgot_password_link: '¿Olvidaste tu contraseña?',
-      // Recuperación de Contraseña
       recover_password_title: 'Recuperar Contraseña',
       card_number_label: 'Número de Tarjeta',
       continue_button: 'Continuar',
@@ -163,7 +161,7 @@ const translations = {
       back_button: 'Volver',
       select_method_title: 'Seleccione cómo desea recibir el código:',
       send_code_button: 'Enviar Código',
-      code_sent_message: 'Enviamos un código a', // Usado como "Enviamos un código a {destinoMascarado}"
+      code_sent_message: 'Enviamos un código a',
       verification_code_label: 'Código de Verificación',
       verify_code_button: 'Verificar Código',
       new_password_label: 'Nueva Contraseña',
