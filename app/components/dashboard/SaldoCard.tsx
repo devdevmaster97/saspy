@@ -279,11 +279,13 @@ export default function SaldoCard() {
     }
   }, [userData, loadSaldoData]);
 
-  // Formatar valor para exibição em Dólar
+  // Formatar valor para exibição em Guarani Paraguaio
   const formatCurrency = (value: number) => {
-    return value.toLocaleString('en-US', {
+    return value.toLocaleString('es-PY', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'PYG',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     });
   };
 

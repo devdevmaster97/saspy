@@ -324,11 +324,13 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
     }
   }, [associadoData, loadSaldoData, isInitialLoading, fetchHistoricoSolicitacoes]);
 
-  // Formatar o valor como moeda americana (dólar)
+  // Formatar o valor como moeda paraguaia (guarani)
   const formatarValor = (valor: number): string => {
-    return valor.toLocaleString('en-US', {
+    return valor.toLocaleString('es-PY', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'PYG',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     });
   };
 
@@ -629,9 +631,11 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="font-semibold">
-                            {Number(solicitacao.valor_solicitado).toLocaleString('pt-BR', {
+                            {Number(solicitacao.valor_solicitado).toLocaleString('es-PY', {
                               style: 'currency',
-                              currency: 'BRL'
+                              currency: 'PYG',
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0
                             })}
                           </div>
                           <div className="text-xs text-gray-600">
@@ -682,9 +686,11 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
                       {format(new Date(solicitacao.data_solicitacao), "dd/MM/yyyy", { locale: ptBR })}
                     </div>
                     <div className="font-semibold">
-                      {Number(solicitacao.valor_solicitado).toLocaleString('pt-BR', {
+                      {Number(solicitacao.valor_solicitado).toLocaleString('es-PY', {
                         style: 'currency',
-                        currency: 'BRL'
+                        currency: 'PYG',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
                       })}
                     </div>
                     <div className="text-xs text-gray-600">

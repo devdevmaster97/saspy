@@ -108,12 +108,14 @@ export default function ComprovantePage() {
 
   // Formatar valor para exibição
   const formatarValor = (valor: string) => {
-    if (!valor) return 'R$ 0,00';
+    if (!valor) return '₲ 0';
     
     const valorNum = parseFloat(valor);
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat('es-PY', {
       style: 'currency',
-      currency: 'BRL'
+      currency: 'PYG',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(valorNum);
   };
 

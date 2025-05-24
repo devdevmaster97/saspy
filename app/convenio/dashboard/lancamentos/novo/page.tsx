@@ -834,12 +834,14 @@ export default function NovoLancamentoPage() {
     // Remove todos os caracteres não numéricos
     let value = e.target.value.replace(/\D/g, '');
     
-    // Converte para formato monetário (R$ 0,00)
+    // Converte para formato monetário (₲ 0)
     if (value) {
       const valorNumerico = parseInt(value) / 100;
-      value = valorNumerico.toLocaleString('pt-BR', {
+      value = valorNumerico.toLocaleString('es-PY', {
         style: 'currency',
-        currency: 'BRL'
+        currency: 'PYG',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
       });
     } else {
       value = '';
@@ -1190,13 +1192,17 @@ export default function NovoLancamentoPage() {
                 {translations.installments_info 
                   ? translations.installments_info
                     .replace('{parcelas}', parcelas.toString())
-                    .replace('{valor}', valorParcela.toLocaleString('pt-BR', {
+                    .replace('{valor}', valorParcela.toLocaleString('es-PY', {
                       style: 'currency',
-                      currency: 'BRL'
+                      currency: 'PYG',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0
                     }))
-                  : `Em ${parcelas}x de ${valorParcela.toLocaleString('pt-BR', {
+                  : `Em ${parcelas}x de ${valorParcela.toLocaleString('es-PY', {
                       style: 'currency',
-                      currency: 'BRL'
+                      currency: 'PYG',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0
                     })}`
                 }
               </p>
@@ -1323,9 +1329,9 @@ export default function NovoLancamentoPage() {
                         {translations.available_balance_label || 'Saldo Disponível'}
                       </p>
                       <p className="text-lg font-medium text-green-600">
-                        {associado.saldo.toLocaleString('pt-BR', {
+                        {associado.saldo.toLocaleString('es-PY', {
                           style: 'currency',
-                          currency: 'BRL'
+                          currency: 'PYG'
                         })}
                       </p>
                     </div>
@@ -1349,7 +1355,7 @@ export default function NovoLancamentoPage() {
                   <div className="mt-1">
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 font-medium">R$</span>
+                        <span className="text-gray-500 font-medium">₲</span>
                       </div>
                       <input
                         type="text"
@@ -1407,13 +1413,17 @@ export default function NovoLancamentoPage() {
                       {translations.installment_info_text 
                         ? translations.installment_info_text
                           .replace('{parcelas}', parcelas.toString())
-                          .replace('{valor}', valorParcela.toLocaleString('pt-BR', {
+                          .replace('{valor}', valorParcela.toLocaleString('es-PY', {
                             style: 'currency',
-                            currency: 'BRL'
+                            currency: 'PYG',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
                           }))
-                        : `Pagamento em ${parcelas}x de ${valorParcela.toLocaleString('pt-BR', {
+                        : `Pagamento em ${parcelas}x de ${valorParcela.toLocaleString('es-PY', {
                             style: 'currency',
-                            currency: 'BRL'
+                            currency: 'PYG',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
                           })}`
                       }
                     </p>

@@ -72,12 +72,14 @@ export default function BalanceCard() {
     }
   };
 
-  // Formatar valor para exibição em Dólar
+  // Formatar valor para exibição em Guarani Paraguaio
   const formatCurrency = (value: string) => {
     const numValue = parseFloat(value);
-    return numValue.toLocaleString('en-US', {
+    return numValue.toLocaleString('es-PY', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'PYG',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     });
   };
 
