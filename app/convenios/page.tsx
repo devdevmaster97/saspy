@@ -10,13 +10,13 @@ export default function ConveniosPage() {
           <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Acesso de Convênios</h2>
           
           <p className="text-gray-600 mb-6 text-center">
-            Esta área é destinada aos parceiros e convênios do QRCred.
+            Esta área é destinada aos parceiros e convênios do saspy.
             Por favor, entre em contato com nosso suporte para obter credenciais de acesso.
           </p>
           
           <div className="text-center">
             <p className="text-blue-600 font-semibold">
-              Contato: suporte@qrcred.com.br
+              Contato: suporte@saspy.com.br
             </p>
           </div>
         </div>

@@ -59,7 +59,7 @@ const handler = NextAuth({
               empregador: data.empregador,
               senha: credentials.senha,
               name: data.nome,
-              email: data.email || `${credentials.cartao}@qrcred.com.br`
+              email: data.email || `${credentials.cartao}@saspy.com.br`
             } as CustomUser;
           }
 

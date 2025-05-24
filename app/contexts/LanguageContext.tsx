@@ -65,7 +65,7 @@ const translations = {
       submit_button: 'Entrar',
       forgot_password_link: 'Esqueci minha senha',
       register_link: 'Não tem cadastro? Clique aqui para se cadastrar',
-      footer_text: `© ${new Date().getFullYear()} QRCred. Todos os direitos reservados.`,
+      footer_text: `© ${new Date().getFullYear()} SASpy. Todos os direitos reservados.`,
       user_removed_toast: 'Usuário removido',
       login_success_toast: 'Login efetuado com sucesso!',
       login_error_generic: 'Erro ao fazer login',
@@ -389,6 +389,28 @@ const translations = {
       attention_title: 'Atenção',
       attention_processing_time: 'Algumas transações podem levar até 24 horas para serem processadas. Para obter informações atualizadas, utilize o botão de atualização.',
       attention_doubts: 'Se você tiver dúvidas sobre seus gastos, consulte a seção de "Extrato" para ver detalhes de todas as suas transações.'
+    },
+    PoliticaPrivacidade: {
+      page_title: 'Política de Privacidad',
+      main_title: 'Política de Privacidad de SASpy',
+      intro_text: 'Esta Política de Privacidad describe cómo se recopila, utiliza y comparte su información personal cuando utiliza la aplicación SASpy.',
+      collection_title: 'INFORMACIÓN PERSONAL QUE RECOPILAMOS',
+      collection_text: 'Cuando utiliza la aplicación, recopilamos información que usted proporciona directamente, como su nombre, dirección, número de teléfono, dirección de correo electrónico, C.I. y datos de la tarjeta.',
+      usage_title: 'CÓMO UTILIZAMOS SU INFORMACIÓN PERSONAL',
+      usage_intro: 'Utilizamos la información personal que recopilamos para:',
+      usage_list_1: 'Procesar sus transacciones y gestionar su cuenta',
+      usage_list_2: 'Verificar su identidad y prevenir fraudes',
+      usage_list_3: 'Comunicarnos con usted sobre su cuenta y actualizaciones del servicio',
+      usage_list_4: 'Mejorar y personalizar su experiencia en la aplicación',
+      usage_list_5: 'Cumplir con obligaciones legales y regulatorias',
+      sharing_title: 'COMPARTIR INFORMACIÓN',
+      sharing_text: 'Compartimos su información personal solo con terceros confiables que nos ayudan a operar nuestra aplicación, realizar nuestro negocio o atenderle, siempre que estas partes acuerden mantener esta información confidencial.',
+      security_title: 'SEGURIDAD',
+      security_text: 'Implementamos medidas de seguridad razonables para proteger la seguridad de su información personal. Sin embargo, recuerde que ningún método de transmisión por Internet o método de almacenamiento electrónico es 100% seguro.',
+      changes_title: 'CAMBIOS',
+      changes_text: 'Podemos actualizar esta política de privacidad periódicamente para reflejar cambios en nuestras prácticas. Recomendamos que revise esta política periódicamente para estar al tanto de cualquier cambio.',
+      contact_title: 'CONTACTO',
+      contact_text: 'Para más información sobre nuestras prácticas de privacidad o si tiene preguntas, contáctenos por correo electrónico: privacidad@saspy.com.br'
     }
   },
   'es': {
@@ -444,7 +466,7 @@ const translations = {
       submit_button: 'Entrar',
       forgot_password_link: 'Olvidé mi contraseña',
       register_link: '¿No tienes cuenta? Haz clic aquí para registrarte',
-      footer_text: `© ${new Date().getFullYear()} QRCred. Todos los derechos reservados.`,
+      footer_text: `© ${new Date().getFullYear()} SASpy. Todos los derechos reservados.`,
       user_removed_toast: 'Usuario eliminado',
       login_success_toast: '¡Inicio de sesión exitoso!',
       login_error_generic: 'Error al iniciar sesión',
@@ -768,6 +790,28 @@ const translations = {
       attention_title: 'Atención',
       attention_processing_time: 'Algunas transacciones pueden tardar hasta 24 horas en procesarse. Para obtener información actualizada, utiliza el botón de actualización.',
       attention_doubts: 'Si tienes dudas sobre tus gastos, consulta la sección de "Extracto" para ver detalles de todas tus transacciones.'
+    },
+    PoliticaPrivacidade: {
+      page_title: 'Política de Privacidad',
+      main_title: 'Política de Privacidad de SASpy',
+      intro_text: 'Esta Política de Privacidad describe cómo se recopila, utiliza y comparte su información personal cuando utiliza la aplicación SASpy.',
+      collection_title: 'INFORMACIÓN PERSONAL QUE RECOPILAMOS',
+      collection_text: 'Cuando utiliza la aplicación, recopilamos información que usted proporciona directamente, como su nombre, dirección, número de teléfono, dirección de correo electrónico, C.I. y datos de la tarjeta.',
+      usage_title: 'CÓMO UTILIZAMOS SU INFORMACIÓN PERSONAL',
+      usage_intro: 'Utilizamos la información personal que recopilamos para:',
+      usage_list_1: 'Procesar sus transacciones y gestionar su cuenta',
+      usage_list_2: 'Verificar su identidad y prevenir fraudes',
+      usage_list_3: 'Comunicarnos con usted sobre su cuenta y actualizaciones del servicio',
+      usage_list_4: 'Mejorar y personalizar su experiencia en la aplicación',
+      usage_list_5: 'Cumplir con obligaciones legales y regulatorias',
+      sharing_title: 'COMPARTIR INFORMACIÓN',
+      sharing_text: 'Compartimos su información personal solo con terceros confiables que nos ayudan a operar nuestra aplicación, realizar nuestro negocio o atenderle, siempre que estas partes acuerden mantener esta información confidencial.',
+      security_title: 'SEGURIDAD',
+      security_text: 'Implementamos medidas de seguridad razonables para proteger la seguridad de su información personal. Sin embargo, recuerde que ningún método de transmisión por Internet o método de almacenamiento electrónico es 100% seguro.',
+      changes_title: 'CAMBIOS',
+      changes_text: 'Podemos actualizar esta política de privacidad periódicamente para reflejar cambios en nuestras prácticas. Recomendamos que revise esta política periódicamente para estar al tanto de cualquier cambio.',
+      contact_title: 'CONTACTO',
+      contact_text: 'Para más información sobre nuestras prácticas de privacidad o si tiene preguntas, contáctenos por correo electrónico: privacidad@saspy.com.br'
     }
   }
 };

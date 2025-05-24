@@ -130,7 +130,7 @@ export default function RecuperarSenhaPage() {
           </div>
           
           <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
-            <p>© {new Date().getFullYear()} QRCred. Todos os direitos reservados.</p>
+            <p>© {new Date().getFullYear()} SASpy. Todos os direitos reservados.</p>
           </div>
         </div>
       </main>

@@ -653,7 +653,7 @@ export default function LoginConvenio() {
             </div>
           </div>
           <div className="text-center text-sm text-gray-500 pt-6">
-            <p>{t.footer_text || `© ${new Date().getFullYear()} QRCred. Todos os direitos reservados.`}</p>
+            <p>{t.footer_text || `© ${new Date().getFullYear()} SASpy. Todos os direitos reservados.`}</p>
           </div>
         </div>
       </div>
