@@ -28,7 +28,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
     
     // Caso não esteja autenticado pelo NextAuth, verificamos o localStorage
-    const storedUser = localStorage.getItem('qrcred_user')
+    const storedUser = localStorage.getItem('saspy_user')
     if (storedUser) {
       try {
         // Se temos um usuário armazenado, consideramos autenticado

@@ -8,6 +8,7 @@ import Header from '@/app/components/Header';
 import Logo from '@/app/components/Logo';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, Loader2 } from 'lucide-react';
+import { useTranslations } from '@/app/contexts/LanguageContext';
 
 interface UsuarioSalvo {
   usuario: string;
@@ -16,6 +17,7 @@ interface UsuarioSalvo {
 
 export default function LoginConvenio() {
   const router = useRouter();
+  const t = useTranslations('ConvenioLogin');
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     usuario: '',
@@ -107,15 +109,15 @@ export default function LoginConvenio() {
             localStorage.setItem('convenioUsuariosSalvos', JSON.stringify(usuariosFiltrados));
           }
           
-          toast.success('Login efetuado com sucesso!');
+          toast.success(t.login_success_toast || 'Login efetuado com sucesso!');
         }
         router.push('/convenio/dashboard');
       } else {
-        toast.error(data.message || 'Erro ao fazer login');
+        toast.error(data.message || (t.login_error_generic || 'Erro ao fazer login'));
       }
     } catch (error) {
       console.error('Erro no login:', error);
-      toast.error('Erro ao conectar com o servidor. Tente novamente mais tarde.');
+      toast.error(t.connection_error || 'Erro ao conectar com o servidor. Tente novamente mais tarde.');
     } finally {
       setLoading(false);
     }
@@ -131,7 +133,7 @@ export default function LoginConvenio() {
     const usuariosAtualizados = usuariosSalvos.filter(u => u.usuario !== usuario);
     setUsuariosSalvos(usuariosAtualizados);
     localStorage.setItem('convenioUsuariosSalvos', JSON.stringify(usuariosAtualizados));
-    toast.success('Usuário removido');
+    toast.success(t.user_removed_toast || 'Usuário removido');
   };
 
   // Função para abrir o modal de recuperação de senha
@@ -166,7 +168,7 @@ export default function LoginConvenio() {
   // Função para solicitar código de recuperação
   const handleRecuperarSenha = async () => {
     if (!usuarioRecuperacao) {
-      setMensagemRecuperacao('Por favor, informe o usuário');
+      setMensagemRecuperacao(t.please_inform_user || 'Por favor, informe o usuário');
       return;
     }
     
@@ -336,9 +338,7 @@ export default function LoginConvenio() {
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-blue-600">
-                {etapaRecuperacao === 'usuario' && 'Recuperação de Senha'}
-                {etapaRecuperacao === 'codigo' && 'Verificação de Código'}
-                {etapaRecuperacao === 'nova_senha' && 'Definir Nova Senha'}
+                                {etapaRecuperacao === 'usuario' && (t.password_recovery_title || 'Recuperação de Senha')}                {etapaRecuperacao === 'codigo' && (t.code_verification_title || 'Verificação de Código')}                {etapaRecuperacao === 'nova_senha' && (t.new_password_title || 'Definir Nova Senha')}
               </h3>
               <button 
                 onClick={() => setMostrarRecuperacao(false)}
@@ -366,9 +366,7 @@ export default function LoginConvenio() {
             {etapaRecuperacao === 'usuario' && (
               <div>
                 <div className="mb-4">
-                  <label htmlFor="usuarioRecuperacao" className="block text-sm font-medium text-gray-700 mb-1">
-                    Nome de Usuário
-                  </label>
+                                    <label htmlFor="usuarioRecuperacao" className="block text-sm font-medium text-gray-700 mb-1">                    {t.username_recovery_label || 'Nome de Usuário'}                  </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <FaUser className="h-5 w-5 text-gray-400" />
@@ -378,13 +376,11 @@ export default function LoginConvenio() {
                       id="usuarioRecuperacao"
                       value={usuarioRecuperacao}
                       onChange={(e) => setUsuarioRecuperacao(e.target.value)}
-                      placeholder="Digite seu nome de usuário"
+                      placeholder={t.username_recovery_placeholder || 'Digite seu nome de usuário'}
                       className="block w-full pl-10 py-2 sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Informe o nome de usuário cadastrado. Enviaremos um código de recuperação para o email do conveniado.
-                  </p>
+                                    <p className="text-xs text-gray-500 mt-1">                    {t.username_recovery_info || 'Informe o nome de usuário cadastrado. Enviaremos um código de recuperação para o email do conveniado.'}                  </p>
                 </div>
 
                 <div className="flex justify-end mt-6">
@@ -399,10 +395,10 @@ export default function LoginConvenio() {
                     {enviandoRecuperacao ? (
                       <span className="flex items-center">
                         <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                        Enviando...
+                        {t.sending_button || 'Enviando...'}
                       </span>
                     ) : (
-                      'Enviar Código'
+                                              t.send_code_button || 'Enviar Código'
                     )}
                   </button>
                 </div>
@@ -412,15 +408,13 @@ export default function LoginConvenio() {
             {etapaRecuperacao === 'codigo' && (
               <div>
                 <div className="mb-4">
-                  <label htmlFor="codigoRecuperacao" className="block text-sm font-medium text-gray-700 mb-1">
-                    Código de Verificação
-                  </label>
+                                    <label htmlFor="codigoRecuperacao" className="block text-sm font-medium text-gray-700 mb-1">                    {t.verification_code_label || 'Código de Verificação'}                  </label>
                   <input
                     type="text"
                     id="codigoRecuperacao"
                     value={codigoRecuperacao}
                     onChange={(e) => setCodigoRecuperacao(e.target.value.replace(/\D/g, ''))}
-                    placeholder="Digite o código de 6 dígitos"
+                    placeholder={t.verification_code_placeholder || 'Digite o código de 6 dígitos'}
                     maxLength={6}
                     className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500 text-center text-lg tracking-widest"
                   />
@@ -434,12 +428,7 @@ export default function LoginConvenio() {
                     type="button"
                     onClick={voltarEtapaRecuperacao}
                     className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
-                  >
-                    Voltar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleValidarCodigo}
+                                    >                    {t.back_button || 'Voltar'}                  </button>                  <button                    type="button"                    onClick={handleValidarCodigo}
                     disabled={enviandoCodigo || !codigoRecuperacao || codigoRecuperacao.length < 6}
                     className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
                       (enviandoCodigo || !codigoRecuperacao || codigoRecuperacao.length < 6) ? 'opacity-50 cursor-not-allowed' : ''
@@ -448,10 +437,10 @@ export default function LoginConvenio() {
                     {enviandoCodigo ? (
                       <span className="flex items-center">
                         <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                        Verificando...
+                        {t.verifying_button || 'Verificando...'}
                       </span>
                     ) : (
-                      'Verificar Código'
+                                              t.verify_code_button || 'Verificar Código'
                     )}
                   </button>
                 </div>
@@ -461,9 +450,7 @@ export default function LoginConvenio() {
             {etapaRecuperacao === 'nova_senha' && (
               <div>
                 <div className="mb-4">
-                  <label htmlFor="novaSenha" className="block text-sm font-medium text-gray-700 mb-1">
-                    Nova senha
-                  </label>
+                                    <label htmlFor="novaSenha" className="block text-sm font-medium text-gray-700 mb-1">                    {t.new_password_label || 'Nova senha'}                  </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <FaLock className="h-5 w-5 text-gray-400" />
@@ -473,7 +460,7 @@ export default function LoginConvenio() {
                       id="novaSenha"
                       value={novaSenha}
                       onChange={(e) => setNovaSenha(e.target.value)}
-                      placeholder="Mínimo de 6 caracteres"
+                      placeholder={t.new_password_placeholder || 'Mínimo de 6 caracteres'}
                       className="block w-full pl-10 pr-10 py-2 sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     />
                     <button
@@ -487,9 +474,7 @@ export default function LoginConvenio() {
                 </div>
 
                 <div className="mb-4">
-                  <label htmlFor="confirmacaoSenha" className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirmar senha
-                  </label>
+                                    <label htmlFor="confirmacaoSenha" className="block text-sm font-medium text-gray-700 mb-1">                    {t.confirm_password_label || 'Confirmar senha'}                  </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <FaLock className="h-5 w-5 text-gray-400" />
@@ -499,7 +484,7 @@ export default function LoginConvenio() {
                       id="confirmacaoSenha"
                       value={confirmacaoSenha}
                       onChange={(e) => setConfirmacaoSenha(e.target.value)}
-                      placeholder="Repita a mesma senha"
+                      placeholder={t.confirm_password_placeholder || 'Repita a mesma senha'}
                       className="block w-full pl-10 pr-10 py-2 sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     />
                     <button
@@ -517,12 +502,7 @@ export default function LoginConvenio() {
                     type="button"
                     onClick={voltarEtapaRecuperacao}
                     className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
-                  >
-                    Voltar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDefinirNovaSenha}
+                                    >                    {t.back_button || 'Voltar'}                  </button>                  <button                    type="button"                    onClick={handleDefinirNovaSenha}
                     disabled={enviandoNovaSenha || !novaSenha || novaSenha !== confirmacaoSenha || novaSenha.length < 6}
                     className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
                       (enviandoNovaSenha || !novaSenha || novaSenha !== confirmacaoSenha || novaSenha.length < 6) ? 'opacity-50 cursor-not-allowed' : ''
@@ -531,10 +511,10 @@ export default function LoginConvenio() {
                     {enviandoNovaSenha ? (
                       <span className="flex items-center">
                         <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                        Salvando...
+                        {t.saving_button || 'Salvando...'}
                       </span>
                     ) : (
-                      'Salvar Nova Senha'
+                                              t.save_new_password_button || 'Salvar Nova Senha'
                     )}
                   </button>
                 </div>
@@ -548,7 +528,7 @@ export default function LoginConvenio() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header title="Login do Convênio" showBackButton onBackClick={handleVoltar} />
+      <Header title={t.page_title || "Login do Convênio"} showBackButton onBackClick={handleVoltar} />
       
       <div className="flex-1 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -557,15 +537,11 @@ export default function LoginConvenio() {
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <h2 className="text-center text-2xl font-bold text-gray-900 mb-6">
-              Login do Convênio
-            </h2>
+                        <h2 className="text-center text-2xl font-bold text-gray-900 mb-6">              {t.form_title || "Login do Convênio"}            </h2>
             
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label htmlFor="usuario" className="block text-sm font-medium text-gray-700 mb-1">
-                  Usuário
-                </label>
+                                <label htmlFor="usuario" className="block text-sm font-medium text-gray-700 mb-1">                  {t.user_label || "Usuário"}                </label>
                 <div className="mt-1 relative">
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -575,7 +551,7 @@ export default function LoginConvenio() {
                       id="usuario"
                       name="usuario"
                       type="text"
-                      placeholder="Usuário"
+                      placeholder={t.user_placeholder || "Usuário"}
                       required
                       value={formData.usuario}
                       onChange={(e) => setFormData({ ...formData, usuario: e.target.value })}
@@ -623,9 +599,7 @@ export default function LoginConvenio() {
               </div>
 
               <div>
-                <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-1">
-                  Senha
-                </label>
+                                <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-1">                  {t.password_label || "Senha"}                </label>
                 <div className="mt-1 relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FaLock className="h-5 w-5 text-gray-400" />
@@ -634,7 +608,7 @@ export default function LoginConvenio() {
                     id="senha"
                     name="senha"
                     type="password"
-                    placeholder="Senha"
+                                          placeholder={t.password_placeholder || "Senha"}
                     required
                     value={formData.senha}
                     onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
@@ -652,7 +626,7 @@ export default function LoginConvenio() {
                   {loading ? (
                     <FaSpinner className="animate-spin h-5 w-5" />
                   ) : (
-                    'Entrar'
+                    t.submit_button || 'Entrar'
                   )}
                 </button>
               </div>
@@ -664,7 +638,7 @@ export default function LoginConvenio() {
                 onClick={abrirModalRecuperacao}
                 className="text-sm text-blue-600 hover:text-blue-500"
               >
-                Esqueci minha senha
+                {t.forgot_password_link || "Esqueci minha senha"}
               </button>
             </div>
 
@@ -674,12 +648,12 @@ export default function LoginConvenio() {
                 onClick={() => router.push('/convenio/cadastro')}
                 className="text-sm text-gray-600 hover:text-blue-500 focus:outline-none"
               >
-                Não tem cadastro? Clique aqui para se cadastrar
+                {t.register_link || "Não tem cadastro? Clique aqui para se cadastrar"}
               </button>
             </div>
           </div>
           <div className="text-center text-sm text-gray-500 pt-6">
-            <p>© {new Date().getFullYear()} QRCred. Todos os direitos reservados.</p>
+            <p>{t.footer_text || `© ${new Date().getFullYear()} QRCred. Todos os direitos reservados.`}</p>
           </div>
         </div>
       </div>

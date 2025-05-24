@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FaSpinner, FaArrowLeft } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 import Header from '@/app/components/Header';
+import { useTranslations } from '@/app/contexts/LanguageContext';
 
 interface Categoria {
   codigo: string;
@@ -22,6 +23,7 @@ interface Cidade {
 }
 
 export default function CadastroConvenio() {
+  const t = useTranslations('ConvenioCadastro');
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -60,7 +62,7 @@ export default function CadastroConvenio() {
           setCategorias(data.data);
         }
       } catch (error) {
-        console.error('Erro ao buscar categorias:', error);
+        console.error(t.error_loading_categories, error);
       }
     };
 
@@ -72,7 +74,7 @@ export default function CadastroConvenio() {
           setEstados(data.data);
         }
       } catch (error) {
-        console.error('Erro ao buscar estados:', error);
+        console.error(t.error_loading_states, error);
       }
     };
 
@@ -90,7 +92,7 @@ export default function CadastroConvenio() {
             setCidades(data.data);
           }
         } catch (error) {
-          console.error('Erro ao buscar cidades:', error);
+          console.error(t.error_loading_cities, error);
         }
       }
     };
@@ -113,7 +115,7 @@ export default function CadastroConvenio() {
           }));
         }
       } catch (error) {
-        console.error('Erro ao buscar CEP:', error);
+        console.error(t.error_loading_cep, error);
       }
     }
   };
@@ -136,18 +138,18 @@ export default function CadastroConvenio() {
 
     for (const campo of camposObrigatorios) {
       if (!formData[campo as keyof typeof formData]) {
-        toast.error(`O campo ${campo} é obrigatório`);
+        toast.error(t.field_required.replace('{field}', campo));
         return false;
       }
     }
 
     if (tipoEmpresa === '2' && !formData.cnpj) {
-      toast.error('CNPJ é obrigatório para Pessoa Jurídica');
+      toast.error(t.cnpj_required);
       return false;
     }
 
     if (tipoEmpresa === '1' && !formData.cpf) {
-      toast.error('CPF é obrigatório para Pessoa Física');
+      toast.error(t.cpf_required);
       return false;
     }
 
@@ -178,13 +180,13 @@ export default function CadastroConvenio() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para obter as credenciais.');
+        toast.success(t.success_message);
         router.push('/convenio/login');
       } else {
-        toast.error(data.message || 'Erro ao realizar cadastro');
+        toast.error(data.message || t.error_message);
       }
     } catch {
-      toast.error('Erro ao realizar cadastro. Tente novamente.');
+      toast.error(t.generic_error);
     } finally {
       setLoading(false);
     }
@@ -192,14 +194,14 @@ export default function CadastroConvenio() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header title="Cadastro de Novo Convênio" showBackButton onBackClick={handleVoltar} />
+      <Header title={t.page_title} showBackButton onBackClick={handleVoltar} />
       
       <div className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="bg-white shadow sm:rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900 mb-6">
-                Cadastro de Novo Convênio
+                {t.form_title}
               </h3>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -213,7 +215,7 @@ export default function CadastroConvenio() {
                       onChange={(e) => setTipoEmpresa(e.target.value as '1' | '2')}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                     />
-                    <span className="ml-2 text-sm text-gray-700">Pessoa Física</span>
+                    <span className="ml-2 text-sm text-gray-700">{t.natural_person}</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -223,7 +225,7 @@ export default function CadastroConvenio() {
                       onChange={(e) => setTipoEmpresa(e.target.value as '1' | '2')}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                     />
-                    <span className="ml-2 text-sm text-gray-700">Pessoa Jurídica</span>
+                    <span className="ml-2 text-sm text-gray-700">{t.legal_person}</span>
                   </label>
                 </div>
 
@@ -231,7 +233,7 @@ export default function CadastroConvenio() {
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   <div>
                     <label htmlFor="razaoSocial" className="block text-sm font-medium text-gray-700">
-                      Razão Social
+                      {t.company_name_label}
                     </label>
                     <input
                       type="text"
@@ -244,7 +246,7 @@ export default function CadastroConvenio() {
 
                   <div>
                     <label htmlFor="nomeFantasia" className="block text-sm font-medium text-gray-700">
-                      Nome Fantasia
+                      {t.trade_name_label}
                     </label>
                     <input
                       type="text"
@@ -257,7 +259,7 @@ export default function CadastroConvenio() {
 
                   <div>
                     <label htmlFor={tipoEmpresa === '1' ? 'cpf' : 'cnpj'} className="block text-sm font-medium text-gray-700">
-                      {tipoEmpresa === '1' ? 'CPF' : 'CNPJ'}
+                      {tipoEmpresa === '1' ? t.cpf_label : t.cnpj_label}
                     </label>
                     <input
                       type="text"
@@ -270,7 +272,7 @@ export default function CadastroConvenio() {
 
                   <div>
                     <label htmlFor="categoria" className="block text-sm font-medium text-gray-700">
-                      Categoria
+                      {t.category_label}
                     </label>
                     <select
                       id="categoria"
@@ -278,7 +280,7 @@ export default function CadastroConvenio() {
                       onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     >
-                      <option value="">Selecione uma categoria</option>
+                      <option value="">{t.category_placeholder}</option>
                       {categorias.map((categoria) => (
                         <option key={categoria.codigo} value={categoria.codigo}>
                           {categoria.nome}
@@ -292,7 +294,7 @@ export default function CadastroConvenio() {
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   <div>
                     <label htmlFor="cep" className="block text-sm font-medium text-gray-700">
-                      CEP
+                      {t.cep_label}
                     </label>
                     <div className="mt-1 flex rounded-md shadow-sm">
                       <input
@@ -308,14 +310,14 @@ export default function CadastroConvenio() {
                         onClick={handleBuscarCep}
                         className="ml-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       >
-                        Buscar
+                        {t.search_button}
                       </button>
                     </div>
                   </div>
 
                   <div>
                     <label htmlFor="endereco" className="block text-sm font-medium text-gray-700">
-                      Endereço
+                      {t.address_label}
                     </label>
                     <input
                       type="text"
@@ -328,7 +330,7 @@ export default function CadastroConvenio() {
 
                   <div>
                     <label htmlFor="numero" className="block text-sm font-medium text-gray-700">
-                      Número
+                      {t.number_label}
                     </label>
                     <input
                       type="text"
@@ -341,7 +343,7 @@ export default function CadastroConvenio() {
 
                   <div>
                     <label htmlFor="complemento" className="block text-sm font-medium text-gray-700">
-                      Complemento
+                      {t.complement_label}
                     </label>
                     <input
                       type="text"
@@ -354,7 +356,7 @@ export default function CadastroConvenio() {
 
                   <div>
                     <label htmlFor="bairro" className="block text-sm font-medium text-gray-700">
-                      Bairro
+                      {t.neighborhood_label}
                     </label>
                     <input
                       type="text"
@@ -367,7 +369,7 @@ export default function CadastroConvenio() {
 
                   <div>
                     <label htmlFor="uf" className="block text-sm font-medium text-gray-700">
-                      Estado
+                      {t.state_label}
                     </label>
                     <select
                       id="uf"
@@ -375,7 +377,7 @@ export default function CadastroConvenio() {
                       onChange={(e) => setFormData({ ...formData, uf: e.target.value, cidade: '' })}
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     >
-                      <option value="">Selecione um estado</option>
+                      <option value="">{t.state_placeholder}</option>
                       {estados.map((estado) => (
                         <option key={estado.sigla} value={estado.sigla}>
                           {estado.nome}
@@ -386,7 +388,7 @@ export default function CadastroConvenio() {
 
                   <div>
                     <label htmlFor="cidade" className="block text-sm font-medium text-gray-700">
-                      Cidade
+                      {t.city_label}
                     </label>
                     <select
                       id="cidade"
@@ -395,7 +397,7 @@ export default function CadastroConvenio() {
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       disabled={!formData.uf}
                     >
-                      <option value="">Selecione uma cidade</option>
+                      <option value="">{t.city_placeholder}</option>
                       {cidades.map((cidade) => (
                         <option key={cidade.id} value={cidade.nome}>
                           {cidade.nome}
@@ -409,7 +411,7 @@ export default function CadastroConvenio() {
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   <div>
                     <label htmlFor="telefone" className="block text-sm font-medium text-gray-700">
-                      Telefone
+                      {t.phone_label}
                     </label>
                     <input
                       type="tel"
@@ -422,7 +424,7 @@ export default function CadastroConvenio() {
 
                   <div>
                     <label htmlFor="celular" className="block text-sm font-medium text-gray-700">
-                      Celular
+                      {t.mobile_label}
                     </label>
                     <input
                       type="tel"
@@ -435,7 +437,7 @@ export default function CadastroConvenio() {
 
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                      E-mail
+                      {t.email_label}
                     </label>
                     <input
                       type="email"
@@ -448,7 +450,7 @@ export default function CadastroConvenio() {
 
                   <div>
                     <label htmlFor="responsavel" className="block text-sm font-medium text-gray-700">
-                      Responsável
+                      {t.responsible_label}
                     </label>
                     <input
                       type="text"
@@ -469,7 +471,7 @@ export default function CadastroConvenio() {
                     {loading ? (
                       <FaSpinner className="animate-spin h-5 w-5" />
                     ) : (
-                      'Cadastrar Convênio'
+                      t.submit_button
                     )}
                   </button>
                 </div>

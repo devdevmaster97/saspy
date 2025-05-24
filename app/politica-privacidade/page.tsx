@@ -57,7 +57,7 @@ export default function PoliticaPrivacidadePage() {
             <h3 className="text-xl font-semibold text-gray-800">CONTATO</h3>
             <p>
               Para mais informações sobre nossas práticas de privacidade ou se tiver dúvidas, 
-              entre em contato conosco pelo e-mail: privacidade@qrcred.com.br
+              entre em contato conosco pelo e-mail: privacidade@saspy.com.br
             </p>
           </div>
         </div>

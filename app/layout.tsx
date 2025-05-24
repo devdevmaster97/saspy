@@ -7,6 +7,7 @@ import PWAInstallPrompt from './components/PWAInstallPrompt';
 import IOSInstallPrompt from './components/IOSInstallPrompt';
 import UpdateNotification from './components/UpdateNotification';
 import Providers from './components/Providers';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -105,22 +106,24 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <Providers>
-          {children}
-          <Toaster 
-            position="top-right" 
-            toastOptions={{
-              // Configurações para limitar toasts
-              success: {
-                duration: 5000,
-              }
-            }}
-          />
-          <ServiceWorkerRegistration />
-          <PWAInstallPrompt />
-          <IOSInstallPrompt />
-          <UpdateNotification />
-        </Providers>
+        <LanguageProvider>
+          <Providers>
+            {children}
+            <Toaster 
+              position="top-right" 
+              toastOptions={{
+                // Configurações para limitar toasts
+                success: {
+                  duration: 5000,
+                }
+              }}
+            />
+            <ServiceWorkerRegistration />
+            <PWAInstallPrompt />
+            <IOSInstallPrompt />
+            <UpdateNotification />
+          </Providers>
+        </LanguageProvider>
       </body>
     </html>
   );

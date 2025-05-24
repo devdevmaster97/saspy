@@ -1,11 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
-import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaUser, FaIdCard, FaSave, FaCheck, FaWhatsapp, FaSignInAlt } from 'react-icons/fa';
-import { toast } from 'react-hot-toast';
+import { useState, useEffect } from 'react';import { useSession } from 'next-auth/react';import { useRouter } from 'next/navigation';import axios from 'axios';import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaUser, FaIdCard, FaSave, FaCheck, FaWhatsapp, FaSignInAlt } from 'react-icons/fa';import { toast } from 'react-hot-toast';import { useTranslations } from '@/app/contexts/LanguageContext';
 
 interface DadosAssociado {
   matricula: string;
@@ -30,9 +25,7 @@ interface StoredUser {
   empregador?: string;
 }
 
-export default function MeusDadosContent() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+export default function MeusDadosContent() {  const translations = useTranslations('MeusDadosPage');  const { data: session, status } = useSession();  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dados, setDados] = useState<DadosAssociado | null>(null);
@@ -46,7 +39,7 @@ export default function MeusDadosContent() {
   useEffect(() => {
     // Verificar localStorage
     try {
-      const storedUserString = localStorage.getItem('qrcred_user');
+      const storedUserString = localStorage.getItem('saspy_user');
       if (storedUserString) {
         const user = JSON.parse(storedUserString);
         console.log('Usuário encontrado no localStorage:', user);
@@ -128,7 +121,7 @@ export default function MeusDadosContent() {
       }
     } catch (error) {
       console.error('Erro ao buscar dados do associado:', error);
-      setError('Não foi possível carregar seus dados. Tente novamente.');
+      setError(translations.error_loading_data || 'Não foi possível carregar seus dados. Tente novamente.');
       
       // Incrementar tentativas para possível retry automático
       setTentativas(prev => prev + 1);
@@ -204,14 +197,13 @@ export default function MeusDadosContent() {
         // Atualizar dados locais com os novos valores
         setDados({...dados!, ...formData});
         setEditando(false);
-        toast.success('Dados atualizados com sucesso!');
+        toast.success(translations.success_data_updated || 'Dados atualizados com sucesso!');
       } else {
         throw new Error('Falha ao atualizar os dados');
       }
     } catch (error) {
       console.error('Erro ao atualizar dados:', error);
-      setError('Não foi possível atualizar seus dados. Tente novamente mais tarde.');
-      toast.error('Erro ao atualizar dados');
+              setError(translations.error_updating_data || 'Não foi possível atualizar seus dados. Tente novamente mais tarde.');        toast.error('Erro ao atualizar dados');
     } finally {
       setSalvando(false);
     }
@@ -225,7 +217,7 @@ export default function MeusDadosContent() {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600">Carregando seus dados...</span>
+        <span className="ml-3 text-gray-600">{translations.loading_text || 'Carregando seus dados...'}</span>
       </div>
     );
   }
@@ -251,14 +243,14 @@ export default function MeusDadosContent() {
             disabled={loading}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? 'Carregando...' : 'Tentar novamente'}
+            {loading ? (translations.loading_text || 'Carregando...') : (translations.try_again_button || 'Tentar novamente')}
           </button>
           
           <button
             onClick={redirecionarParaLogin}
             className="px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 flex items-center gap-2"
           >
-            <FaSignInAlt /> Fazer login novamente
+            <FaSignInAlt /> {translations.login_again_button || 'Fazer login novamente'}
           </button>
         </div>
       </div>
@@ -315,13 +307,13 @@ export default function MeusDadosContent() {
     <div className="max-w-2xl mx-auto p-4">
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Meus Dados</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{translations.section_title || 'Meus Dados'}</h2>
           {!editando && (
             <button
               onClick={() => setEditando(true)}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
             >
-              <FaUser /> Editar Dados
+              <FaUser /> {translations.edit_button || 'Editar Dados'}
             </button>
           )}
         </div>
@@ -330,7 +322,7 @@ export default function MeusDadosContent() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Nome</label>
+                <label className="block text-sm font-medium text-gray-700">{translations.name_label || 'Nome'}</label>
                 <div className="mt-1 flex items-center border border-gray-300 rounded-md px-3 py-2 bg-gray-100">
                   <FaUser className="text-gray-400 mr-2" />
                   <input
@@ -532,7 +524,7 @@ export default function MeusDadosContent() {
                 className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                 disabled={salvando}
               >
-                Cancelar
+                {translations.cancel_button || 'Cancelar'}
               </button>
               <button
                 type="submit"
@@ -542,12 +534,12 @@ export default function MeusDadosContent() {
                 {salvando ? (
                   <>
                     <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                    <span>Salvando...</span>
+                    <span>{translations.saving_text || 'Salvando...'}</span>
                   </>
                 ) : (
                   <>
                     <FaSave />
-                    <span>Salvar Alterações</span>
+                    <span>{translations.save_button || 'Salvar Alterações'}</span>
                   </>
                 )}
               </button>
@@ -625,9 +617,7 @@ export default function MeusDadosContent() {
             </div>
 
             <div className="border-t pt-4 mt-6">
-              <p className="text-xs text-gray-500 text-center">
-                Dados atualizados. Para modificar suas informações, clique em "Editar Dados".
-              </p>
+                            <p className="text-xs text-gray-500 text-center">                {translations.data_updated_footer || 'Dados atualizados. Para modificar suas informações, clique em "Editar Dados".'}              </p>
             </div>
           </div>
         )}

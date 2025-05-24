@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { FiSearch, FiDownload, FiEye, FiChevronDown, FiCalendar } from 'react-icons/fi';
 import { FaCalendarAlt } from 'react-icons/fa';
+import { useTranslations } from '@/app/contexts/LanguageContext';
 
 interface ExtratoItem {
   data: string;
@@ -88,6 +89,7 @@ interface ContaResponse {
 }
 
 export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
+  const translations = useTranslations('ExtratoTab');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -428,7 +430,7 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
         ) : filteredExtract.length === 0 ? (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center mb-4">
             <FiCalendar className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-            <p className="text-gray-500">Nenhuma transação encontrada neste período</p>
+            <p className="text-gray-500">{translations.no_transactions_found || 'Nenhuma transação encontrada neste período'}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -510,7 +512,7 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
             {filteredExtract.length > 0 && (
               <div className="mt-6 bg-white rounded-xl shadow border border-gray-200 p-4">
                 <div className="flex justify-between items-center">
-                  <h3 className="font-semibold text-gray-800">Valor Total:</h3>
+                  <h3 className="font-semibold text-gray-800">{translations.total_value || 'Valor Total:'}</h3>
                   <span className="font-bold text-lg text-blue-600">{formatValueNumber(valorTotal)}</span>
                 </div>
               </div>
@@ -522,31 +524,11 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
       {/* Tabela de Extrato (visível apenas em desktop) */}
       <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Data/Hora
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Estabelecimento
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Valor
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Parcela
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Lançamento
-              </th>
-            </tr>
-          </thead>
+                    <thead className="bg-gray-50">            <tr>              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">                {translations.table_header_date_time || 'Data/Hora'}              </th>              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">                {translations.table_header_establishment || 'Estabelecimento'}              </th>              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">                {translations.table_header_value || 'Valor'}              </th>              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">                {translations.table_header_installment || 'Parcela'}              </th>              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">                {translations.table_header_transaction || 'Lançamento'}              </th>            </tr>          </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan={4} className="px-6 py-4 text-center">
-                  Carregando...
-                </td>
+                                <td colSpan={4} className="px-6 py-4 text-center">                  {translations.loading || 'Carregando...'}                </td>
               </tr>
             ) : error ? (
               <tr>
@@ -556,9 +538,7 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
               </tr>
             ) : filteredExtract.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
-                  Nenhum registro encontrado
-                </td>
+                                <td colSpan={4} className="px-6 py-4 text-center text-gray-500">                  {translations.no_records_found || 'Nenhum registro encontrado'}                </td>
               </tr>
             ) : (
               filteredExtract.map((item, index) => (
@@ -589,9 +569,7 @@ export default function ExtratoTabContent({ cartao }: ExtratoTabContentProps) {
           {filteredExtract.length > 0 && (
             <tfoot className="bg-gray-50">
               <tr>
-                <td colSpan={2} className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
-                  Valor Total:
-                </td>
+                                <td colSpan={2} className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">                  {translations.total_value || 'Valor Total:'}                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
                   {formatValueNumber(valorTotal)}
                 </td>

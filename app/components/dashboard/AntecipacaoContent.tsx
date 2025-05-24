@@ -6,7 +6,9 @@ import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { FaSpinner, FaClockRotateLeft, FaArrowRotateLeft, FaCheckCircle, FaTimesCircle, FaHourglassHalf } from 'react-icons/fa6';
+import { FaSpinner, FaClockRotateLeft, FaArrowRotateLeft } from 'react-icons/fa6';
+import { FaCheckCircle, FaTimesCircle, FaHourglassHalf } from 'react-icons/fa';
+import { useTranslations } from '@/app/contexts/LanguageContext';
 
 interface AntecipacaoProps {
   cartao?: string;
@@ -53,6 +55,7 @@ let isSubmitting = false;
 
 export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoProps) {
   const { data: session } = useSession({ required: false });
+  const t = useTranslations('AntecipacaoPage');
   const [loading, setLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [associadoData, setAssociadoData] = useState<AssociadoData | null>(null);
@@ -280,7 +283,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
       setCartao(cartaoAtual);
     } else if (typeof window !== 'undefined') {
       // Tentar obter do localStorage se não foi fornecido de outra forma
-      const storedUser = localStorage.getItem('qrcred_user');
+      const storedUser = localStorage.getItem('saspy_user');
       if (storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
@@ -321,11 +324,11 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
     }
   }, [associadoData, loadSaldoData, isInitialLoading, fetchHistoricoSolicitacoes]);
 
-  // Formatar o valor como moeda brasileira
+  // Formatar o valor como moeda americana (dólar)
   const formatarValor = (valor: number): string => {
-    return valor.toLocaleString('pt-BR', {
+    return valor.toLocaleString('en-US', {
       style: 'currency',
-      currency: 'BRL'
+      currency: 'USD'
     });
   };
 
@@ -476,35 +479,23 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
   const formatarStatus = (status: string | boolean | null | undefined) => {
     // Se for booleano, converter para string
     if (typeof status === 'boolean') {
-      return status 
-        ? <span className="text-green-600 font-medium">Aprovada</span>
-        : <span className="text-red-600 font-medium">Recusada</span>;
+            return status         ? <span className="text-green-600 font-medium">{t.status_approved || 'Aprovado'}</span>        : <span className="text-red-600 font-medium">{t.status_rejected || 'Recusado'}</span>;
     }
     
-    // Se for nulo ou indefinido, retornar pendente
-    if (status === null || status === undefined) {
-      return <span className="text-yellow-600 font-medium">Pendente</span>;
-    }
+        // Se for nulo ou indefinido, retornar pendente    if (status === null || status === undefined) {      return <span className="text-yellow-600 font-medium">{t.status_pending || 'Pendente'}</span>;    }
     
     // Se for string, verificar os valores
     if (typeof status === 'string') {
       const statusLower = status.toLowerCase();
       
-      if (isStringInArray(status, ['aprovado', 'aprovada', 's', 'sim'])) {
-        return <span className="text-green-600 font-medium">Aprovada</span>;
-      }
+            if (isStringInArray(status, ['aprovado', 'aprovada', 's', 'sim'])) {        return <span className="text-green-600 font-medium">{t.status_approved || 'Aprovado'}</span>;      }
       
-      if (isStringInArray(status, ['recusado', 'recusada', 'n', 'nao', 'não'])) {
-        return <span className="text-red-600 font-medium">Recusada</span>;
-      }
+            if (isStringInArray(status, ['recusado', 'recusada', 'n', 'nao', 'não'])) {        return <span className="text-red-600 font-medium">{t.status_rejected || 'Recusado'}</span>;      }
       
-      if (isStringInArray(status, ['pendente', 'analise', 'análise'])) {
-        return <span className="text-yellow-600 font-medium">Em análise</span>;
-      }
+            if (isStringInArray(status, ['pendente', 'analise', 'análise'])) {        return <span className="text-yellow-600 font-medium">{t.status_analysis || 'Em análise'}</span>;      }
     }
     
-    // Padrão para qualquer outro valor
-    return <span className="text-yellow-600 font-medium">Pendente</span>;
+        // Padrão para qualquer outro valor    return <span className="text-yellow-600 font-medium">{t.status_pending || 'Pendente'}</span>;
   };
 
   // Função para verificar se a solicitação está pendente
@@ -572,16 +563,16 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
   return (
     <div className="max-w-lg mx-auto p-4">
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold mb-6 text-gray-800">Solicitação de Antecipação</h2>
+        <h2 className="text-xl font-bold mb-6 text-gray-800">{t.section_title || 'Solicitação de Antecipação'}</h2>
         
         {/* Saldo Disponível */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-md font-medium text-gray-600">Saldo Disponível:</h3>
+            <h3 className="text-md font-medium text-gray-600">{t.available_balance_title || 'Saldo Disponível:'}</h3>
             <button 
               onClick={() => loadSaldoData()}
               className="bg-blue-600 hover:bg-blue-700 p-2 rounded text-white transition-colors"
-              title="Atualizar saldo"
+              title={t.refresh_balance_button || 'Atualizar saldo'}
               disabled={loading}
               type="button"
             >
@@ -592,12 +583,12 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
             <div className="text-red-500 mt-2">{erro}</div>
           ) : (
             <p className="text-2xl font-bold text-green-600">
-              {saldoData ? formatarValor(saldoData.saldo) : 'Carregando...'}
+              {saldoData ? formatarValor(saldoData.saldo) : (t.loading_balance || 'Carregando...')}
             </p>
           )}
           {saldoData?.mesCorrente && (
             <p className="text-sm text-gray-500 mt-1">
-              Referente ao mês: {saldoData.mesCorrente}
+              {t.month_reference || 'Referente ao mês:'} {saldoData.mesCorrente}
             </p>
           )}
         </div>
@@ -607,12 +598,12 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-md font-medium text-gray-700 flex items-center">
-                <FaClockRotateLeft className="mr-1" /> Status de Solicitações
+                <FaClockRotateLeft className="mr-1" /> {t.status_requests_title || 'Status de Solicitações'}
               </h3>
               <button 
                 onClick={() => fetchHistoricoSolicitacoes()}
                 className="text-blue-600 p-1 rounded hover:bg-blue-50"
-                title="Atualizar histórico"
+                title={t.refresh_history_button || 'Atualizar histórico'}
                 disabled={loadingHistorico}
                 type="button"
               >
@@ -626,7 +617,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
                   <FaSpinner className="animate-spin text-blue-600" />
                 </div>
               ) : ultimasSolicitacoes.length === 0 ? (
-                <p className="text-gray-500 text-center py-2">Nenhuma solicitação encontrada</p>
+                <p className="text-gray-500 text-center py-2">{t.no_requests_found || 'Nenhuma solicitação encontrada'}</p>
               ) : (
                 <div className="space-y-3">
                   {/* Solicitações Mais Recentes (limitando a 3) */}
@@ -660,7 +651,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
                       className="text-blue-600 text-sm hover:underline w-full text-center py-1"
                       type="button"
                     >
-                      Ver mais solicitações
+                      {t.view_more_requests || 'Ver mais solicitações'}
                     </button>
                   )}
                 </div>
@@ -674,7 +665,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-md font-medium text-gray-700 flex items-center">
-                <FaClockRotateLeft className="mr-1" /> Solicitações Pendentes
+                <FaClockRotateLeft className="mr-1" /> {t.pending_requests_title || 'Solicitações Pendentes'}
               </h3>
               {loadingHistorico && (
                 <FaSpinner className="animate-spin text-blue-600" />
@@ -697,10 +688,10 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
                       })}
                     </div>
                     <div className="text-xs text-gray-600">
-                      Mês: {solicitacao.mes_corrente}
+                      {t.month_label || 'Mês:'} {solicitacao.mes_corrente}
                     </div>
                     <div className="mt-1 text-xs">
-                      Status: {formatarStatus(solicitacao.status)}
+                                              {t.status_label || 'Status:'} {formatarStatus(solicitacao.status)}
                     </div>
                   </div>
                 ))}
@@ -712,35 +703,35 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
         {solicitado ? (
           /* Resumo da Solicitação */
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <h3 className="text-lg font-semibold mb-3 text-gray-800">Solicitação Enviada</h3>
+            <h3 className="text-lg font-semibold mb-3 text-gray-800">{t.request_sent_title || 'Solicitação Enviada'}</h3>
             <div className="space-y-2">
               <p className="text-gray-700">
-                <span className="font-medium">Valor: </span>
+                <span className="font-medium">{t.value_label || 'Valor:'} </span>
                 {valorConfirmado}
               </p>
               <p className="text-gray-700">
-                <span className="font-medium">Taxa: </span>
+                <span className="font-medium">{t.tax_label || 'Taxa:'} </span>
                 {formatarValor(taxaConfirmada)}
               </p>
               <p className="text-gray-700">
-                <span className="font-medium">Total a Descontar: </span>
+                <span className="font-medium">{t.total_deduct_label || 'Total a Descontar:'} </span>
                 {formatarValor(totalConfirmado)}
               </p>
               <p className="text-gray-700">
-                <span className="font-medium">Solicitado em: </span>
+                <span className="font-medium">{t.requested_on_label || 'Solicitado em:'} </span>
                 {solicitacaoData}
               </p>
             </div>
             <div className="mt-4 flex flex-col space-y-2">
               <p className="text-blue-600 text-sm">
-                Sua solicitação está em análise. Em breve você receberá o resultado.
+                {t.analysis_message || 'Sua solicitação está em análise. Em breve você receberá o resultado.'}
               </p>
               <button
                 onClick={() => setSolicitado(false)}
                 className="mt-2 py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 type="button"
               >
-                Nova Solicitação
+                {t.new_request_button || 'Nova Solicitação'}
               </button>
             </div>
           </div>
@@ -749,13 +740,11 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
           <form onSubmit={handleSubmit}>
             {/* Campo de Valor */}
             <div className="mb-4">
-              <label htmlFor="valor" className="block text-sm font-medium text-gray-700 mb-1">
-                Valor Desejado
-              </label>
+                            <label htmlFor="valor" className="block text-sm font-medium text-gray-700 mb-1">                {t.desired_value_label || 'Valor Desejado'}              </label>
               <input
                 type="text"
                 id="valor"
-                placeholder="R$ 0,00"
+                placeholder={t.value_placeholder || 'R$ 0,00'}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 onChange={handleValorChange}
                 value={valorSolicitado ? (parseFloat(valorSolicitado) / 100).toFixed(2).replace('.', ',') : ''}
@@ -763,7 +752,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
               />
               {valorFormatado && (
                 <div className="mt-2 text-sm text-gray-600">
-                  Valor: {valorFormatado}
+                  {t.value_display_label || 'Valor:'} {valorFormatado}
                 </div>
               )}
             </div>
@@ -771,11 +760,11 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
             {/* Simulação de Taxa e Valor Total */}
             {valorFormatado && (
               <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-gray-700 mb-2">Simulação:</h4>
+                <h4 className="font-medium text-gray-700 mb-2">{t.simulation_title || 'Simulação:'}</h4>
                 <div className="grid grid-cols-2 gap-2">
-                  <p className="text-sm text-gray-600">Taxas :</p>
+                                      <p className="text-sm text-gray-600">{t.taxes_label || 'Taxas:'}</p>
                   <p className="text-sm text-gray-800 font-medium">{formatarValor(taxa)}</p>
-                  <p className="text-sm text-gray-600">Total a Descontar:</p>
+                                      <p className="text-sm text-gray-600">{t.total_deduct_label || 'Total a Descontar:'}</p>
                   <p className="text-sm text-gray-800 font-medium">{formatarValor(valorTotal)}</p>
                 </div>
               </div>
@@ -783,13 +772,11 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
             
             {/* Chave PIX */}
             <div className="mb-4">
-              <label htmlFor="chave-pix" className="block text-sm font-medium text-gray-700 mb-1">
-                Chave PIX para Recebimento
-              </label>
+                            <label htmlFor="chave-pix" className="block text-sm font-medium text-gray-700 mb-1">                {t.pix_key_label || 'Chave PIX para Recebimento'}              </label>
               <input
                 type="text"
                 id="chave-pix"
-                placeholder="CPF, E-mail, Celular ou Chave Aleatória"
+                placeholder={t.pix_key_placeholder || 'CPF, E-mail, Celular ou Chave Aleatória'}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 value={chavePix}
                 onChange={(e) => setChavePix(e.target.value)}
@@ -799,13 +786,11 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
             
             {/* Seção senha com informação adicional */}
             <div className="mb-6">
-              <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-1">
-                Senha (para confirmar)
-              </label>
+                            <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-1">                {t.password_label || 'Senha (para confirmar)'}              </label>
               <input
                 type="password"
                 id="senha"
-                placeholder="Digite sua senha de acesso ao app"
+                placeholder={t.password_placeholder || 'Digite sua senha de acesso ao app'}
                 className={`w-full p-3 border ${
                   erro.toLowerCase().includes("senha") ? "border-red-500" : "border-gray-300"
                 } rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-colors`}
@@ -817,7 +802,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
-                <span className="text-blue-600">Importante: Use a mesma senha do seu login no aplicativo</span>
+                <span className="text-blue-600">{t.password_info || 'Importante: Use a mesma senha do seu login no aplicativo'}</span>
               </p>
             </div>
             
@@ -858,10 +843,10 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
               {loading ? (
                 <span className="flex items-center justify-center">
                   <FaSpinner className="animate-spin mr-2" />
-                  Processando...
+                  {t.processing_button || 'Processando...'}
                 </span>
               ) : (
-                "Solicitar Antecipação"
+                t.submit_button || "Solicitar Antecipação"
               )}
             </button>
           </form>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FaSearch, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
 import axios from 'axios';
+import { useTranslations } from '@/app/contexts/LanguageContext';
 
 interface Convenio {
   codigo: string;
@@ -26,6 +27,7 @@ interface Convenio {
 type OrdenacaoTipo = 'recentes' | 'alfabetica' | 'destaque';
 
 export default function ConveniosContent() {
+  const translations = useTranslations('ConveniosPage');
   const [convenios, setConvenios] = useState<Convenio[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,14 +43,14 @@ export default function ConveniosContent() {
       if (Array.isArray(response.data)) {
         setConvenios(response.data);
       } else {
-        throw new Error('Formato de resposta inválido');
+        throw new Error(translations.invalid_response_format || 'Formato de resposta inválido');
       }
     } catch (error) {
       console.error('Erro ao buscar convênios:', error);
       if (axios.isAxiosError(error) && error.response) {
-        setError(`Não foi possível carregar os convênios: ${error.response.data.error || error.message}`);
+        setError(`${translations.error_loading || 'Não foi possível carregar os convênios'}: ${error.response.data.error || error.message}`);
       } else {
-        setError('Não foi possível carregar os convênios. Tente novamente.');
+        setError(translations.generic_error || 'Não foi possível carregar os convênios. Tente novamente.');
       }
     } finally {
       setLoading(false);
@@ -119,7 +121,7 @@ export default function ConveniosContent() {
           onClick={fetchConvenios}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
-          Tentar novamente
+          {translations.try_again_button || 'Tentar novamente'}
         </button>
       </div>
     );
@@ -135,7 +137,7 @@ export default function ConveniosContent() {
           <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Buscar convênios..."
+            placeholder={translations.search_placeholder || 'Buscar convênios...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -146,9 +148,9 @@ export default function ConveniosContent() {
           onChange={(e) => setOrdenacao(e.target.value as OrdenacaoTipo)}
           className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="alfabetica">Ordem Alfabética</option>
-          <option value="recentes">Mais Recentes</option>
-          <option value="destaque">Em Destaque</option>
+          <option value="alfabetica">{translations.order_alphabetical || 'Ordem Alfabética'}</option>
+          <option value="recentes">{translations.order_recent || 'Mais Recentes'}</option>
+          <option value="destaque">{translations.order_featured || 'Em Destaque'}</option>
         </select>
       </div>
 

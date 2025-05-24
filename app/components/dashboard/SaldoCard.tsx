@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { FaWallet, FaSpinner, FaSyncAlt } from 'react-icons/fa';
+import { FaWallet, FaSpinner, FaSyncAlt, FaInfoCircle } from 'react-icons/fa';
 import axios from 'axios';
+import { useTranslations } from '@/app/contexts/LanguageContext';
+import { LoadingSpinner } from '../LoadingSpinner';
 
 interface UserData {
   matricula: string;
@@ -26,12 +28,13 @@ export default function SaldoCard() {
   const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [cartao, setCartao] = useState('');
+  const translations = useTranslations('SaldoCard');
 
   // Função para buscar o mês corrente
   const fetchMesCorrente = useCallback(async () => {
     try {
       if (!cartao) {
-        console.error('Cartão não fornecido para buscar mês corrente');
+        console.error(translations.console_error_card_not_provided || 'Cartão não fornecido para buscar mês corrente');
         return null;
       }
 
@@ -73,7 +76,7 @@ export default function SaldoCard() {
       console.log('Usando mês atual como fallback após erro:', mesAtual);
       return mesAtual;
     }
-  }, [cartao]);
+  }, [cartao, translations]);
 
   // Função para buscar os dados da conta e calcular o saldo
   const fetchConta = useCallback(async (matricula: string, empregador: string, mes: string) => {
@@ -89,7 +92,7 @@ export default function SaldoCard() {
       });
 
       if (!associadoResponse.data) {
-        throw new Error('Dados do associado não encontrados');
+        throw new Error(translations.error_associate_data_not_found || 'Dados do associado não encontrados');
       }
 
       const { matricula: matriculaAssociado, empregador: empregadorAssociado } = associadoResponse.data;
@@ -115,13 +118,13 @@ export default function SaldoCard() {
         
         return total;
       } else {
-        throw new Error('Formato de resposta inválido');
+        throw new Error(translations.error_invalid_response_format || 'Formato de resposta inválido');
       }
     } catch (error) {
       console.error('Erro ao buscar dados da conta:', error);
       throw error;
     }
-  }, [cartao]);
+  }, [cartao, translations]);
 
   // Função principal para carregar todos os dados
   const loadSaldoData = useCallback(async () => {
@@ -135,7 +138,7 @@ export default function SaldoCard() {
       const mesAtual = await fetchMesCorrente();
       
       if (!mesAtual) {
-        throw new Error('Mês corrente não disponível');
+        throw new Error(translations.error_current_month_not_available || 'Mês corrente não disponível');
       }
       
       // 2. Buscar dados da conta
@@ -156,28 +159,41 @@ export default function SaldoCard() {
     } catch (error) {
       console.error('Erro ao carregar dados de saldo:', error);
       if (error instanceof Error) {
-        setError(`Não foi possível carregar o saldo: ${error.message}`);
+        setError((translations.error_load_balance_with_message || 'Não foi possível carregar o saldo: {message}').replace('{message}', error.message));
       } else {
-        setError('Não foi possível carregar o saldo. Tente novamente.');
+        setError(translations.error_load_balance_generic || 'Não foi possível carregar o saldo. Tente novamente.');
       }
     } finally {
       setLoading(false);
     }
-  }, [userData, fetchMesCorrente, fetchConta]);
+  }, [userData, fetchMesCorrente, fetchConta, translations]);
 
   // Carregar dados do usuário do localStorage
   useEffect(() => {
+    console.log('[SaldoCard] useEffect para carregar usuário INICIOU.');
     if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('qrcred_user');
+      const storedUser = localStorage.getItem('saspy_user');
+      console.log('[SaldoCard] storedUser do localStorage:', storedUser);
       if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        setUserData(parsedUser);
-        setCartao(parsedUser.cartao);
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          console.log('[SaldoCard] parsedUser:', parsedUser);
+          setUserData(parsedUser);
+          setCartao(parsedUser.cartao);
+        } catch (parseError) {
+          console.error('[SaldoCard] Erro ao fazer parse do usuário do localStorage:', parseError);
+          setError(translations?.error_user_data_corrupted || 'Dados do usuário corrompidos. Faça login novamente.');
+          setLoading(false);
+        }
       } else {
-        setError('Usuário não encontrado. Faça login novamente.');
+        console.warn('[SaldoCard] Usuário NÃO encontrado no localStorage com a chave saspy_user.');
+        setError(translations?.error_user_not_found || 'Usuário não encontrado. Faça login novamente.');
         setLoading(false);
       }
+    } else {
+      console.warn('[SaldoCard] window não definido, não é possível acessar localStorage.');
     }
+    console.log('[SaldoCard] useEffect para carregar usuário FINALIZOU.');
   }, []);
 
   // Carregar dados de saldo quando o usuário estiver disponível
@@ -187,19 +203,24 @@ export default function SaldoCard() {
     }
   }, [userData, loadSaldoData]);
 
-  // Formatar valor para exibição em Reais
+  // Formatar valor para exibição em Dólar
   const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', {
+    return value.toLocaleString('en-US', {
       style: 'currency',
-      currency: 'BRL',
+      currency: 'USD',
     });
   };
+
+  // Se as traduções não estiverem prontas, mostrar spinner
+  if (!translations) {
+    return <LoadingSpinner />;
+  }
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-lg h-60">
         <FaSpinner className="animate-spin text-blue-600 text-4xl mb-4" />
-        <p className="text-gray-600">Carregando saldo...</p>
+        <p className="text-gray-600">{translations.loading_balance || 'Carregando saldo...'}</p>
       </div>
     );
   }
@@ -207,13 +228,13 @@ export default function SaldoCard() {
   if (error) {
     return (
       <div className="p-8 bg-white rounded-lg shadow-lg">
-        <div className="text-red-500 mb-2 font-semibold">Erro</div>
+        <div className="text-red-500 mb-2 font-semibold">{translations.error_title || 'Erro'}</div>
         <p className="text-gray-700">{error}</p>
         <button 
           onClick={loadSaldoData}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
         >
-          Tentar novamente
+          {translations.retry_button || 'Tentar novamente'}
         </button>
       </div>
     );
@@ -224,13 +245,13 @@ export default function SaldoCard() {
       <div className="bg-blue-600 p-4 flex items-center justify-between">
         <div className="flex items-center">
           <FaWallet className="text-white text-2xl mr-3" />
-          <h2 className="text-xl font-bold text-white">Seu Saldo</h2>
+          <h2 className="text-xl font-bold text-white">{translations.card_title || 'Seu Saldo'}</h2>
         </div>
         
         <button 
           onClick={loadSaldoData}
           className="bg-blue-700 hover:bg-blue-800 p-2 rounded text-white transition-colors"
-          title="Atualizar saldo"
+          title={translations.refresh_balance_tooltip || 'Atualizar saldo'}
         >
           <FaSyncAlt />
         </button>
@@ -238,29 +259,68 @@ export default function SaldoCard() {
       
       <div className="p-6">
         <div className="mb-6">
-          <p className="text-gray-500 text-sm mb-1">Saldo Disponível</p>
+          <p className="text-gray-500 text-sm mb-1">{translations.available_balance_label || 'Saldo Disponível'}</p>
           <p className="text-3xl font-bold text-gray-800">
-            {saldoData ? formatCurrency(saldoData.saldo) : 'R$ 0,00'}
+            {saldoData ? formatCurrency(saldoData.saldo) : '$0.00'}
           </p>
           {saldoData?.mesCorrente && (
             <p className="text-sm text-gray-500 mt-1">
-              Referente ao mês: {saldoData.mesCorrente}
+              {translations.month_reference_label || 'Referente ao mês:'} {saldoData.mesCorrente}
             </p>
           )}
         </div>
         
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-gray-500 text-sm mb-1">Limite Total</p>
+            <p className="text-gray-500 text-sm mb-1">{translations.total_limit_label || 'Limite Total'}</p>
             <p className="text-xl font-semibold text-gray-700">
-              {saldoData ? formatCurrency(saldoData.limite) : 'R$ 0,00'}
+              {saldoData ? formatCurrency(saldoData.limite) : '$0.00'}
             </p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm mb-1">Total Utilizado</p>
+            <p className="text-gray-500 text-sm mb-1">{translations.total_used_label || 'Total Utilizado'}</p>
             <p className="text-xl font-semibold text-gray-700">
-              {saldoData ? formatCurrency(saldoData.total) : 'R$ 0,00'}
+              {saldoData ? formatCurrency(saldoData.total) : '$0.00'}
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Seção de Informações Adicionais sobre o Saldo */}
+      <div className="p-6 border-t border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="flex items-center mb-4">
+          <FaInfoCircle className="text-blue-500 text-xl mr-3" />
+          <h3 className="text-lg font-semibold text-gray-800">
+            {translations.info_title || 'Informações sobre seu saldo'}
+          </h3>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 mb-4 border border-blue-100 shadow-sm">
+          <p className="text-gray-700 leading-relaxed">
+            {translations.info_description || 'O saldo apresentado é baseado no limite disponível para o mês atual. O cálculo é feito subtraindo os gastos do período do seu limite total.'}
+          </p>
+        </div>
+
+        <div className="bg-amber-50 rounded-lg p-4 border border-amber-200 shadow-sm">
+          <div className="flex items-start mb-3">
+            <div className="bg-amber-100 rounded-full p-2 mr-3 flex-shrink-0">
+              <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-md font-semibold text-amber-800 mb-2">
+                {translations.attention_title || 'Atenção'}
+              </h4>
+              <div className="space-y-2 text-sm text-amber-700">
+                <p>
+                  {translations.attention_processing_time || 'Algumas transações podem levar até 24 horas para serem processadas. Para obter informações atualizadas, utilize o botão de atualização.'}
+                </p>
+                <p>
+                  {translations.attention_doubts || 'Se você tiver dúvidas sobre seus gastos, consulte a seção de "Extrato" para ver detalhes de todas as suas transações.'}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

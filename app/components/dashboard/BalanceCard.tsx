@@ -26,7 +26,7 @@ export default function BalanceCard() {
   useEffect(() => {
     // Carregar dados do usuário do localStorage
     if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('qrcred_user');
+      const storedUser = localStorage.getItem('saspy_user');
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
         setUserData(parsedUser);
@@ -72,12 +72,12 @@ export default function BalanceCard() {
     }
   };
 
-  // Formatar valor para exibição em Reais
+  // Formatar valor para exibição em Dólar
   const formatCurrency = (value: string) => {
     const numValue = parseFloat(value);
-    return numValue.toLocaleString('pt-BR', {
+    return numValue.toLocaleString('en-US', {
       style: 'currency',
-      currency: 'BRL',
+      currency: 'USD',
     });
   };
 
@@ -116,7 +116,7 @@ export default function BalanceCard() {
         <div className="mb-6">
           <p className="text-gray-500 text-sm mb-1">Saldo Disponível</p>
           <p className="text-3xl font-bold text-gray-800">
-            {balanceData ? formatCurrency(balanceData.saldo) : 'R$ 0,00'}
+            {balanceData ? formatCurrency(balanceData.saldo) : '$0.00'}
           </p>
         </div>
         
@@ -124,13 +124,13 @@ export default function BalanceCard() {
           <div>
             <p className="text-gray-500 text-sm mb-1">Limite Total</p>
             <p className="text-xl font-semibold text-gray-700">
-              {balanceData ? formatCurrency(balanceData.limite) : 'R$ 0,00'}
+              {balanceData ? formatCurrency(balanceData.limite) : '$0.00'}
             </p>
           </div>
           <div>
             <p className="text-gray-500 text-sm mb-1">Limite Disponível</p>
             <p className="text-xl font-semibold text-gray-700">
-              {balanceData ? formatCurrency(balanceData.limiteAtual) : 'R$ 0,00'}
+              {balanceData ? formatCurrency(balanceData.limiteAtual) : '$0.00'}
             </p>
           </div>
         </div>

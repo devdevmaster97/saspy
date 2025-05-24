@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from '@/app/contexts/LanguageContext';
 import { 
   FaWallet, 
   FaClipboardList, 
@@ -32,11 +33,12 @@ export default function Sidebar({ userName, cardNumber, company }: SidebarProps)
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const [userData, setUserData] = useState<UserData | null>(null);
+  const translations = useTranslations('Sidebar');
 
   useEffect(() => {
     // Carregar dados do usuário do localStorage
     if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('qrcred_user');
+      const storedUser = localStorage.getItem('saspy_user');
       if (storedUser) {
         setUserData(JSON.parse(storedUser));
       }
@@ -48,18 +50,18 @@ export default function Sidebar({ userName, cardNumber, company }: SidebarProps)
   };
 
   const menuItems = [
-    { href: '/dashboard/saldo', label: 'Saldo', icon: <FaWallet size={20} /> },
-    { href: '/dashboard/extrato', label: 'Extrato', icon: <FaClipboardList size={20} /> },
-    { href: '/dashboard/convenios', label: 'Convênios', icon: <FaStore size={20} /> },
-    { href: '/dashboard/qrcode', label: 'QR Code', icon: <FaQrcode size={20} /> },
-    { href: '/dashboard/dados', label: 'Meus Dados', icon: <FaUser size={20} /> },
-    { href: '/dashboard/antecipacao', label: 'Antecipação', icon: <FaCalendarAlt size={20} /> },
+    { href: '/dashboard/saldo', label: translations.menu_balance || 'Saldo', icon: <FaWallet size={20} /> },
+    { href: '/dashboard/extrato', label: translations.menu_extract || 'Extrato', icon: <FaClipboardList size={20} /> },
+    { href: '/dashboard/convenios', label: translations.menu_agreements || 'Convênios', icon: <FaStore size={20} /> },
+    { href: '/dashboard/qrcode', label: translations.menu_qrcode || 'QR Code', icon: <FaQrcode size={20} /> },
+    { href: '/dashboard/dados', label: translations.menu_my_data || 'Meus Dados', icon: <FaUser size={20} /> },
+    { href: '/dashboard/antecipacao', label: translations.menu_anticipation || 'Antecipação', icon: <FaCalendarAlt size={20} /> },
   ];
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       // Remover dados do localStorage
-      localStorage.removeItem('qrcred_user');
+      localStorage.removeItem('saspy_user');
       // Redirecionar para a página de login
       window.location.href = '/login';
     }
@@ -71,7 +73,7 @@ export default function Sidebar({ userName, cardNumber, company }: SidebarProps)
       <button 
         className="lg:hidden fixed top-4 left-4 z-50 bg-blue-600 p-2 rounded-md text-white"
         onClick={toggleSidebar}
-        aria-label={isOpen ? "Fechar Menu" : "Abrir Menu"}
+        aria-label={isOpen ? (translations.aria_close_menu || "Fechar Menu") : (translations.aria_open_menu || "Abrir Menu")}
       >
         {isOpen ? <FaTimes /> : <FaBars />}
       </button>
@@ -96,10 +98,10 @@ export default function Sidebar({ userName, cardNumber, company }: SidebarProps)
               {userData?.nome || userName}
             </h2>
             <p className="text-sm opacity-90 mt-1 truncate">
-              Cartão: {userData?.cartao || cardNumber}
+              {translations.user_card_label || 'Cartão:'} {userData?.cartao || cardNumber}
             </p>
             <p className="text-sm opacity-90 truncate">
-              Convênio: {userData?.nome_divisao || company}
+              {translations.user_agreement_label || 'Convênio:'} {userData?.nome_divisao || company}
             </p>
           </div>
 
@@ -131,7 +133,7 @@ export default function Sidebar({ userName, cardNumber, company }: SidebarProps)
               className="flex items-center w-full px-3 py-2 text-left transition-colors hover:bg-red-700 rounded"
             >
               <FaSignOutAlt className="mr-3" />
-              Sair
+              {translations.logout_button || 'Sair'}
             </button>
           </div>
         </div>

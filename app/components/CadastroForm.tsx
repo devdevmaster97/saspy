@@ -10,6 +10,7 @@ import Image from 'next/image';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FaUser, FaEnvelope, FaPhone, FaHome, FaCity, FaMapMarkerAlt, FaCalendarAlt } from 'react-icons/fa';
+import { useTranslations } from '@/app/contexts/LanguageContext';
 
 interface Estado {
   sigla: string;
@@ -28,6 +29,7 @@ interface Empregador {
 //teste
 export default function CadastroForm() {
   const router = useRouter();
+  const translations = useTranslations('AssociateRegistration');
   const [formData, setFormData] = useState({
     nome: '',
     cpf: '',
@@ -68,12 +70,13 @@ export default function CadastroForm() {
           setEstados(data.data);
         }
       } catch (error) {
-        console.error('Erro ao buscar estados:', error);
+        console.error(translations.error_loading_states || 'Erro ao buscar estados:', error);
+        toast.error(translations.error_loading_states || 'Erro ao buscar estados');
       }
     };
 
     fetchEstados();
-  }, []);
+  }, [translations]);
 
   useEffect(() => {
     // Carregar cidades quando o estado mudar
@@ -86,7 +89,8 @@ export default function CadastroForm() {
             setCidades(data.data);
           }
         } catch (error) {
-          console.error('Erro ao buscar cidades:', error);
+          console.error(translations.error_loading_cities || 'Erro ao buscar cidades:', error);
+          toast.error(translations.error_loading_cities || 'Erro ao buscar cidades');
         }
       } else {
         setCidades([]);
@@ -94,7 +98,7 @@ export default function CadastroForm() {
     };
 
     fetchCidades();
-  }, [formData.uf]);
+  }, [formData.uf, translations]);
 
   useEffect(() => {
     // Buscar lista de empregadores ao carregar o componente
@@ -109,16 +113,12 @@ export default function CadastroForm() {
       
       // Diferentes possíveis estruturas de resposta da API
       if (response.data && Array.isArray(response.data)) {
-        // Resposta direta como array
         setEmpregadores(response.data);
       } else if (response.data && response.data.empregadores && Array.isArray(response.data.empregadores)) {
-        // Resposta com propriedade 'empregadores'
         setEmpregadores(response.data.empregadores);
       } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-        // Resposta com propriedade 'data'
         setEmpregadores(response.data.data);
       } else if (response.data && typeof response.data === 'object') {
-        // Tentar construir um array a partir de um objeto
         try {
           const empregadoresArray = Object.entries(response.data).map(([id, nome]) => ({
             id,
@@ -132,15 +132,15 @@ export default function CadastroForm() {
           }
         } catch (parseError) {
           console.error('Erro ao processar objeto de empregadores:', parseError);
-          toast.error('Formato de dados inválido');
+          toast.error(translations.invalid_data_format || 'Formato de dados inválido');
         }
       } else {
         console.error('Formato de resposta inválido:', response.data);
-        toast.error('Erro ao carregar a lista de empregadores');
+        toast.error(translations.error_loading_employers || 'Erro ao carregar a lista de empregadores');
       }
     } catch (error) {
       console.error('Erro ao buscar empregadores:', error);
-      toast.error('Não foi possível carregar a lista de empregadores');
+      toast.error(translations.error_loading_employers || 'Não foi possível carregar a lista de empregadores');
     } finally {
       setCarregandoEmpregadores(false);
     }
@@ -469,7 +469,7 @@ export default function CadastroForm() {
           <Link href="/" className="text-blue-600 hover:text-blue-800 mr-3">
             <FaArrowLeft />
           </Link>
-          <h1 className="text-2xl font-bold text-center text-gray-800">Cadastro de Associado</h1>
+          <h1 className="text-2xl font-bold text-center text-gray-800">{translations.page_title || 'Cadastro de Associado'}</h1>
         </div>
 
         {statusMessage && statusType === 'error' && (
@@ -484,7 +484,7 @@ export default function CadastroForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Dados pessoais */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Dados Pessoais</h2>
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">{translations.name_label || 'Dados Pessoais'}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 
@@ -492,7 +492,7 @@ export default function CadastroForm() {
                     htmlFor="C_codigo_assoc"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Código ou matricula do funcionário
+                    {translations.employer_code_label || 'Código ou matricula do funcionário'}
                   </label>
                   <input
                     type="text"
@@ -501,14 +501,14 @@ export default function CadastroForm() {
                     value={formData.C_codigo_assoc}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                    placeholder="Digite o código"
+                    placeholder={translations.employer_code_placeholder || 'Digite o código'}
                   />
               
               </div>
               
               <div>
                 <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-1">
-                  Nome Completo *
+                  {translations.name_label || 'Nome Completo'} *
                 </label>
                 <input
                   type="text"
@@ -517,7 +517,7 @@ export default function CadastroForm() {
                   value={formData.nome}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Seu nome completo"
+                  placeholder={translations.name_placeholder || 'Seu nome completo'}
                   disabled={loading}
                   required
                 />
@@ -525,7 +525,7 @@ export default function CadastroForm() {
 
               <div>
                 <label htmlFor="cpf" className="block text-sm font-medium text-gray-700 mb-1">
-                  CPF *
+                  {translations.cpf_label || 'CPF'} *
                 </label>
                 <input
                   type="text"
@@ -534,7 +534,7 @@ export default function CadastroForm() {
                   value={formData.cpf}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Apenas números"
+                  placeholder={translations.cpf_placeholder || 'Apenas números'}
                   disabled={loading}
                   required
                 />
@@ -547,7 +547,7 @@ export default function CadastroForm() {
               
               <div>
                 <label htmlFor="C_empregador_assoc" className="block text-sm font-medium text-gray-700 mb-1">
-                  Empregador
+                  {translations.employer_label || 'Empregador'}
                 </label>
                 <select
                   id="C_empregador_assoc"
@@ -557,7 +557,7 @@ export default function CadastroForm() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   disabled={loading || carregandoEmpregadores}
                 >
-                  <option value="">Selecione um empregador</option>
+                  <option value="">{translations.employer_placeholder || 'Selecione um empregador'}</option>
                   {empregadores.map((empregador) => (
                     <option key={empregador.id} value={empregador.id}>
                       {empregador.nome}
@@ -567,14 +567,14 @@ export default function CadastroForm() {
                 {carregandoEmpregadores && (
                   <p className="text-xs text-blue-600 mt-1 flex items-center">
                     <FaSpinner className="animate-spin mr-1" /> 
-                    Carregando empregadores...
+                    {translations.loading_button || 'Carregando'}...
                   </p>
                 )}
               </div>
 
               <div>
                 <label htmlFor="rg" className="block text-sm font-medium text-gray-700 mb-1">
-                  RG
+                  {translations.rg_label || 'RG'}
                 </label>
                 <input
                   type="text"
@@ -583,14 +583,14 @@ export default function CadastroForm() {
                   value={formData.rg}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Número do RG"
+                  placeholder={translations.rg_placeholder || 'Número do RG'}
                   disabled={loading}
                 />
               </div>
 
               <div>
                 <label htmlFor="dataNascimento" className="block text-sm font-medium text-gray-700 mb-1">
-                  Data de Nascimento
+                  {translations.birthdate_label || 'Data de Nascimento'}
                 </label>
                 <input
                   type="date"
@@ -607,11 +607,11 @@ export default function CadastroForm() {
 
           {/* Contato */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Informações de Contato</h2>
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">{translations.email_label || 'Informações de Contato'}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  E-mail *
+                  {translations.email_label || 'E-mail'} *
                 </label>
                 <input
                   type="email"
@@ -620,7 +620,7 @@ export default function CadastroForm() {
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="seu@email.com"
+                  placeholder={translations.email_placeholder || 'seu@email.com'}
                   disabled={loading}
                   required
                 />
@@ -628,7 +628,7 @@ export default function CadastroForm() {
 
               <div>
                 <label htmlFor="celular" className="block text-sm font-medium text-gray-700 mb-1">
-                  Celular *
+                  {translations.cellphone_label || 'Celular'} *
                 </label>
                 <input
                   type="text"
@@ -637,7 +637,7 @@ export default function CadastroForm() {
                   value={formData.celular}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="DDD + número"
+                  placeholder={translations.cellphone_placeholder || 'DDD + número'}
                   disabled={loading}
                   required
                 />
@@ -650,7 +650,7 @@ export default function CadastroForm() {
 
               <div>
                 <label htmlFor="telefoneResidencial" className="block text-sm font-medium text-gray-700 mb-1">
-                  Telefone Residencial
+                  {translations.phone_label || 'Telefone Residencial'}
                 </label>
                 <input
                   type="text"
@@ -659,7 +659,7 @@ export default function CadastroForm() {
                   value={formData.telefoneResidencial}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="DDD + número"
+                  placeholder={translations.phone_placeholder || 'DDD + número'}
                   disabled={loading}
                 />
                 {formData.telefoneResidencial && (
@@ -673,11 +673,11 @@ export default function CadastroForm() {
 
           {/* Endereço */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Endereço</h2>
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">{translations.address_label || 'Endereço'}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label htmlFor="cep" className="block text-sm font-medium text-gray-700 mb-1">
-                  CEP
+                  {translations.zipcode_label || 'CEP'}
                 </label>
                 <input
                   type="text"
@@ -686,15 +686,15 @@ export default function CadastroForm() {
                   value={formData.cep}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Apenas números"
+                  placeholder={translations.zipcode_placeholder || 'Apenas números'}
                   disabled={loading}
                 />
-                {cepLoading && <p className="text-xs text-blue-600 mt-1 flex items-center"><FaSpinner className="animate-spin mr-1" /> Buscando CEP...</p>}
+                {cepLoading && <p className="text-xs text-blue-600 mt-1 flex items-center"><FaSpinner className="animate-spin mr-1" /> {translations.search_cep_button || 'Buscando CEP...'}</p>}
               </div>
 
               <div className="md:col-span-2">
                 <label htmlFor="endereco" className="block text-sm font-medium text-gray-700 mb-1">
-                  Endereço
+                  {translations.address_label || 'Endereço'}
                 </label>
                 <input
                   type="text"
@@ -703,14 +703,14 @@ export default function CadastroForm() {
                   value={formData.endereco}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Rua, Avenida, etc."
+                  placeholder={translations.address_placeholder || 'Rua, Avenida, etc.'}
                   disabled={loading}
                 />
               </div>
 
               <div>
                 <label htmlFor="numero" className="block text-sm font-medium text-gray-700 mb-1">
-                  Número
+                  {translations.number_label || 'Número'}
                 </label>
                 <input
                   type="text"
@@ -719,14 +719,14 @@ export default function CadastroForm() {
                   value={formData.numero}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Número"
+                  placeholder={translations.number_placeholder || 'Número'}
                   disabled={loading}
                 />
               </div>
 
               <div>
                 <label htmlFor="complemento" className="block text-sm font-medium text-gray-700 mb-1">
-                  Complemento
+                  {translations.complement_label || 'Complemento'}
                 </label>
                 <input
                   type="text"
@@ -735,14 +735,14 @@ export default function CadastroForm() {
                   value={formData.complemento}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Apto, Bloco, etc."
+                  placeholder={translations.complement_placeholder || 'Apto, Bloco, etc.'}
                   disabled={loading}
                 />
               </div>
 
               <div>
                 <label htmlFor="bairro" className="block text-sm font-medium text-gray-700 mb-1">
-                  Bairro
+                  {translations.neighborhood_label || 'Bairro'}
                 </label>
                 <input
                   type="text"
@@ -751,7 +751,7 @@ export default function CadastroForm() {
                   value={formData.bairro}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Bairro"
+                  placeholder={translations.neighborhood_placeholder || 'Bairro'}
                   disabled={loading}
                 />
               </div>
@@ -760,7 +760,7 @@ export default function CadastroForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
                 <label htmlFor="uf" className="block text-sm font-medium text-gray-700 mb-1">
-                  Estado
+                  {translations.state_label || 'Estado'}
                 </label>
                 <select
                   id="uf"
@@ -770,7 +770,7 @@ export default function CadastroForm() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   disabled={loading}
                 >
-                  <option value="">Selecione um estado</option>
+                  <option value="">{translations.state_placeholder || 'Selecione um estado'}</option>
                   {estados.map((estado) => (
                     <option key={estado.sigla} value={estado.sigla}>
                       {estado.nome}
@@ -781,7 +781,7 @@ export default function CadastroForm() {
 
               <div>
                 <label htmlFor="cidade" className="block text-sm font-medium text-gray-700 mb-1">
-                  Cidade
+                  {translations.city_label || 'Cidade'}
                 </label>
                 <select
                   id="cidade"
@@ -791,7 +791,7 @@ export default function CadastroForm() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   disabled={loading || !formData.uf}
                 >
-                  <option value="">Selecione uma cidade</option>
+                  <option value="">{translations.city_placeholder || 'Selecione uma cidade'}</option>
                   {cidades && cidades.length > 0 ? (
                     cidades.map((cidade) => (
                       <option key={cidade.id} value={cidade.nome}>
@@ -799,13 +799,13 @@ export default function CadastroForm() {
                       </option>
                     ))
                   ) : formData.uf ? (
-                    <option value="">Carregando cidades...</option>
+                    <option value="">{translations.loading_button || 'Carregando'}...</option>
                   ) : null}
                 </select>
                 {formData.uf && cidades.length === 0 && (
                   <p className="text-xs text-blue-600 mt-1 flex items-center">
                     <FaSpinner className="animate-spin mr-1" /> 
-                    Carregando cidades... {/* Este elemento será mostrado enquanto carregamos as cidades */}
+                    {translations.loading_button || 'Carregando'}...
                   </p>
                 )}
               </div>
@@ -818,7 +818,7 @@ export default function CadastroForm() {
               href="/"
               className="w-full sm:w-auto px-6 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-center"
             >
-              Voltar para Login
+              {translations.back_button || 'Voltar para Login'}
             </Link>
             <button
               type="submit"
@@ -828,10 +828,10 @@ export default function CadastroForm() {
               {loading ? (
                 <span className="flex items-center justify-center">
                   <FaSpinner className="animate-spin mr-2" />
-                  Processando...
+                  {translations.loading_button || 'Processando...'}
                 </span>
               ) : (
-                'Cadastrar'
+                translations.submit_button || 'Cadastrar'
               )}
             </button>
           </div>
@@ -843,7 +843,7 @@ export default function CadastroForm() {
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-green-600">Cadastro Realizado</h3>
+              <h3 className="text-xl font-bold text-green-600">{translations.success_modal_title || 'Cadastro Realizado'}</h3>
               <button 
                 onClick={() => setShowSuccessModal(false)}
                 className="text-gray-500 hover:text-gray-700"
@@ -855,10 +855,10 @@ export default function CadastroForm() {
             <div className="mb-6 flex flex-col items-center text-center">
               <FaCheckCircle className="text-green-500 text-5xl mb-4" />
               <p className="text-gray-800 text-lg">
-                Cadastro realizado com sucesso!
+                {translations.success_modal_title || 'Cadastro realizado com sucesso!'}
               </p>
               <p className="text-gray-600 mt-2">
-                Você será redirecionado para confirmar a assinatura digital para desbloqueio do cartão convênio.
+                {translations.success_modal_message || 'Você será redirecionado para confirmar a assinatura digital para desbloqueio do cartão convênio.'}
               </p>
               <div className="mt-4 text-sm text-gray-500">
                 Redirecionando em 5 segundos...
@@ -872,7 +872,7 @@ export default function CadastroForm() {
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline"
               >
-                Ir para assinatura digital
+                {translations.success_modal_button || 'Ir para assinatura digital'}
               </button>
             </div>
           </div>

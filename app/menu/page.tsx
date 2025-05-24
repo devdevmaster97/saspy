@@ -6,6 +6,7 @@ import { FaUser, FaStore, FaPowerOff } from 'react-icons/fa';
 import MenuCard from '../components/MenuCard';
 import Logo from '../components/Logo';
 import UpdateChecker from '../components/UpdateChecker';
+import { useLanguage, useTranslations } from '../contexts/LanguageContext';
 
 // Interfaces para tipos de Window em ambientes específicos
 interface ReactNativeWindow extends Window {
@@ -34,6 +35,8 @@ export default function MenuPage() {
   const router = useRouter();
   const [appVersion, setAppVersion] = useState('');
   const [isMounted, setIsMounted] = useState(false);
+  const { locale, setLocale } = useLanguage();
+  const translations = useTranslations('Menu');
 
   useEffect(() => {
     setIsMounted(true);
@@ -121,27 +124,49 @@ export default function MenuPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-lg mx-auto">
           <MenuCard 
             icon={<FaUser />} 
-            title="Área do Associado" 
+            title={translations.associate_area}
             onClick={handleUserCardClick} 
           />
           <MenuCard 
             icon={<FaStore />} 
-            title="Área do Convênio" 
+            title={translations.partner_area}
             onClick={handleConvenioCardClick} 
           />
         </div>
         
+        {/* Seletor de idioma - sempre visível abaixo dos botões de menu */}
+        <div className="flex justify-center gap-4 mt-6">
+          <button
+            className={`flex items-center gap-2 px-3 py-1 rounded border border-gray-200 bg-white shadow hover:bg-gray-50 focus:outline-none ${locale === 'pt-BR' ? 'ring-2 ring-blue-500' : ''}`}
+            onClick={() => setLocale('pt-BR')}
+          >
+            <span className="w-5 h-5 inline-block">
+              <img src="/flags/br.svg" alt="Português (Brasil)" className="w-5 h-5 rounded-full border border-gray-200" />
+            </span>
+            <span className="text-sm font-medium text-gray-700">PT-BR</span>
+          </button>
+          <button
+            className={`flex items-center gap-2 px-3 py-1 rounded border border-gray-200 bg-white shadow hover:bg-gray-50 focus:outline-none ${locale === 'es' ? 'ring-2 ring-blue-500' : ''}`}
+            onClick={() => setLocale('es')}
+          >
+            <span className="w-5 h-5 inline-block">
+              <img src="/flags/es.svg" alt="Español" className="w-5 h-5 rounded-full border border-gray-200" />
+            </span>
+            <span className="text-sm font-medium text-gray-700">ES</span>
+          </button>
+        </div>
+
         <div className="mt-12 text-center">
           <div className="flex flex-wrap justify-center gap-4 mb-3">
             <button 
               onClick={handlePoliticaPrivacidadeClick}
               className="text-blue-600 hover:underline text-sm"
             >
-              Política de Privacidade
+              {translations.privacy_policy}
             </button>
           </div>
           <p className="text-gray-500 text-xs mt-2">
-            Versão: {appVersion}
+            {translations.version}: {appVersion}
           </p>
         </div>
       </main>

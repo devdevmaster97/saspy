@@ -3,9 +3,11 @@
 import QrCodeContent from '@/app/components/dashboard/QrCodeContent';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from '@/app/contexts/LanguageContext';
 
 export default function QrCodePage() {
   const router = useRouter();
+  const translations = useTranslations('QrCodePage');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -13,7 +15,7 @@ export default function QrCodePage() {
     // Verificar autenticação apenas com localStorage
     const checkAuthWithLocalStorage = () => {
       try {
-        const storedUser = localStorage.getItem('qrcred_user');
+        const storedUser = localStorage.getItem('saspy_user');
         if (storedUser) {
           setIsAuthenticated(true);
         } else {
@@ -46,7 +48,9 @@ export default function QrCodePage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">QR Code do Cartão</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {translations.page_title || 'QR Code do Cartão'}
+        </h1>
       </div>
       <div className="bg-white rounded-lg shadow">
         <QrCodeContent />

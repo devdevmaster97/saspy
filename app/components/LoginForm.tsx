@@ -11,6 +11,7 @@ import { FaSpinner as FaSpinner6 } from 'react-icons/fa6';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from '@/app/contexts/LanguageContext';
 
 // Esquema de validação para o formulário de login
 const loginSchema = z.object({
@@ -58,12 +59,13 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [readOnly, setReadOnly] = useState(false);
-  const [associadoNome, setAssociadoNome] = useState('Login do Associado');
+  const [associadoNome, setAssociadoNome] = useState('');
   const [debugInfo, setDebugInfo] = useState<string>('');
   const [showSavedCards, setShowSavedCards] = useState(false);
   const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
+  const translations = useTranslations('LoginForm');
   
-  // Estados para recuperação de senha
+  // Estados para recuperação de senha (RESTAURADOS)
   const [mostrarRecuperacao, setMostrarRecuperacao] = useState(false);
   const [metodoRecuperacao, setMetodoRecuperacao] = useState('');
   const [cartaoRecuperacao, setCartaoRecuperacao] = useState('');
@@ -80,7 +82,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
   const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
   const [mostrarConfirmacaoSenha, setMostrarConfirmacaoSenha] = useState(false);
   
-  // Estado para armazenar informações do usuário para recuperação
+  // Estado para armazenar informações do usuário para recuperação (RESTAURADO)
   const [dadosUsuarioRecuperacao, setDadosUsuarioRecuperacao] = useState<{
     email?: string;
     celular?: string;
@@ -93,14 +95,20 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
     temWhatsapp: false
   });
 
+  // Esquema de validação dinâmico com traduções
+  const dynamicLoginSchema = z.object({
+    cartao: z.string().min(1, translations.card_required_error || 'Cartão é obrigatório'),
+    senha: z.string().min(1, translations.password_required_error || 'Senha é obrigatória'),
+  });
+
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(dynamicLoginSchema),
   });
 
   // Carregar cartões salvos no carregamento do componente
   useEffect(() => {
     const loadSavedCards = () => {
-      const storedCards = localStorage.getItem('qrcred_saved_cards');
+      const storedCards = localStorage.getItem('saspy_saved_cards');
       if (storedCards) {
         try {
           const parsedCards = JSON.parse(storedCards) as SavedCard[];
@@ -115,20 +123,25 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
     };
 
     loadSavedCards();
-  }, []);
+
+    // Definir nome do associado com base na tradução, se nenhum cartão selecionado
+    if (!associadoNome) {
+      setAssociadoNome(translations.card_label || 'Cartão');
+    }
+  }, [translations]);
 
   // Função para selecionar um cartão salvo
   const handleSelectCard = (card: SavedCard) => {
     setValue('cartao', card.numero);
     setShowSavedCards(false);
-    setAssociadoNome(card.nome ? `Olá, ${card.nome}` : 'Login do Associado');
+    setAssociadoNome(card.nome ? `${translations.hello_user || 'Olá'}, ${card.nome}` : (translations.card_label || 'Cartão'));
   };
 
   // Função para lidar com a troca de cartão
   const handleTrocarCartao = () => {
     setReadOnly(false);
     setShowSavedCards(true);
-    setAssociadoNome('Login do Associado');
+    setAssociadoNome(translations.card_label || 'Cartão');
   };
 
   // Função para processar o login
@@ -200,7 +213,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
   const saveCardToLocalStorage = (card: string, nome?: string) => {
     try {
       // Obter cartões salvos
-      const storedCards = localStorage.getItem('qrcred_saved_cards');
+      const storedCards = localStorage.getItem('saspy_saved_cards');
       let cards: SavedCard[] = [];
       
       if (storedCards) {
@@ -219,13 +232,13 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
           cards.shift();
         }
         
-        localStorage.setItem('qrcred_saved_cards', JSON.stringify(cards));
+        localStorage.setItem('saspy_saved_cards', JSON.stringify(cards));
       } else if (nome) {
         // Atualizar nome se necessário
         const updatedCards = cards.map(c => 
           c.numero === card ? { ...c, nome } : c
         );
-        localStorage.setItem('qrcred_saved_cards', JSON.stringify(updatedCards));
+        localStorage.setItem('saspy_saved_cards', JSON.stringify(updatedCards));
       }
     } catch (error) {
       console.error('Erro ao salvar cartão:', error);
@@ -249,7 +262,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
       saveCardToLocalStorage(cartaoOriginal, data.nome);
       
       // Armazenar dados do usuário 
-      localStorage.setItem('qrcred_user', JSON.stringify({
+      localStorage.setItem('saspy_user', JSON.stringify({
         matricula: data.matricula || '',
         nome: data.nome || '',
         empregador: data.empregador || '',
@@ -680,9 +693,9 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-blue-600">
-                {etapaRecuperacao === 'cartao' && 'Recuperação de Senha'}
-                {etapaRecuperacao === 'codigo' && 'Verificação de Código'}
-                {etapaRecuperacao === 'nova_senha' && 'Definir Nova Senha'}
+                {etapaRecuperacao === 'cartao' && (translations.recover_password_title || 'Recuperação de Senha')}
+                {etapaRecuperacao === 'codigo' && (translations.verification_code_label || 'Verificação de Código')}
+                {etapaRecuperacao === 'nova_senha' && (translations.redefine_password_button || 'Definir Nova Senha')}
               </h3>
               <button 
                 onClick={() => setMostrarRecuperacao(false)}
@@ -711,7 +724,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
               <div>
                 <div className="mb-4">
                   <label htmlFor="cartaoRecuperacao" className="block text-sm font-medium text-gray-700 mb-1">
-                    Número do Cartão
+                    {translations.card_number_label || 'Número do Cartão'}
                   </label>
                   <input
                     type="text"
@@ -720,11 +733,9 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
                       setCartaoRecuperacao(value);
-                      // Se tiver 6 dígitos ou mais, verifica os métodos disponíveis
                       if (value.length >= 6) {
                         verificarMetodosRecuperacao(value);
                       } else {
-                        // Resetar dados de métodos disponíveis
                         setDadosUsuarioRecuperacao({
                           temEmail: false,
                           temCelular: false,
@@ -733,7 +744,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                         setMetodoRecuperacao('');
                       }
                     }}
-                    placeholder="Digite o número do seu cartão"
+                    placeholder={translations.card_number_label || 'Digite o número do seu cartão'}
                     maxLength={16}
                     className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -742,7 +753,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                 {(dadosUsuarioRecuperacao.temEmail || dadosUsuarioRecuperacao.temCelular || dadosUsuarioRecuperacao.temWhatsapp) && (
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Método de Recuperação
+                      {translations.select_method_title || 'Método de Recuperação'}
                     </label>
                     
                     <div className="space-y-2">
@@ -761,7 +772,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                           <label htmlFor="metodoEmail" className="ml-2 flex items-center w-full cursor-pointer">
                             <FaEnvelope className="text-blue-500 mr-2" />
                             <div>
-                              <p className="text-sm font-medium">E-mail</p>
+                              <p className="text-sm font-medium">{translations.email_option || 'E-mail'}</p>
                               <p className="text-xs text-gray-500">{dadosUsuarioRecuperacao.email || 'E-mail cadastrado'}</p>
                             </div>
                           </label>
@@ -783,7 +794,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                           <label htmlFor="metodoSMS" className="ml-2 flex items-center w-full cursor-pointer">
                             <FaPhone className="text-green-500 mr-2" />
                             <div>
-                              <p className="text-sm font-medium">SMS</p>
+                              <p className="text-sm font-medium">{translations.sms_option || 'SMS'}</p>
                               <p className="text-xs text-gray-500">{dadosUsuarioRecuperacao.celular || 'Celular cadastrado'}</p>
                             </div>
                           </label>
@@ -805,7 +816,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                           <label htmlFor="metodoWhatsapp" className="ml-2 flex items-center w-full cursor-pointer">
                             <FaWhatsapp className="text-green-600 mr-2" />
                             <div>
-                              <p className="text-sm font-medium">WhatsApp</p>
+                              <p className="text-sm font-medium">{translations.whatsapp_option || 'WhatsApp'}</p>
                               <p className="text-xs text-gray-500">{dadosUsuarioRecuperacao.celular || 'Celular cadastrado'}</p>
                             </div>
                           </label>
@@ -828,10 +839,10 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                     {enviandoRecuperacao ? (
                       <span className="flex items-center">
                         <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                        Enviando...
+                        {translations.loading_text || 'Enviando...'}
                       </span>
                     ) : (
-                      'Enviar Código'
+                      translations.send_code_button || 'Enviar Código'
                     )}
                   </button>
                 </div>
@@ -842,19 +853,19 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
               <div>
                 <div className="mb-4">
                   <label htmlFor="codigoRecuperacao" className="block text-sm font-medium text-gray-700 mb-1">
-                    Código de Verificação
+                    {translations.verification_code_label || 'Código de Verificação'}
                   </label>
                   <input
                     type="text"
                     id="codigoRecuperacao"
                     value={codigoRecuperacao}
                     onChange={(e) => setCodigoRecuperacao(e.target.value.replace(/\D/g, ''))}
-                    placeholder="Digite o código de 6 dígitos"
+                    placeholder={translations.verification_code_label ? `${translations.verification_code_label}...` : 'Digite o código de 6 dígitos'}
                     maxLength={6}
                     className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500 text-center text-lg tracking-widest"
                   />
                   <p className="text-sm text-gray-500 mt-1">
-                    Digite o código de 6 dígitos enviado para {destinoMascarado || 'seu contato cadastrado'}.
+                    {`${translations.code_sent_message || 'Digite o código de 6 dígitos enviado para'} ${destinoMascarado || 'seu contato cadastrado'}.`}
                   </p>
                 </div>
 
@@ -864,7 +875,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                     onClick={voltarEtapaRecuperacao}
                     className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
                   >
-                    Voltar
+                    {translations.back_button || 'Voltar'}
                   </button>
                   <button
                     type="button"
@@ -877,10 +888,10 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                     {enviandoCodigo ? (
                       <span className="flex items-center">
                         <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                        Verificando...
+                        {translations.loading_text || 'Verificando...'}
                       </span>
                     ) : (
-                      'Verificar Código'
+                      translations.verify_code_button || 'Verificar Código'
                     )}
                   </button>
                 </div>
@@ -891,7 +902,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
               <div>
                 <div className="mb-4">
                   <label htmlFor="novaSenha" className="block text-sm font-medium text-gray-700 mb-1">
-                    Nova senha (6 dígitos numéricos)
+                    {translations.new_password_label || 'Nova senha (6 dígitos numéricos)'}
                   </label>
                   <div className="relative">
                     <input
@@ -919,7 +930,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
 
                 <div className="mb-4">
                   <label htmlFor="confirmacaoSenha" className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirmar senha
+                    {translations.confirm_password_label || 'Confirmar senha'}
                   </label>
                   <div className="relative">
                     <input
@@ -951,7 +962,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                     onClick={voltarEtapaRecuperacao}
                     className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
                   >
-                    Voltar
+                    {translations.back_button || 'Voltar'}
                   </button>
                   <button
                     type="button"
@@ -964,10 +975,10 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                     {enviandoNovaSenha ? (
                       <span className="flex items-center">
                         <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                        Salvando...
+                        {translations.loading_text || 'Salvando...'}
                       </span>
                     ) : (
-                      'Salvar Nova Senha'
+                      translations.redefine_password_button || 'Salvar Nova Senha'
                     )}
                   </button>
                 </div>
@@ -1026,7 +1037,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                 </div>
                 <input
                   type="text"
-                  placeholder="Número do Cartão"
+                  placeholder={translations.card_label || 'Cartão'}
                   className="block w-full pl-10 py-2 sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   readOnly={readOnly}
                   maxLength={10}
@@ -1045,7 +1056,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                 </div>
                 <input
                   type="password"
-                  placeholder="Senha"
+                  placeholder={translations.password_label || 'Senha'}
                   className="block w-full pl-10 py-2 sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   maxLength={20}
                   {...register('senha')}
@@ -1077,7 +1088,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                 {isLoading ? (
                   <Loader2 className="animate-spin h-5 w-5" />
                 ) : (
-                  'Entrar'
+                  translations.submit_button || 'Entrar'
                 )}
               </button>
             </div>
@@ -1108,7 +1119,7 @@ export default function LoginForm({ onSubmit, loading }: LoginFormProps) {
                 className="text-sm text-blue-600 hover:text-blue-800"
                 onClick={abrirModalRecuperacao}
               >
-                Esqueci minha senha
+                {translations.forgot_password_link || 'Esqueceu sua senha'}
               </a>
             </div>
 

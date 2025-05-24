@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaSpinner, FaQrcode, FaArrowLeft, FaCreditCard, FaCalendarAlt, FaCheckCircle } from 'react-icons/fa';
+import { FaSpinner, FaQrcode, FaArrowLeft, FaCreditCard, FaCalendarAlt, FaCheckCircle, FaLock } from 'react-icons/fa';
 import Header from '@/app/components/Header';
 import toast from 'react-hot-toast';
 import { Html5Qrcode } from 'html5-qrcode';
@@ -1243,24 +1243,13 @@ export default function NovoLancamentoPage() {
               
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div className="flex-grow">
-                  <label htmlFor="cartao" className="block text-sm font-medium text-gray-700 mb-1">
-                    Número do Cartão
-                  </label>
+                                    <label htmlFor="cartao" className="block text-sm font-bold text-blue-700 mb-2 flex items-center">                    <FaCreditCard className="mr-2" />                    Número do Cartão                  </label>
                   <div className="mt-1 flex rounded-md shadow-sm">
                     <div className="relative flex items-stretch flex-grow">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <FaCreditCard className="text-gray-400" />
                       </div>
-                      <input
-                        type="text"
-                        id="cartao"
-                        name="cartao"
-                        className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                        placeholder="Digite o número do cartão"
-                        value={cartao}
-                        onChange={(e) => setCartao(e.target.value)}
-                        maxLength={10}
-                      />
+                                            <input                        type="text"                        id="cartao"                        name="cartao"                        className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-4 py-3 text-lg font-medium border-2 border-gray-300 rounded-lg bg-white shadow-sm placeholder-gray-400 hover:border-blue-400 transition-colors"                        placeholder="Digite o número do cartão"                        value={cartao}                        onChange={(e) => setCartao(e.target.value)}                        maxLength={10}                      />
                     </div>
                   </div>
                 </div>
@@ -1313,20 +1302,9 @@ export default function NovoLancamentoPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="valor" className="block text-sm font-medium text-gray-700 mb-1">
-                    Valor Total da Compra
-                  </label>
+                                    <label htmlFor="valor" className="block text-sm font-bold text-green-700 mb-2 flex items-center">                    <span className="text-green-600 mr-2">💰</span>                    Valor Total da Compra                  </label>
                   <div className="mt-1">
-                    <input
-                      type="text"
-                      id="valor"
-                      name="valor"
-                      className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                      placeholder="R$ 0,00"
-                      value={valor}
-                      onChange={handleValorChange}
-                      disabled={!associado}
-                    />
+                                        <div className="relative">                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">                        <span className="text-gray-500 font-medium">R$</span>                      </div>                      <input                        type="text"                        id="valor"                        name="valor"                        className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 pr-4 py-3 text-lg font-bold border-2 border-gray-300 rounded-lg bg-white shadow-sm placeholder-gray-400 hover:border-green-400 transition-colors disabled:bg-gray-100 disabled:text-gray-500"                        placeholder="0,00"                        value={valor}                        onChange={handleValorChange}                        disabled={!associado}                      />                    </div>
                   </div>
                 </div>
                 
@@ -1405,21 +1383,9 @@ export default function NovoLancamentoPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-1">
-                    Senha do Cartão
-                  </label>
+                                    <label htmlFor="senha" className="block text-sm font-bold text-orange-700 mb-2 flex items-center">                    <FaLock className="mr-2" />                    Senha do Cartão                  </label>
                   <div className="mt-1">
-                    <input
-                      type="password"
-                      id="senha"
-                      name="senha"
-                      className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                      placeholder="Digite a senha de 6 dígitos"
-                      value={senha}
-                      onChange={(e) => setSenha(e.target.value)}
-                      maxLength={6}
-                      disabled={!associado}
-                    />
+                                        <div className="relative">                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">                        <FaLock className="text-orange-500" />                      </div>                      <input                        type="password"                        id="senha"                        name="senha"                        className="focus:ring-orange-500 focus:border-orange-500 block w-full pl-10 pr-4 py-3 text-lg font-medium border-2 border-gray-300 rounded-lg bg-white shadow-sm placeholder-gray-400 hover:border-orange-400 transition-colors disabled:bg-gray-100 disabled:text-gray-500"                        placeholder="Digite a senha de 6 dígitos"                        value={senha}                        onChange={(e) => setSenha(e.target.value)}                        maxLength={6}                        disabled={!associado}                      />                    </div>
                   </div>
                 </div>
               </div>

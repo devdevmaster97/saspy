@@ -8,10 +8,12 @@ import toast from 'react-hot-toast';
 import LoginForm from '@/app/components/LoginForm';
 import Logo from '@/app/components/Logo';
 import Header from '@/app/components/Header';
+import { useTranslations } from '@/app/contexts/LanguageContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const translations = useTranslations('Login');
 
   const handleVoltar = () => {
     router.push('/');
@@ -39,7 +41,7 @@ export default function LoginPage() {
 
       router.push('/dashboard');
     } catch (error) {
-      toast.error('Erro ao realizar login');
+      toast.error(translations.toast_error || 'Erro ao realizar login');
     } finally {
       setLoading(false);
     }
@@ -47,7 +49,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header title="Login do Associado" showBackButton onBackClick={handleVoltar} />
+      <Header title={translations.page_title || 'Login do Associado'} showBackButton onBackClick={handleVoltar} />
       
       <main className="flex-1 flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
@@ -56,7 +58,7 @@ export default function LoginPage() {
           <LoginForm onSubmit={handleSubmit} loading={loading} />
           
           <div className="text-center text-sm text-gray-500">
-            <p>© {new Date().getFullYear()} QRCred. Todos os direitos reservados.</p>
+            <p>{translations.footer_text || `© ${new Date().getFullYear()} SASPY. Todos os direitos reservados.`}</p>
           </div>
         </div>
       </main>
