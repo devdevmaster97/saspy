@@ -28,125 +28,174 @@ export default function SaldoCard() {
   const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [cartao, setCartao] = useState('');
+  const [retryAttempts, setRetryAttempts] = useState(0);
   const translations = useTranslations('SaldoCard');
 
-  // Função para buscar o mês corrente
+  // Detectar se é dispositivo móvel
+  const isMobile = typeof window !== 'undefined' && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  // Função para buscar o mês corrente com timeout ajustado para mobile
   const fetchMesCorrente = useCallback(async () => {
     try {
       if (!cartao) {
-        console.error(translations.console_error_card_not_provided || 'Cartão não fornecido para buscar mês corrente');
+        console.error('[SaldoCard] Cartão não fornecido para buscar mês corrente');
         return null;
       }
 
+      console.log('[SaldoCard] Buscando mês corrente para cartão:', cartao);
+      
+      // Timeout maior para dispositivos móveis
+      const timeout = isMobile ? 15000 : 10000;
+      
       const formData = new FormData();
       formData.append('cartao', cartao.trim());
-      
-      console.log('Buscando mês corrente para cartão:', cartao);
       
       const response = await axios.post('/api/mes-corrente', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
-        }
+        },
+        timeout
       });
-      console.log('Resposta da API de mês corrente:', response.data);
+      
+      console.log('[SaldoCard] Resposta da API de mês corrente:', response.data);
       
       // A API agora sempre retorna um array com pelo menos um item
       if (Array.isArray(response.data) && response.data.length > 0 && response.data[0].abreviacao) {
         const mesAtual = response.data[0].abreviacao;
-        console.log('Mês corrente obtido:', mesAtual);
+        console.log('[SaldoCard] Mês corrente obtido:', mesAtual);
         return mesAtual;
       } else {
-        // Em caso de problemas, usamos o mês atual
-        const dataAtual = new Date();
-        const mes = dataAtual.getMonth();
-        const ano = dataAtual.getFullYear();
-        const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-        const mesAtual = `${meses[mes]}/${ano}`;
-        console.log('Usando mês atual como fallback:', mesAtual);
-        return mesAtual;
+        // Fallback local mais robusto
+        return gerarMesCorrenteLocal();
       }
     } catch (err) {
-      console.error('Erro ao buscar mês corrente:', err);
-      // Em caso de erro, retornar o mês atual
-      const dataAtual = new Date();
-      const mes = dataAtual.getMonth();
-      const ano = dataAtual.getFullYear();
-      const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-      const mesAtual = `${meses[mes]}/${ano}`;
-      console.log('Usando mês atual como fallback após erro:', mesAtual);
-      return mesAtual;
+      console.error('[SaldoCard] Erro ao buscar mês corrente:', err);
+      // Sempre retornar fallback local em caso de erro
+      return gerarMesCorrenteLocal();
     }
-  }, [cartao, translations]);
+  }, [cartao, isMobile]);
 
-  // Função para buscar os dados da conta e calcular o saldo
+  // Função para gerar mês corrente local
+  const gerarMesCorrenteLocal = () => {
+    const dataAtual = new Date();
+    const mes = dataAtual.getMonth();
+    const ano = dataAtual.getFullYear();
+    const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    const mesAtual = `${meses[mes]}/${ano}`;
+    console.log('[SaldoCard] Usando mês local:', mesAtual);
+    return mesAtual;
+  };
+
+  // Função para buscar os dados da conta e calcular o saldo com melhor tratamento de erro
   const fetchConta = useCallback(async (matricula: string, empregador: string, mes: string) => {
     try {
-      // Primeiro, buscar dados do associado
-      const formDataAssociado = new FormData();
-      formDataAssociado.append('cartao', cartao.trim());
+      console.log('[SaldoCard] Buscando conta:', { matricula, empregador, mes });
       
-      const associadoResponse = await axios.post('/api/localiza-associado', formDataAssociado, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      // Timeout maior para dispositivos móveis
+      const timeout = isMobile ? 20000 : 15000;
+      
+      // Primeiro, validar se temos dados do associado
+      if (!matricula || !empregador) {
+        console.log('[SaldoCard] Buscando dados do associado primeiro...');
+        
+        const formDataAssociado = new FormData();
+        formDataAssociado.append('cartao', cartao.trim());
+        
+        const associadoResponse = await axios.post('/api/localiza-associado', formDataAssociado, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout
+        });
 
-      if (!associadoResponse.data) {
-        throw new Error(translations.error_associate_data_not_found || 'Dados do associado não encontrados');
+        if (!associadoResponse.data || !associadoResponse.data.matricula) {
+          throw new Error(translations.error_associate_data_not_found || 'Dados do associado não encontrados');
+        }
+
+        matricula = associadoResponse.data.matricula;
+        empregador = associadoResponse.data.empregador;
+        console.log('[SaldoCard] Dados do associado obtidos:', { matricula, empregador });
       }
 
-      const { matricula: matriculaAssociado, empregador: empregadorAssociado } = associadoResponse.data;
-
-      // Agora buscar os dados da conta com os dados do associado
+      // Agora buscar os dados da conta
       const formDataConta = new FormData();
-      formDataConta.append('matricula', matriculaAssociado);
-      formDataConta.append('empregador', empregadorAssociado.toString());
+      formDataConta.append('matricula', matricula);
+      formDataConta.append('empregador', empregador.toString());
       formDataConta.append('mes', mes);
       
       const response = await axios.post('/api/conta', formDataConta, {
         headers: {
           'Content-Type': 'multipart/form-data'
-        }
+        },
+        timeout
       });
+      
+      console.log('[SaldoCard] Resposta da API conta:', response.data);
       
       if (Array.isArray(response.data)) {
         // Calcular o total das contas
         let total = 0;
         for (const item of response.data) {
-          total += parseFloat(item.valor || '0');
+          const valor = parseFloat(item.valor || '0');
+          if (!isNaN(valor)) {
+            total += valor;
+          }
         }
-        
+        console.log('[SaldoCard] Total calculado:', total);
         return total;
       } else {
-        throw new Error(translations.error_invalid_response_format || 'Formato de resposta inválido');
+        console.log('[SaldoCard] Resposta não é array, assumindo total 0');
+        return 0; // Se não é array, assumir que não há gastos
       }
     } catch (error) {
-      console.error('Erro ao buscar dados da conta:', error);
+      console.error('[SaldoCard] Erro ao buscar dados da conta:', error);
+      
+      // Em caso de erro, retornar 0 para não bloquear a exibição do limite
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNABORTED') {
+          console.log('[SaldoCard] Timeout - assumindo total 0');
+          return 0;
+        }
+      }
+      
       throw error;
     }
-  }, [cartao, translations]);
+  }, [cartao, translations, isMobile]);
 
-  // Função principal para carregar todos os dados
-  const loadSaldoData = useCallback(async () => {
-    if (!userData) return;
+  // Função principal para carregar todos os dados com retry automático
+  const loadSaldoData = useCallback(async (isRetry = false) => {
+    if (!userData && !isRetry) {
+      console.log('[SaldoCard] Aguardando dados do usuário...');
+      return;
+    }
     
     try {
       setLoading(true);
       setError(null);
       
-      // 1. Buscar mês corrente
+      console.log('[SaldoCard] Iniciando carregamento de dados de saldo');
+      
+      // 1. Buscar mês corrente (sempre com fallback)
       const mesAtual = await fetchMesCorrente();
       
       if (!mesAtual) {
         throw new Error(translations.error_current_month_not_available || 'Mês corrente não disponível');
       }
       
-      // 2. Buscar dados da conta
-      const total = await fetchConta(userData.matricula, userData.empregador, mesAtual);
+      // 2. Buscar dados da conta (com fallback para 0)
+      let total = 0;
+      try {
+        total = await fetchConta(userData?.matricula || '', userData?.empregador || '', mesAtual);
+      } catch (contaError) {
+        console.warn('[SaldoCard] Erro ao buscar conta, usando total 0:', contaError);
+        total = 0; // Fallback para mostrar pelo menos o limite
+      }
       
       // 3. Calcular saldo
-      const limite = parseFloat(userData.limite || '0');
+      const limite = parseFloat(userData?.limite || '0');
       const saldo = limite - total;
+      
+      console.log('[SaldoCard] Dados finais calculados:', { limite, total, saldo, mesAtual });
       
       // 4. Atualizar o estado
       setSaldoData({
@@ -156,8 +205,24 @@ export default function SaldoCard() {
         mesCorrente: mesAtual
       });
       
+      // Reset retry attempts on success
+      setRetryAttempts(0);
+      
     } catch (error) {
-      console.error('Erro ao carregar dados de saldo:', error);
+      console.error('[SaldoCard] Erro ao carregar dados de saldo:', error);
+      
+      // Implementar retry automático para dispositivos móveis
+      if (isMobile && retryAttempts < 2) {
+        console.log(`[SaldoCard] Tentativa ${retryAttempts + 1}/3 - Tentando novamente em 3 segundos...`);
+        setRetryAttempts(prev => prev + 1);
+        
+        setTimeout(() => {
+          loadSaldoData(true);
+        }, 3000);
+        
+        return;
+      }
+      
       if (error instanceof Error) {
         setError((translations.error_load_balance_with_message || 'Não foi possível carregar o saldo: {message}').replace('{message}', error.message));
       } else {
@@ -166,39 +231,50 @@ export default function SaldoCard() {
     } finally {
       setLoading(false);
     }
-  }, [userData, fetchMesCorrente, fetchConta, translations]);
+  }, [userData, fetchMesCorrente, fetchConta, translations, isMobile, retryAttempts]);
 
-  // Carregar dados do usuário do localStorage
+  // Carregar dados do usuário do localStorage com debugging melhorado
   useEffect(() => {
-    console.log('[SaldoCard] useEffect para carregar usuário INICIOU.');
+    console.log('[SaldoCard] useEffect para carregar usuário INICIOU');
+    console.log('[SaldoCard] Dispositivo móvel detectado:', isMobile);
+    
     if (typeof window !== 'undefined') {
       const storedUser = localStorage.getItem('saspy_user');
-      console.log('[SaldoCard] storedUser do localStorage:', storedUser);
+      console.log('[SaldoCard] Dados do localStorage:', storedUser ? 'Encontrados' : 'Não encontrados');
+      
       if (storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
-          console.log('[SaldoCard] parsedUser:', parsedUser);
+          console.log('[SaldoCard] Usuário parseado com sucesso:', {
+            cartao: parsedUser.cartao ? 'Presente' : 'Ausente',
+            matricula: parsedUser.matricula ? 'Presente' : 'Ausente',
+            nome: parsedUser.nome ? 'Presente' : 'Ausente',
+            limite: parsedUser.limite ? 'Presente' : 'Ausente'
+          });
+          
           setUserData(parsedUser);
           setCartao(parsedUser.cartao);
         } catch (parseError) {
-          console.error('[SaldoCard] Erro ao fazer parse do usuário do localStorage:', parseError);
+          console.error('[SaldoCard] Erro ao fazer parse do usuário:', parseError);
           setError(translations?.error_user_data_corrupted || 'Dados do usuário corrompidos. Faça login novamente.');
           setLoading(false);
         }
       } else {
-        console.warn('[SaldoCard] Usuário NÃO encontrado no localStorage com a chave saspy_user.');
+        console.warn('[SaldoCard] Nenhum usuário encontrado no localStorage');
         setError(translations?.error_user_not_found || 'Usuário não encontrado. Faça login novamente.');
         setLoading(false);
       }
     } else {
-      console.warn('[SaldoCard] window não definido, não é possível acessar localStorage.');
+      console.warn('[SaldoCard] window não definido');
+      setError('Ambiente não suportado');
+      setLoading(false);
     }
-    console.log('[SaldoCard] useEffect para carregar usuário FINALIZOU.');
-  }, []);
+  }, [translations, isMobile]);
 
   // Carregar dados de saldo quando o usuário estiver disponível
   useEffect(() => {
-    if (userData) {
+    if (userData && userData.cartao) {
+      console.log('[SaldoCard] Dados do usuário disponíveis, carregando saldo...');
       loadSaldoData();
     }
   }, [userData, loadSaldoData]);
@@ -213,6 +289,7 @@ export default function SaldoCard() {
 
   // Se as traduções não estiverem prontas, mostrar spinner
   if (!translations) {
+    console.log('[SaldoCard] Aguardando traduções...');
     return <LoadingSpinner />;
   }
 
@@ -221,6 +298,11 @@ export default function SaldoCard() {
       <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-lg h-60">
         <FaSpinner className="animate-spin text-blue-600 text-4xl mb-4" />
         <p className="text-gray-600">{translations.loading_balance || 'Carregando saldo...'}</p>
+        {retryAttempts > 0 && (
+          <p className="text-sm text-amber-600 mt-2">
+            Tentativa {retryAttempts}/3
+          </p>
+        )}
       </div>
     );
   }
@@ -229,9 +311,17 @@ export default function SaldoCard() {
     return (
       <div className="p-8 bg-white rounded-lg shadow-lg">
         <div className="text-red-500 mb-2 font-semibold">{translations.error_title || 'Erro'}</div>
-        <p className="text-gray-700">{error}</p>
+        <p className="text-gray-700 mb-2">{error}</p>
+        {isMobile && (
+          <p className="text-sm text-amber-600 mb-4">
+            Detectado dispositivo móvel. Tentativas de reconexão automática estão ativas.
+          </p>
+        )}
         <button 
-          onClick={loadSaldoData}
+          onClick={() => {
+            setRetryAttempts(0);
+            loadSaldoData();
+          }}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
         >
           {translations.retry_button || 'Tentar novamente'}
@@ -249,7 +339,7 @@ export default function SaldoCard() {
         </div>
         
         <button 
-          onClick={loadSaldoData}
+          onClick={() => loadSaldoData()}
           className="bg-blue-700 hover:bg-blue-800 p-2 rounded text-white transition-colors"
           title={translations.refresh_balance_tooltip || 'Atualizar saldo'}
         >

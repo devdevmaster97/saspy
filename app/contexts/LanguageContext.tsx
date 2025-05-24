@@ -353,6 +353,42 @@ const translations = {
       insufficient_balance_error: 'Saldo insuficiente',
       payment_success: 'Pagamento autorizado com sucesso!',
       payment_error: 'Erro ao processar pagamento'
+    },
+    Dashboard: {
+      page_title: 'Dashboard',
+      last_update: 'Última atualização:',
+      card_balance_title: 'Saldo do Cartão',
+      usage_tips_title: 'Dicas de Uso',
+      tip1_title: 'Controle seus gastos',
+      tip1_description: 'Acompanhe seus gastos regularmente para manter o controle financeiro.',
+      tip2_title: 'Confira novos convênios',
+      tip2_description: 'Novos convênios são adicionados frequentemente. Confira a lista completa.',
+      tip3_title: 'Use o QR Code para pagamentos rápidos',
+      tip3_description: 'Seu QR Code pode ser usado para pagamentos rápidos em estabelecimentos parceiros.'
+    },
+    SaldoCard: {
+      console_error_card_not_provided: 'Cartão não fornecido para buscar mês corrente',
+      error_associate_data_not_found: 'Dados do associado não encontrados',
+      error_invalid_response_format: 'Formato de resposta inválido',
+      error_current_month_not_available: 'Mês corrente não disponível',
+      error_load_balance_with_message: 'Não foi possível carregar o saldo: {message}',
+      error_load_balance_generic: 'Não foi possível carregar o saldo. Tente novamente.',
+      error_user_data_corrupted: 'Dados do usuário corrompidos. Faça login novamente.',
+      error_user_not_found: 'Usuário não encontrado. Faça login novamente.',
+      loading_balance: 'Carregando saldo...',
+      error_title: 'Erro',
+      retry_button: 'Tentar novamente',
+      card_title: 'Seu Saldo',
+      refresh_balance_tooltip: 'Atualizar saldo',
+      available_balance_label: 'Saldo Disponível',
+      month_reference_label: 'Referente ao mês:',
+      total_limit_label: 'Limite Total',
+      total_used_label: 'Total Utilizado',
+      info_title: 'Informações sobre seu saldo',
+      info_description: 'O saldo apresentado é baseado no limite disponível para o mês atual. O cálculo é feito subtraindo os gastos do período do seu limite total.',
+      attention_title: 'Atenção',
+      attention_processing_time: 'Algumas transações podem levar até 24 horas para serem processadas. Para obter informações atualizadas, utilize o botão de atualização.',
+      attention_doubts: 'Se você tiver dúvidas sobre seus gastos, consulte a seção de "Extrato" para ver detalhes de todas as suas transações.'
     }
   },
   'es': {
@@ -696,6 +732,42 @@ const translations = {
       insufficient_balance_error: 'Saldo insuficiente',
       payment_success: '¡Pago autorizado con éxito!',
       payment_error: 'Error al procesar pago'
+    },
+    Dashboard: {
+      page_title: 'Panel de Control',
+      last_update: 'Última actualización:',
+      card_balance_title: 'Saldo de la Tarjeta',
+      usage_tips_title: 'Consejos de Uso',
+      tip1_title: 'Controla tus gastos',
+      tip1_description: 'Monitorea tus gastos regularmente para mantener el control financiero.',
+      tip2_title: 'Verifica nuevos convenios',
+      tip2_description: 'Nuevos convenios se agregan frecuentemente. Consulta la lista completa.',
+      tip3_title: 'Usa el código QR para pagos rápidos',
+      tip3_description: 'Tu código QR puede ser usado para pagos rápidos en establecimientos asociados.'
+    },
+    SaldoCard: {
+      console_error_card_not_provided: 'Tarjeta no proporcionada para buscar mes corriente',
+      error_associate_data_not_found: 'Datos del asociado no encontrados',
+      error_invalid_response_format: 'Formato de respuesta inválido',
+      error_current_month_not_available: 'Mes corriente no disponible',
+      error_load_balance_with_message: 'No se pudo cargar el saldo: {message}',
+      error_load_balance_generic: 'No se pudo cargar el saldo. Inténtalo de nuevo.',
+      error_user_data_corrupted: 'Datos del usuario corrompidos. Inicia sesión nuevamente.',
+      error_user_not_found: 'Usuario no encontrado. Inicia sesión nuevamente.',
+      loading_balance: 'Cargando saldo...',
+      error_title: 'Error',
+      retry_button: 'Intentar de nuevo',
+      card_title: 'Tu Saldo',
+      refresh_balance_tooltip: 'Actualizar saldo',
+      available_balance_label: 'Saldo Disponible',
+      month_reference_label: 'Referente al mes:',
+      total_limit_label: 'Límite Total',
+      total_used_label: 'Total Utilizado',
+      info_title: 'Información sobre tu saldo',
+      info_description: 'El saldo presentado se basa en el límite disponible para el mes actual. El cálculo se hace restando los gastos del período de tu límite total.',
+      attention_title: 'Atención',
+      attention_processing_time: 'Algunas transacciones pueden tardar hasta 24 horas en procesarse. Para obtener información actualizada, utiliza el botón de actualización.',
+      attention_doubts: 'Si tienes dudas sobre tus gastos, consulta la sección de "Extracto" para ver detalles de todas tus transacciones.'
     }
   }
 };
