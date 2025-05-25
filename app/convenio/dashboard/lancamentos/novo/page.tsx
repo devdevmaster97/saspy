@@ -98,21 +98,21 @@ export default function NovoLancamentoPage() {
     }
   }, [showQrReader]);
 
-  // Formatar valor como moeda
-  const formatarValor = (valor: string) => {
-    // Remove caracteres não numéricos
-    const valorNumerico = valor.replace(/\D/g, '');
+  // Função auxiliar para extrair valor numérico da formatação de guarani
+  const extrairValorNumerico = (valorFormatado: string): number => {
+    if (!valorFormatado) return 0;
     
-    // Converte para centavos e depois formata como moeda
-    const valorEmReais = (parseInt(valorNumerico) / 100).toFixed(2);
-    return valorEmReais;
+    // Remove símbolo de moeda, espaços, pontos e outros caracteres não numéricos
+    const valorLimpo = valorFormatado.replace(/[₲\s.,]/g, '');
+    const numero = parseInt(valorLimpo) || 0;
+    return numero;
   };
 
   // Atualiza valor da parcela quando valor total ou número de parcelas mudam
   useEffect(() => {
     if (valor && parcelas > 0) {
-      const valorNumerico = parseFloat(valor.replace(/[^\d,]/g, '').replace(',', '.'));
-      if (!isNaN(valorNumerico)) {
+      const valorNumerico = extrairValorNumerico(valor);
+      if (valorNumerico > 0) {
         setValorParcela(valorNumerico / parcelas);
       }
     } else {
@@ -834,9 +834,12 @@ export default function NovoLancamentoPage() {
     // Remove todos os caracteres não numéricos
     let value = e.target.value.replace(/\D/g, '');
     
-    // Converte para formato monetário (₲ 0)
+    // Se há valor, converte para número e formata
     if (value) {
-      const valorNumerico = parseInt(value) / 100;
+      // Converte para número inteiro (guaranis não têm centavos)
+      const valorNumerico = parseInt(value);
+      
+      // Formata como moeda guarani sem decimais
       value = valorNumerico.toLocaleString('es-PY', {
         style: 'currency',
         currency: 'PYG',
@@ -969,7 +972,7 @@ export default function NovoLancamentoPage() {
       return;
     }
     
-    if (!valor || parseFloat(valor.replace(/[^\d,]/g, '').replace(',', '.')) <= 0) {
+    if (!valor || extrairValorNumerico(valor) <= 0) {
       toast.error(translations.value_required_error || 'Informe um valor válido');
       return;
     }
@@ -980,7 +983,7 @@ export default function NovoLancamentoPage() {
     }
     
     // Verificar se o valor total não excede o saldo
-    const valorTotal = parseFloat(valor.replace(/[^\d,]/g, '').replace(',', '.'));
+    const valorTotal = extrairValorNumerico(valor);
     if (valorTotal > associado.saldo) {
       toast.error(translations.insufficient_balance_error || 'O valor total não pode ser maior que o saldo disponível');
       return;
@@ -1068,8 +1071,8 @@ export default function NovoLancamentoPage() {
           }
           
           // Formatar os dados para a API de gravação de venda
-          const valorLimpo = valor.replace(/[R$\s.]/g, '').replace(',', '.');
-          const valorParcelaLimpo = valorParcela.toString().replace(',', '.');
+          const valorLimpo = extrairValorNumerico(valor).toString();
+          const valorParcelaLimpo = valorParcela.toString();
           
           // Log explícito para depurar o valor final de codConvenio
           console.log('📊 VALOR FINAL DO CÓDIGO DO CONVÊNIO:', codConvenio);
