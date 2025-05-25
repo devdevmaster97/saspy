@@ -1346,8 +1346,9 @@ export default function NovoLancamentoPage() {
                 {translations.payment_config_section || 'Configuração do Pagamento'}
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+              <div className="space-y-6">
+                {/* Campo Valor - Destaque em mobile */}
+                <div className="w-full">
                   <label htmlFor="valor" className="block text-sm font-bold text-green-700 mb-2 flex items-center">
                     <span className="text-green-600 mr-2">💰</span>
                     {translations.total_value_label || 'Valor Total da Compra'}
@@ -1361,7 +1362,7 @@ export default function NovoLancamentoPage() {
                         type="text"
                         id="valor"
                         name="valor"
-                        className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 pr-4 py-3 text-lg font-bold border-2 border-gray-300 rounded-lg bg-white shadow-sm placeholder-gray-400 hover:border-green-400 transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                        className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 pr-4 py-4 text-xl font-bold border-2 border-gray-300 rounded-lg bg-white shadow-sm placeholder-gray-400 hover:border-green-400 transition-colors disabled:bg-gray-100 disabled:text-gray-500 min-w-0"
                         placeholder={translations.total_value_placeholder || '0,00'}
                         value={valor}
                         onChange={handleValorChange}
@@ -1371,38 +1372,41 @@ export default function NovoLancamentoPage() {
                   </div>
                 </div>
                 
-                <div>
-                  <label htmlFor="parcelas" className="block text-sm font-medium text-gray-700 mb-1">
-                    {translations.installments_label || 'Quantidade de Parcelas'}
-                  </label>
-                  <div className="mt-1">
-                    <select
-                      id="parcelas"
-                      name="parcelas"
-                      className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                      value={parcelas}
-                      onChange={(e) => setParcelas(Number(e.target.value))}
-                      disabled={!associado}
-                    >
-                      {Array.from({ length: maxParcelas }, (_, i) => i + 1).map((num) => (
-                        <option key={num} value={num}>
-                          {num}x {num > 1 ? (translations.installment_option_multiple || 'parcelas') : (translations.installment_option_cash || 'à vista')}
-                        </option>
-                      ))}
-                    </select>
+                {/* Grid para outros campos */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="parcelas" className="block text-sm font-medium text-gray-700 mb-1">
+                      {translations.installments_label || 'Quantidade de Parcelas'}
+                    </label>
+                    <div className="mt-1">
+                      <select
+                        id="parcelas"
+                        name="parcelas"
+                        className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md py-3"
+                        value={parcelas}
+                        onChange={(e) => setParcelas(Number(e.target.value))}
+                        disabled={!associado}
+                      >
+                        {Array.from({ length: maxParcelas }, (_, i) => i + 1).map((num) => (
+                          <option key={num} value={num}>
+                            {num}x {num > 1 ? (translations.installment_option_multiple || 'parcelas') : (translations.installment_option_cash || 'à vista')}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                </div>
-                
-                <div>
-                  <label htmlFor="mes-corrente" className="block text-sm font-medium text-gray-700 mb-1">
-                    {translations.current_month_label || 'Mês Atual'}
-                  </label>
-                  <div className="mt-1">
-                    <div className="flex items-center h-10 px-4 border border-gray-300 rounded-md bg-blue-50">
-                      <FaCalendarAlt className="text-blue-500 mr-2" />
-                      <span className="text-sm text-blue-700 font-medium">
-                        {mesCorrente || (translations.waiting_data || 'Aguardando dados...')}
-                      </span>
+                  
+                  <div>
+                    <label htmlFor="mes-corrente" className="block text-sm font-medium text-gray-700 mb-1">
+                      {translations.current_month_label || 'Mês Atual'}
+                    </label>
+                    <div className="mt-1">
+                      <div className="flex items-center h-12 px-4 border border-gray-300 rounded-md bg-blue-50">
+                        <FaCalendarAlt className="text-blue-500 mr-2" />
+                        <span className="text-sm text-blue-700 font-medium">
+                          {mesCorrente || (translations.waiting_data || 'Aguardando dados...')}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
