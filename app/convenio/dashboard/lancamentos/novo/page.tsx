@@ -102,8 +102,9 @@ export default function NovoLancamentoPage() {
   const extrairValorNumerico = (valorFormatado: string): number => {
     if (!valorFormatado) return 0;
     
-    // Remove símbolo de moeda, espaços, pontos e outros caracteres não numéricos
-    const valorLimpo = valorFormatado.replace(/[₲\s.,]/g, '');
+    // Remove símbolo de moeda (Gs. ou ₲), espaços e pontos (separadores de milhares)
+    // Mantém apenas dígitos
+    const valorLimpo = valorFormatado.replace(/[Gs.₲\s]/g, '');
     const numero = parseInt(valorLimpo) || 0;
     return numero;
   };
@@ -972,7 +973,9 @@ export default function NovoLancamentoPage() {
       return;
     }
     
-    if (!valor || extrairValorNumerico(valor) <= 0) {
+    const valorExtraido = extrairValorNumerico(valor);
+    
+    if (!valor || valorExtraido <= 0) {
       toast.error(translations.value_required_error || 'Informe um valor válido');
       return;
     }
@@ -983,7 +986,7 @@ export default function NovoLancamentoPage() {
     }
     
     // Verificar se o valor total não excede o saldo
-    const valorTotal = extrairValorNumerico(valor);
+    const valorTotal = valorExtraido;
     if (valorTotal > associado.saldo) {
       toast.error(translations.insufficient_balance_error || 'O valor total não pode ser maior que o saldo disponível');
       return;
@@ -1071,7 +1074,7 @@ export default function NovoLancamentoPage() {
           }
           
           // Formatar os dados para a API de gravação de venda
-          const valorLimpo = extrairValorNumerico(valor).toString();
+          const valorLimpo = valorExtraido.toString();
           const valorParcelaLimpo = valorParcela.toString();
           
           // Log explícito para depurar o valor final de codConvenio
