@@ -229,69 +229,69 @@ const translations = {
     },
     ConvenioDashboard: {
       // Página Principal do Dashboard
-      dashboard_title: 'Panel de Control',
-      overview_subtitle: 'Resumen de su convenio',
-      loading_data: 'Cargando datos del convenio...',
-      quick_actions_title: 'Acciones Rápidas',
+      dashboard_title: 'Dashboard',
+      overview_subtitle: 'Resumo do seu convênio',
+      loading_data: 'Carregando dados do convênio...',
+      quick_actions_title: 'Ações Rápidas',
       
       // Cards de Estatísticas
-      total_lancamentos_label: 'Total de Transacciones',
-      total_vendas_label: 'Total de Ventas',
-      total_estornos_label: 'Total de Reversiones',
-      total_associados_label: 'Total de Asociados',
+      total_lancamentos_label: 'Total de Lançamentos',
+      total_vendas_label: 'Total de Vendas',
+      total_estornos_label: 'Total de Estornos',
+      total_associados_label: 'Total de Associados',
       
       // Menu do Layout
-      sidebar_title: 'Panel de Convenio',
-      menu_dashboard: 'Panel de Control',
-      menu_lancamentos: 'Transacciones',
-      menu_meus_dados: 'Mis Datos',
-      menu_estornos: 'Reversiones',
-      menu_relatorios: 'Reportes',
-      menu_logout: 'Salir',
+      sidebar_title: 'Painel do Convênio',
+      menu_dashboard: 'Dashboard',
+      menu_lancamentos: 'Lançamentos',
+      menu_meus_dados: 'Meus Dados',
+      menu_estornos: 'Estornos',
+      menu_relatorios: 'Relatórios',
+      menu_logout: 'Sair',
       
       // Ações Rápidas
-      novo_lancamento_label: 'Nueva Transacción',
-      relatorio_vendas_label: 'Reporte de Ventas',
-      estornos_label: 'Reversiones',
-      meus_dados_label: 'Mis Datos',
+      novo_lancamento_label: 'Novo Lançamento',
+      relatorio_vendas_label: 'Relatório de Vendas',
+      estornos_label: 'Estornos',
+      meus_dados_label: 'Meus Dados',
       
       // Mensagens de erro/carregamento
-      error_loading_dashboard: 'Error al cargar datos del panel',
-      connection_error: 'Error al conectar con el servidor',
-      data_load_error: 'No se pudieron obtener los datos del convenio. Redirigiendo al login...',
-      logout_error: 'Error al cerrar sesión',
-      unauthorized_redirect: 'Error al cargar datos del convenio. Redirigiendo al login...'
+      error_loading_dashboard: 'Erro ao carregar dados do painel',
+      connection_error: 'Erro ao conectar com o servidor',
+      data_load_error: 'Não foi possível obter os dados do convênio. Redirecionando para o login...',
+      logout_error: 'Erro ao fazer logout',
+      unauthorized_redirect: 'Erro ao carregar dados do convênio. Redirecionando para o login...'
     },
     ConvenioMeusDados: {
       // Página Meus Dados
-      page_title: 'Mis Datos',
-      page_subtitle: 'Visualice y edite la información de su convenio',
+      page_title: 'Meus Dados',
+      page_subtitle: 'Visualize e edite as informações do seu convênio',
       edit_button: 'Editar',
       cancel_button: 'Cancelar',
-      save_button: 'Guardar',
-      saving_button: 'Guardando...',
+      save_button: 'Salvar',
+      saving_button: 'Salvando...',
       
-      // Campos del formulario
-      razao_social_label: 'Razón Social',
-      nome_fantasia_label: 'Nombre Comercial',
+      // Campos do formulário
+      razao_social_label: 'Razão Social',
+      nome_fantasia_label: 'Nome Fantasia',
       cnpj_label: 'CNPJ',
       cpf_label: 'CPF',
-      codigo_convenio_label: 'Código del Convenio',
-      endereco_label: 'Dirección',
+      codigo_convenio_label: 'Código do Convênio',
+      endereco_label: 'Endereço',
       numero_label: 'Número',
-      bairro_label: 'Barrio',
-      cidade_label: 'Ciudad',
+      bairro_label: 'Bairro',
+      cidade_label: 'Cidade',
       estado_label: 'Estado',
-      cep_label: 'Código Postal',
-      telefone_label: 'Teléfono',
+      cep_label: 'CEP',
+      telefone_label: 'Telefone',
       celular_label: 'Celular',
       email_label: 'E-mail',
-      contato_label: 'Persona de Contacto',
+      contato_label: 'Pessoa de Contato',
       
-      // Mensajes
-      data_not_found: 'No se pudieron cargar los datos del convenio.',
-      update_success: '¡Datos actualizados con éxito!',
-      update_error: 'Error al actualizar datos',
+      // Mensagens
+      data_not_found: 'Não foi possível carregar os dados do convênio.',
+      update_success: 'Dados atualizados com sucesso!',
+      update_error: 'Erro ao atualizar dados',
       fetch_error: 'Erro ao buscar dados do convênio'
     },
     ConvenioLancamentos: {
@@ -345,7 +345,7 @@ const translations = {
       // Botões
       authorize_payment_button: 'Autorizar Pagamento',
       
-      // Mensagens de erro e validação (podem ser adicionadas quando necessário)
+      // Mensagens de erro e validação
       card_required_error: 'Número do cartão é obrigatório',
       value_required_error: 'Valor é obrigatório',
       password_required_error: 'Senha é obrigatória',
@@ -391,26 +391,26 @@ const translations = {
       attention_doubts: 'Se você tiver dúvidas sobre seus gastos, consulte a seção de "Extrato" para ver detalhes de todas as suas transações.'
     },
     PoliticaPrivacidade: {
-      page_title: 'Política de Privacidad',
-      main_title: 'Política de Privacidad de SASpy',
-      intro_text: 'Esta Política de Privacidad describe cómo se recopila, utiliza y comparte su información personal cuando utiliza la aplicación SASpy.',
-      collection_title: 'INFORMACIÓN PERSONAL QUE RECOPILAMOS',
-      collection_text: 'Cuando utiliza la aplicación, recopilamos información que usted proporciona directamente, como su nombre, dirección, número de teléfono, dirección de correo electrónico, C.I. y datos de la tarjeta.',
-      usage_title: 'CÓMO UTILIZAMOS SU INFORMACIÓN PERSONAL',
-      usage_intro: 'Utilizamos la información personal que recopilamos para:',
-      usage_list_1: 'Procesar sus transacciones y gestionar su cuenta',
-      usage_list_2: 'Verificar su identidad y prevenir fraudes',
-      usage_list_3: 'Comunicarnos con usted sobre su cuenta y actualizaciones del servicio',
-      usage_list_4: 'Mejorar y personalizar su experiencia en la aplicación',
-      usage_list_5: 'Cumplir con obligaciones legales y regulatorias',
-      sharing_title: 'COMPARTIR INFORMACIÓN',
-      sharing_text: 'Compartimos su información personal solo con terceros confiables que nos ayudan a operar nuestra aplicación, realizar nuestro negocio o atenderle, siempre que estas partes acuerden mantener esta información confidencial.',
-      security_title: 'SEGURIDAD',
-      security_text: 'Implementamos medidas de seguridad razonables para proteger la seguridad de su información personal. Sin embargo, recuerde que ningún método de transmisión por Internet o método de almacenamiento electrónico es 100% seguro.',
-      changes_title: 'CAMBIOS',
-      changes_text: 'Podemos actualizar esta política de privacidad periódicamente para reflejar cambios en nuestras prácticas. Recomendamos que revise esta política periódicamente para estar al tanto de cualquier cambio.',
-      contact_title: 'CONTACTO',
-      contact_text: 'Para más información sobre nuestras prácticas de privacidad o si tiene preguntas, contáctenos por correo electrónico: privacidad@saspy.com.br'
+      page_title: 'Política de Privacidade',
+      main_title: 'Política de Privacidad do SASPY',
+      intro_text: 'Esta Política de Privacidade descreve como suas informações pessoais são coletadas, usadas e compartilhadas quando você utiliza o aplicativo SASPY.',
+      collection_title: 'INFORMAÇÕES PESSOAIS QUE COLETAMOS',
+      collection_text: 'Quando você utiliza o aplicativo, coletamos informações que você fornece diretamente, como seu nome, endereço, número de telefone, endereço de e-mail, CPF e dados do cartão.',
+      usage_title: 'COMO USAMOS SUAS INFORMAÇÕES PESSOAIS',
+      usage_intro: 'Utilizamos as informações pessoais que coletamos para:',
+      usage_list_1: 'Processar suas transações e gerenciar sua conta',
+      usage_list_2: 'Verificar sua identidade e prevenir fraudes',
+      usage_list_3: 'Comunicar-nos com você sobre sua conta e atualizações do serviço',
+      usage_list_4: 'Melhorar e personalizar sua experiência no aplicativo',
+      usage_list_5: 'Cumprir obrigações legais e regulatórias',
+      sharing_title: 'COMPARTILHAMENTO DE INFORMAÇÕES',
+      sharing_text: 'Compartilhamos suas informações pessoais apenas com terceiros confiáveis que nos ajudam a operar nosso aplicativo, conduzir nossos negócios ou atendê-lo, desde que essas partes concordem em manter essas informações confidenciais.',
+      security_title: 'SEGURANÇA',
+      security_text: 'Implementamos medidas de segurança razoáveis para proteger a segurança de suas informações pessoais. No entanto, lembre-se de que nenhum método de transmissão pela Internet ou método de armazenamento eletrônico é 100% seguro.',
+      changes_title: 'ALTERAÇÕES',
+      changes_text: 'Podemos atualizar esta política de privacidade periodicamente para refletir mudanças em nossas práticas. Recomendamos que você revise esta política periodicamente para estar ciente de quaisquer alterações.',
+      contact_title: 'CONTATO',
+      contact_text: 'Para mais informações sobre nossas práticas de privacidade ou se tiver dúvidas, entre em contato conosco pelo e-mail: privacidade@saspy.com.br'
     }
   },
   'es': {
@@ -642,7 +642,7 @@ const translations = {
       total_associados_label: 'Total de Asociados',
       
       // Menu do Layout
-      sidebar_title: 'Panel de Convenio',
+      sidebar_title: 'Panel del Convenio',
       menu_dashboard: 'Panel de Control',
       menu_lancamentos: 'Transacciones',
       menu_meus_dados: 'Mis Datos',
@@ -672,7 +672,7 @@ const translations = {
       save_button: 'Guardar',
       saving_button: 'Guardando...',
       
-      // Campos del formulario
+      // Campos do formulário
       razao_social_label: 'Razón Social',
       nome_fantasia_label: 'Nombre Comercial',
       cnpj_label: 'CNPJ',
@@ -682,14 +682,14 @@ const translations = {
       numero_label: 'Número',
       bairro_label: 'Barrio',
       cidade_label: 'Ciudad',
-      estado_label: 'Estado',
+      estado_label: 'Departamento',
       cep_label: 'Código Postal',
       telefone_label: 'Teléfono',
       celular_label: 'Celular',
       email_label: 'E-mail',
       contato_label: 'Persona de Contacto',
       
-      // Mensajes
+      // Mensagens
       data_not_found: 'No se pudieron cargar los datos del convenio.',
       update_success: '¡Datos actualizados con éxito!',
       update_error: 'Error al actualizar datos',
@@ -726,7 +726,7 @@ const translations = {
       // Seção Configuração do Pagamento
       payment_config_section: 'Configuración del Pago',
       total_value_label: 'Valor Total de la Compra',
-      total_value_placeholder: '0,00',
+      total_value_placeholder: '0',
       installments_label: 'Cantidad de Cuotas',
       current_month_label: 'Mes Actual',
       waiting_data: 'Esperando datos...',
@@ -747,13 +747,13 @@ const translations = {
       authorize_payment_button: 'Autorizar Pago',
       
       // Mensagens de erro e validação
-      card_required_error: 'Número de tarjeta es obligatorio',
-      value_required_error: 'Valor es obligatorio',
-      password_required_error: 'Contraseña es obligatoria',
+      card_required_error: 'El número de tarjeta es obligatorio',
+      value_required_error: 'El valor es obligatorio',
+      password_required_error: 'La contraseña es obligatoria',
       invalid_card_error: 'Tarjeta no encontrada',
       insufficient_balance_error: 'Saldo insuficiente',
       payment_success: '¡Pago autorizado con éxito!',
-      payment_error: 'Error al procesar pago'
+      payment_error: 'Error al procesar el pago'
     },
     Dashboard: {
       page_title: 'Panel de Control',
@@ -763,7 +763,7 @@ const translations = {
       tip1_title: 'Controla tus gastos',
       tip1_description: 'Monitorea tus gastos regularmente para mantener el control financiero.',
       tip2_title: 'Verifica nuevos convenios',
-      tip2_description: 'Nuevos convenios se agregan frecuentemente. Consulta la lista completa.',
+      tip2_description: 'Se agregan nuevos convenios frecuentemente. Revisa la lista completa.',
       tip3_title: 'Usa el código QR para pagos rápidos',
       tip3_description: 'Tu código QR puede ser usado para pagos rápidos en establecimientos asociados.'
     },
