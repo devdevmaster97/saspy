@@ -203,7 +203,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
       }
     } catch (error) {
       console.error('Erro ao atualizar dados:', error);
-              setError(translations.error_updating_data || 'Não foi possível atualizar seus dados. Tente novamente mais tarde.');        toast.error('Erro ao atualizar dados');
+              setError(translations.error_updating_data || 'Não foi possível atualizar seus dados. Tente novamente mais tarde.');        toast.error('Error al actualizar datos');
     } finally {
       setSalvando(false);
     }
@@ -227,9 +227,9 @@ export default function MeusDadosContent() {  const translations = useTranslatio
       <div className="text-center p-4">
         <p className="text-red-600">{error}</p>
         <div className="text-sm text-gray-500 mt-2 mb-4">
-          <p>Sessão: {status}</p>
-          <p>Cartão na sessão: {session?.user?.cartao || 'Não disponível'}</p>
-          <p>Cartão no localStorage: {storedUser?.cartao || 'Não disponível'}</p>
+          <p>Sesión: {status}</p>
+          <p>Tarjeta en la sesión: {session?.user?.cartao || 'No disponible'}</p>
+          <p>Tarjeta en localStorage: {storedUser?.cartao || 'No disponible'}</p>
         </div>
         <div className="flex flex-col items-center space-y-4 mt-4">
           <button
@@ -260,7 +260,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
   if (!dados && status === 'authenticated') {
     return (
       <div className="text-center p-4">
-        <p className="text-amber-600 font-medium">Carregando dados do associado...</p>
+        <p className="text-amber-600 font-medium">Cargando datos del asociado...</p>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto mt-4"></div>
       </div>
     );
@@ -270,16 +270,16 @@ export default function MeusDadosContent() {  const translations = useTranslatio
   if (!dados && (status === 'unauthenticated' && !storedUser)) {
     return (
       <div className="text-center p-4">
-        <p className="text-gray-600 font-medium">Nenhum dado encontrado. Faça login novamente.</p>
+        <p className="text-gray-600 font-medium">No se encontraron datos. Inicia sesión nuevamente.</p>
         <div className="mt-4 p-4 bg-yellow-50 border border-yellow-100 rounded-lg text-sm text-gray-700">
-          <p>Status da sessão: {status}</p>
-          <p>Não foi encontrada nenhuma informação de login.</p>
+                      <p>Estado de la sesión: {status}</p>
+            <p>No se encontró información de inicio de sesión.</p>
         </div>
         <button
           onClick={redirecionarParaLogin}
           className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2 mx-auto"
         >
-          <FaSignInAlt /> Fazer login
+          <FaSignInAlt /> Iniciar sesión
         </button>
       </div>
     );
@@ -288,16 +288,16 @@ export default function MeusDadosContent() {  const translations = useTranslatio
   if (!dados) {
     return (
       <div className="text-center p-4">
-        <p className="text-gray-600">Nenhum dado encontrado. Faça login novamente.</p>
+        <p className="text-gray-600">No se encontraron datos. Inicia sesión nuevamente.</p>
         <div className="mt-4 p-4 bg-yellow-50 border border-yellow-100 rounded-lg text-sm text-gray-700">
-          <p>Status da sessão: {status}</p>
-          <p>Verifique se você está corretamente autenticado no sistema.</p>
+          <p>Estado de la sesión: {status}</p>
+          <p>Verifica si estás correctamente autenticado en el sistema.</p>
         </div>
         <button
           onClick={redirecionarParaLogin}
           className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2 mx-auto"
         >
-          <FaSignInAlt /> Fazer login
+          <FaSignInAlt /> Iniciar sesión
         </button>
       </div>
     );
@@ -322,7 +322,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">{translations.name_label || 'Nome'}</label>
+                <label className="block text-sm font-medium text-gray-700">{translations.name_label || 'Nombre'}</label>
                 <div className="mt-1 flex items-center border border-gray-300 rounded-md px-3 py-2 bg-gray-100">
                   <FaUser className="text-gray-400 mr-2" />
                   <input
@@ -333,7 +333,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
                     disabled
                   />
                 </div>
-                <p className="mt-1 text-xs text-gray-500">Nome não pode ser alterado</p>
+                <p className="mt-1 text-xs text-gray-500">El nombre no se puede cambiar</p>
               </div>
 
               <div>
@@ -348,7 +348,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
                     disabled
                   />
                 </div>
-                <p className="mt-1 text-xs text-gray-500">CPF não pode ser alterado</p>
+                <p className="mt-1 text-xs text-gray-500">C.I. no se puede cambiar</p>
               </div>
 
               <div>
@@ -361,7 +361,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
                     value={formData.email || ''}
                     onChange={handleInputChange}
                     className="block w-full border-0 p-0 focus:ring-0"
-                    placeholder="Seu email"
+                    placeholder="Tu email"
                   />
                 </div>
               </div>
@@ -394,14 +394,14 @@ export default function MeusDadosContent() {  const translations = useTranslatio
                   <div className="flex items-center">
                     <FaWhatsapp className="text-green-500 mr-2" />
                     <label htmlFor="celwatzap" className="text-sm text-gray-700">
-                      Este número também é WhatsApp
+                      Este número también es WhatsApp
                     </label>
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">CEP</label>
+                <label className="block text-sm font-medium text-gray-700">Código Postal</label>
                 <div className="mt-1 flex items-center border border-gray-300 rounded-md px-3 py-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
                   <FaMapMarkerAlt className="text-gray-400 mr-2" />
                   <input
@@ -430,7 +430,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700">Endereço</label>
+                <label className="block text-sm font-medium text-gray-700">Dirección</label>
                 <div className="mt-1 flex items-center border border-gray-300 rounded-md px-3 py-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
                   <FaMapMarkerAlt className="text-gray-400 mr-2" />
                   <input
@@ -439,7 +439,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
                     value={formData.endereco || ''}
                     onChange={handleInputChange}
                     className="block w-full border-0 p-0 focus:ring-0"
-                    placeholder="Endereço completo"
+                    placeholder="Dirección completa"
                   />
                 </div>
               </div>
@@ -459,7 +459,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Cidade</label>
+                <label className="block text-sm font-medium text-gray-700">Ciudad</label>
                 <div className="mt-1 flex items-center border border-gray-300 rounded-md px-3 py-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
                   <input
                     type="text"
@@ -467,13 +467,13 @@ export default function MeusDadosContent() {  const translations = useTranslatio
                     value={formData.cidade || ''}
                     onChange={handleInputChange}
                     className="block w-full border-0 p-0 focus:ring-0"
-                    placeholder="Cidade"
+                    placeholder="Ciudad"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Estado</label>
+                <label className="block text-sm font-medium text-gray-700">Departamento</label>
                 <div className="mt-1">
                   <select
                     name="uf"
@@ -481,7 +481,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
                     onChange={handleInputChange}
                     className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
                   >
-                    <option value="">Selecione o estado</option>
+                    <option value="">Seleccione el departamento</option>
                     <option value="AC">Acre</option>
                     <option value="AL">Alagoas</option>
                     <option value="AP">Amapá</option>
@@ -551,7 +551,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
               <div className="flex items-center space-x-3 text-blue-800">
                 <FaUser className="text-blue-500 text-xl" />
                 <div>
-                  <p className="text-sm text-blue-600">Nome completo</p>
+                  <p className="text-sm text-blue-600">Nombre completo</p>
                   <p className="font-medium text-lg">{dados?.nome}</p>
                 </div>
               </div>
@@ -562,8 +562,8 @@ export default function MeusDadosContent() {  const translations = useTranslatio
                 <div className="flex items-center space-x-3">
                   <FaIdCard className="text-gray-500" />
                   <div>
-                    <p className="text-sm text-gray-500">CPF</p>
-                    <p className="font-medium">{dados?.cpf || 'Não informado'}</p>
+                    <p className="text-sm text-gray-500">C.I.</p>
+                    <p className="font-medium">{dados?.cpf || 'No informado'}</p>
                   </div>
                 </div>
               </div>
@@ -573,7 +573,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
                   <FaEnvelope className="text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium">{dados?.email || 'Não informado'}</p>
+                    <p className="font-medium">{dados?.email || 'No informado'}</p>
                   </div>
                 </div>
               </div>
@@ -584,7 +584,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
                   <div>
                     <p className="text-sm text-gray-500">Celular</p>
                     <p className="font-medium">
-                      {dados?.cel || 'Não informado'}
+                      {dados?.cel || 'No informado'}
                       {dados?.celwatzap === "true" && (
                         <span className="inline-flex items-center ml-2 text-green-600">
                           <FaWhatsapp className="mr-1" /> WhatsApp
@@ -599,7 +599,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
                 <div className="flex items-start space-x-3">
                   <FaMapMarkerAlt className="text-gray-500 mt-1" />
                   <div>
-                    <p className="text-sm text-gray-500">Endereço completo</p>
+                    <p className="text-sm text-gray-500">Dirección completa</p>
                     <p className="font-medium">
                       {dados?.endereco ? (
                         <>
@@ -608,7 +608,7 @@ export default function MeusDadosContent() {  const translations = useTranslatio
                           {dados.cidade} - {dados.uf}, {dados.cep}
                         </>
                       ) : (
-                        'Endereço não informado'
+                        'Dirección no informada'
                       )}
                     </p>
                   </div>

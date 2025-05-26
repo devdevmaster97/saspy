@@ -390,6 +390,39 @@ const translations = {
       attention_processing_time: 'Algumas transações podem levar até 24 horas para serem processadas. Para obter informações atualizadas, utilize o botão de atualização.',
       attention_doubts: 'Se você tiver dúvidas sobre seus gastos, consulte a seção de "Extrato" para ver detalhes de todas as suas transações.'
     },
+    DashboardLayout: {
+      console_error_user_data_processing: 'Error al procesar datos del usuario:',
+      loading_text: 'Cargando...'
+    },
+    Sidebar: {
+      menu_balance: 'Saldo',
+      menu_extract: 'Extrato',
+      menu_agreements: 'Convênios',
+      menu_qrcode: 'QR Code',
+      menu_my_data: 'Meus Dados',
+      menu_anticipation: 'Antecipação',
+      logout_button: 'Sair',
+      aria_close_menu: 'Fechar Menu',
+      aria_open_menu: 'Abrir Menu',
+      user_card_label: 'Cartão:',
+      user_agreement_label: 'Convênio:'
+    },
+    MeusDadosPage: {
+      page_title: 'Meus Dados',
+      section_title: 'Meus Dados',
+      edit_button: 'Editar Dados',
+      cancel_button: 'Cancelar',
+      save_button: 'Salvar Alterações',
+      saving_text: 'Salvando...',
+      name_label: 'Nome',
+      loading_text: 'Carregando seus dados...',
+      try_again_button: 'Tentar novamente',
+      login_again_button: 'Fazer login novamente',
+      error_loading_data: 'Não foi possível carregar seus dados. Tente novamente.',
+      error_updating_data: 'Não foi possível atualizar seus dados. Tente novamente mais tarde.',
+      success_data_updated: 'Dados atualizados com sucesso!',
+      data_updated_footer: 'Dados atualizados. Para modificar suas informações, clique em "Editar Dados".'
+    },
     PoliticaPrivacidade: {
       page_title: 'Política de Privacidade',
       main_title: 'Política de Privacidad do SASPY',
@@ -790,6 +823,39 @@ const translations = {
       attention_title: 'Atención',
       attention_processing_time: 'Algunas transacciones pueden tardar hasta 24 horas en procesarse. Para obtener información actualizada, utiliza el botón de actualización.',
       attention_doubts: 'Si tienes dudas sobre tus gastos, consulta la sección de "Extracto" para ver detalles de todas tus transacciones.'
+    },
+    DashboardLayout: {
+      console_error_user_data_processing: 'Error al procesar datos del usuario:',
+      loading_text: 'Cargando...'
+    },
+    Sidebar: {
+      menu_balance: 'Saldo',
+      menu_extract: 'Extracto',
+      menu_agreements: 'Convenios',
+      menu_qrcode: 'Código QR',
+      menu_my_data: 'Mis Datos',
+      menu_anticipation: 'Anticipo',
+      logout_button: 'Salir',
+      aria_close_menu: 'Cerrar Menú',
+      aria_open_menu: 'Abrir Menú',
+      user_card_label: 'Tarjeta:',
+      user_agreement_label: 'Convenio:'
+    },
+    MeusDadosPage: {
+      page_title: 'Mis Datos',
+      section_title: 'Mis Datos',
+      edit_button: 'Editar Datos',
+      cancel_button: 'Cancelar',
+      save_button: 'Guardar Cambios',
+      saving_text: 'Guardando...',
+      name_label: 'Nombre',
+      loading_text: 'Cargando tus datos...',
+      try_again_button: 'Intentar de nuevo',
+      login_again_button: 'Iniciar sesión nuevamente',
+      error_loading_data: 'No se pudieron cargar tus datos. Inténtalo de nuevo.',
+      error_updating_data: 'No se pudieron actualizar tus datos. Inténtalo más tarde.',
+      success_data_updated: '¡Datos actualizados con éxito!',
+      data_updated_footer: 'Datos actualizados. Para modificar tu información, haz clic en "Editar Datos".'
     },
     PoliticaPrivacidade: {
       page_title: 'Política de Privacidad',

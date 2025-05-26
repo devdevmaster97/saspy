@@ -281,12 +281,7 @@ export default function SaldoCard() {
 
   // Formatar valor para exibição em Guarani Paraguaio
   const formatCurrency = (value: number) => {
-    return value.toLocaleString('es-PY', {
-      style: 'currency',
-      currency: 'PYG',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    });
+    return `₲ ${value.toFixed(2)}`;
   };
 
   // Se as traduções não estiverem prontas, mostrar spinner
@@ -353,7 +348,7 @@ export default function SaldoCard() {
         <div className="mb-6">
           <p className="text-gray-500 text-sm mb-1">{translations.available_balance_label || 'Saldo Disponível'}</p>
           <p className="text-3xl font-bold text-gray-800">
-            {saldoData ? formatCurrency(saldoData.saldo) : '$0.00'}
+            {saldoData ? formatCurrency(saldoData.saldo) : '₲ 0.00'}
           </p>
           {saldoData?.mesCorrente && (
             <p className="text-sm text-gray-500 mt-1">
@@ -366,13 +361,13 @@ export default function SaldoCard() {
           <div>
             <p className="text-gray-500 text-sm mb-1">{translations.total_limit_label || 'Limite Total'}</p>
             <p className="text-xl font-semibold text-gray-700">
-              {saldoData ? formatCurrency(saldoData.limite) : '$0.00'}
+              {saldoData ? formatCurrency(saldoData.limite) : '₲ 0.00'}
             </p>
           </div>
           <div>
             <p className="text-gray-500 text-sm mb-1">{translations.total_used_label || 'Total Utilizado'}</p>
             <p className="text-xl font-semibold text-gray-700">
-              {saldoData ? formatCurrency(saldoData.total) : '$0.00'}
+              {saldoData ? formatCurrency(saldoData.total) : '₲ 0.00'}
             </p>
           </div>
         </div>

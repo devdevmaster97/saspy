@@ -98,23 +98,23 @@ export default function NovoLancamentoPage() {
     }
   }, [showQrReader]);
 
-  // Função auxiliar para extrair valor numérico da formatação de guarani
+  // Função auxiliar para extrair valor numérico do formato decimal
   const extrairValorNumerico = (valorFormatado: string): number => {
     if (!valorFormatado) return 0;
     
-    // Remove símbolo de moeda (Gs. ou ₲), espaços e pontos (separadores de milhares)
-    // Mantém apenas dígitos
-    const valorLimpo = valorFormatado.replace(/[Gs.₲\s]/g, '');
-    const numero = parseInt(valorLimpo) || 0;
-    return numero;
+    // Remove tudo que não for número ou ponto, converte para float e multiplica por 100 para centavos
+    const numeroLimpo = valorFormatado.replace(/[^\d.]/g, '');
+    const numeroFloat = parseFloat(numeroLimpo) || 0;
+    return Math.round(numeroFloat * 100); // Converte para centavos (inteiro)
   };
 
   // Atualiza valor da parcela quando valor total ou número de parcelas mudam
   useEffect(() => {
     if (valor && parcelas > 0) {
-      const valorNumerico = extrairValorNumerico(valor);
-      if (valorNumerico > 0) {
-        setValorParcela(valorNumerico / parcelas);
+      const valorDecimal = parseFloat(valor) || 0;
+      if (valorDecimal > 0) {
+        // Divide o valor decimal pelas parcelas
+        setValorParcela(valorDecimal / parcelas);
       }
     } else {
       setValorParcela(0);
@@ -833,25 +833,20 @@ export default function NovoLancamentoPage() {
 
   const handleValorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Remove todos os caracteres não numéricos
-    let value = e.target.value.replace(/\D/g, '');
+    let numericValue = e.target.value.replace(/\D/g, '');
     
-    // Se há valor, converte para número e formata
-    if (value) {
-      // Converte para número inteiro (guaranis não têm centavos)
-      const valorNumerico = parseInt(value);
-      
-      // Formata como moeda guarani sem decimais
-      value = valorNumerico.toLocaleString('es-PY', {
-        style: 'currency',
-        currency: 'PYG',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      });
-    } else {
-      value = '';
+    // Se não há valor, define como vazio
+    if (!numericValue) {
+      setValor('');
+      return;
     }
     
-    setValor(value);
+    // Converte para número e formata com 2 casas decimais
+    const numericAmount = parseInt(numericValue) / 100;
+    const formattedValue = numericAmount.toFixed(2);
+    
+    // Define o valor formatado para exibição
+    setValor(formattedValue);
   };
 
   const handleLerQRCode = () => {
@@ -973,9 +968,10 @@ export default function NovoLancamentoPage() {
       return;
     }
     
-    const valorExtraido = extrairValorNumerico(valor);
+    // Converte o valor diretamente para decimal para validações
+    const valorTotalDecimal = parseFloat(valor) || 0;
     
-    if (!valor || valorExtraido <= 0) {
+    if (!valor || valorTotalDecimal <= 0) {
       toast.error(translations.value_required_error || 'Informe um valor válido');
       return;
     }
@@ -986,8 +982,7 @@ export default function NovoLancamentoPage() {
     }
     
     // Verificar se o valor total não excede o saldo
-    const valorTotal = valorExtraido;
-    if (valorTotal > associado.saldo) {
+    if (valorTotalDecimal > associado.saldo) {
       toast.error(translations.insufficient_balance_error || 'O valor total não pode ser maior que o saldo disponível');
       return;
     }
@@ -1073,9 +1068,9 @@ export default function NovoLancamentoPage() {
             }
           }
           
-          // Formatar os dados para a API de gravação de venda
-          const valorLimpo = valorExtraido.toString();
-          const valorParcelaLimpo = valorParcela.toString();
+          // Formatar os dados para a API de gravação de venda - manter formato decimal
+          const valorLimpo = valor; // Mantém o valor com ponto decimal como digitado
+          const valorParcelaLimpo = valorParcela.toFixed(2); // Mantém formato decimal com 2 casas
           
           // Log explícito para depurar o valor final de codConvenio
           console.log('📊 VALOR FINAL DO CÓDIGO DO CONVÊNIO:', codConvenio);
@@ -1191,25 +1186,15 @@ export default function NovoLancamentoPage() {
             </h2>
             
             <p className="text-lg text-gray-600 mb-1">
-              {translations.payment_value_label || 'Valor'}: {valorPagamento}
+              {translations.payment_value_label || 'Valor'}: ₲ {parseFloat(valorPagamento || '0').toFixed(2)}
             </p>
             {parcelas > 1 && (
               <p className="text-md text-gray-500 mb-4">
                 {translations.installments_info 
                   ? translations.installments_info
                     .replace('{parcelas}', parcelas.toString())
-                    .replace('{valor}', valorParcela.toLocaleString('es-PY', {
-                      style: 'currency',
-                      currency: 'PYG',
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0
-                    }))
-                  : `Em ${parcelas}x de ${valorParcela.toLocaleString('es-PY', {
-                      style: 'currency',
-                      currency: 'PYG',
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0
-                    })}`
+                    .replace('{valor}', `₲ ${valorParcela.toFixed(2)}`)
+                  : `Em ${parcelas}x de ₲ ${valorParcela.toFixed(2)}`
                 }
               </p>
             )}
@@ -1335,10 +1320,7 @@ export default function NovoLancamentoPage() {
                         {translations.available_balance_label || 'Saldo Disponível'}
                       </p>
                       <p className="text-lg font-medium text-green-600">
-                        {associado.saldo.toLocaleString('es-PY', {
-                          style: 'currency',
-                          currency: 'PYG'
-                        })}
+                        ₲ {associado.saldo.toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -1369,7 +1351,7 @@ export default function NovoLancamentoPage() {
                         id="valor"
                         name="valor"
                         className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 pr-4 py-4 text-xl font-bold border-2 border-gray-300 rounded-lg bg-white shadow-sm placeholder-gray-400 hover:border-green-400 transition-colors disabled:bg-gray-100 disabled:text-gray-500 min-w-0"
-                        placeholder={translations.total_value_placeholder || '0,00'}
+                        placeholder="0"
                         value={valor}
                         onChange={handleValorChange}
                         disabled={!associado}
@@ -1423,18 +1405,8 @@ export default function NovoLancamentoPage() {
                       {translations.installment_info_text 
                         ? translations.installment_info_text
                           .replace('{parcelas}', parcelas.toString())
-                          .replace('{valor}', valorParcela.toLocaleString('es-PY', {
-                            style: 'currency',
-                            currency: 'PYG',
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0
-                          }))
-                        : `Pagamento em ${parcelas}x de ${valorParcela.toLocaleString('es-PY', {
-                            style: 'currency',
-                            currency: 'PYG',
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0
-                          })}`
+                          .replace('{valor}', `₲ ${valorParcela.toFixed(2)}`)
+                        : `Pagamento em ${parcelas}x de ₲ ${valorParcela.toFixed(2)}`
                       }
                     </p>
                   </div>

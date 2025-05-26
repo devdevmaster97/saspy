@@ -326,12 +326,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
 
   // Formatar o valor como moeda paraguaia (guarani)
   const formatarValor = (valor: number): string => {
-    return valor.toLocaleString('es-PY', {
-      style: 'currency',
-      currency: 'PYG',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    });
+    return `₲ ${valor.toFixed(2)}`;
   };
 
   // Manipular mudança no input de valor
@@ -631,12 +626,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="font-semibold">
-                            {Number(solicitacao.valor_solicitado).toLocaleString('es-PY', {
-                              style: 'currency',
-                              currency: 'PYG',
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 0
-                            })}
+                            ₲ {Number(solicitacao.valor_solicitado).toFixed(2)}
                           </div>
                           <div className="text-xs text-gray-600">
                             {format(new Date(solicitacao.data_solicitacao), "dd/MM/yyyy", { locale: ptBR })}
@@ -686,12 +676,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
                       {format(new Date(solicitacao.data_solicitacao), "dd/MM/yyyy", { locale: ptBR })}
                     </div>
                     <div className="font-semibold">
-                      {Number(solicitacao.valor_solicitado).toLocaleString('es-PY', {
-                        style: 'currency',
-                        currency: 'PYG',
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
-                      })}
+                      ₲ {Number(solicitacao.valor_solicitado).toFixed(2)}
                     </div>
                     <div className="text-xs text-gray-600">
                       {t.month_label || 'Mês:'} {solicitacao.mes_corrente}
@@ -750,7 +735,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
               <input
                 type="text"
                 id="valor"
-                placeholder={t.value_placeholder || 'R$ 0,00'}
+                placeholder={t.value_placeholder || '₲ 0,00'}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 onChange={handleValorChange}
                 value={valorSolicitado ? (parseFloat(valorSolicitado) / 100).toFixed(2).replace('.', ',') : ''}
