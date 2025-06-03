@@ -138,8 +138,8 @@ export default function AdesaoSaspyPlus() {
       localStorage.setItem(`saspy_plus_${cartao}`, 'aderido');
       localStorage.setItem(`saspy_plus_${cartao}_data`, new Date().toISOString());
 
-      // Redirecionar para página de sucesso
-      router.push('/dashboard/adesao-saspy/sucesso');
+      // Redirecionar para link de assinatura digital
+      window.location.href = 'https://app.zapsign.com.br/verificar/doc/b4ab32f3-d964-4fae-b9d2-01c05f2f4258';
     } catch (error) {
       console.error('Erro completo:', error);
       alert(error instanceof Error ? error.message : 'Erro ao processar a adesão. Tente novamente.');
