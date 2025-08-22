@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { FaSpinner, FaSearch, FaUndo, FaTimes, FaQuestionCircle, FaExclamationTriangle } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
-import SafeDeleteButton from '../../../components/SafeDeleteButton';
 
 interface Estorno {
   id: string;
@@ -248,25 +247,17 @@ export default function EstornosPage() {
                       {estorno.parcela || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <SafeDeleteButton
-                        dataRow={estorno}
-                        onDelete={async (id) => {
-                          const estornoToDelete = estornos.find(e => e.id === id);
-                          if (estornoToDelete) {
-                            setEstornoSelecionado(estornoToDelete);
-                            await handleCancelarEstorno();
-                          }
-                        }}
-                        confirmMessage="Tem certeza que deseja cancelar este estorno? Esta ação não poderá ser desfeita."
-                        itemDescription="este estorno"
+                      <button
+                        onClick={() => handleConfirmarCancelamento(estorno)}
                         disabled={cancelandoId === estorno.id}
+                        className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {cancelandoId === estorno.id ? (
                           <FaSpinner className="animate-spin h-5 w-5" />
                         ) : (
                           <FaTimes className="h-5 w-5" />
                         )}
-                      </SafeDeleteButton>
+                      </button>
                     </td>
                   </tr>
                 ))}
