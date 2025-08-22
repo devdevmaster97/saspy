@@ -407,11 +407,20 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
         chave_pix: chavePix
       });
 
-      if (response.data.success === false) {
+      // Verificar se é um erro (success false ou códigos de erro)
+      const isError = response.data.success === false || 
+                     response.status >= 400 ||
+                     response.data.situacao === 6 || response.data.situacao === '6' ||
+                     response.data.situacao === 2 || response.data.situacao === '2';
+
+      if (isError) {
         // Verificar especificamente se é um erro de senha
-        if (response.data.message && 
+        const isPasswordError = response.data.message && 
             (response.data.message.toLowerCase().includes("senha") || 
-             response.data.message.toLowerCase().includes("password"))) {
+             response.data.message.toLowerCase().includes("password") ||
+             response.data.message.toLowerCase().includes("incorreta"));
+             
+        if (isPasswordError || response.status === 401) {
           setErro("Senha incorreta! Use a mesma senha que você utiliza para acessar o aplicativo.");
           
           // Destacar visualmente o campo de senha
@@ -426,10 +435,14 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
           // Limpar apenas o campo de senha para nova tentativa
           setSenha("");
         } else {
-          setErro(response.data.message);
+          setErro(response.data.message || 'Erro ao processar solicitação');
         }
-      } else {
-        // Salvar os valores confirmados antes de limpar o formulário
+        
+        // NÃO prosseguir com sucesso
+        setLoading(false);
+        return;
+      } else if (response.data.success === true || response.data.situacao === 1 || response.data.situacao === '1') {
+        // Sucesso confirmado - salvar os valores confirmados antes de limpar o formulário
         setValorConfirmado(valorFormatado);
         setTaxaConfirmada(taxa);
         setTotalConfirmado(valorTotal);
@@ -447,6 +460,12 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
         
         // Atualizar o histórico de solicitações
         await fetchHistoricoSolicitacoes();
+      } else {
+        // Caso não seja nem erro explícito nem sucesso explícito
+        console.warn('Resposta ambígua da API:', response.data);
+        setErro('Resposta inesperada do servidor. Tente novamente.');
+        setLoading(false);
+        return;
       }
     } catch (error) {
       console.error('Erro ao enviar solicitação:', error);

@@ -100,13 +100,26 @@ export async function POST(request: NextRequest) {
     
     console.log('Resposta da API de antecipação:', response.data);
     
-    // Verificar se a resposta tem uma mensagem específica relacionada à senha
-    if (response.data && 
-        (response.data.message?.includes('Senha') || 
-         response.data.message?.includes('senha') || 
-         response.data.mensagem?.includes('Senha') || 
-         response.data.mensagem?.includes('senha'))) {
-      
+    // Verificar múltiplos indicadores de erro de senha
+    const responseData = response.data;
+    const isPasswordError = responseData && (
+      // Verificar mensagens de erro
+      responseData.message?.toLowerCase().includes('senha') ||
+      responseData.mensagem?.toLowerCase().includes('senha') ||
+      responseData.erro?.toLowerCase().includes('senha') ||
+      responseData.error?.toLowerCase().includes('senha') ||
+      // Verificar códigos de situação específicos (baseado no padrão do login)
+      responseData.situacao === 6 || responseData.situacao === '6' ||
+      responseData.situacao === 2 || responseData.situacao === '2' ||
+      // Verificar se success é false e há indicação de senha
+      (responseData.success === false && (
+        responseData.message?.toLowerCase().includes('senha') ||
+        responseData.mensagem?.toLowerCase().includes('senha')
+      ))
+    );
+    
+    if (isPasswordError) {
+      console.log('Erro de senha detectado na resposta da API');
       return NextResponse.json(
         { 
           success: false, 
@@ -116,14 +129,27 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Se for bem-sucedido, registrar esta solicitação para evitar duplicações
-    if (response.data && response.data.success) {
+    // Verificar se a resposta indica sucesso explícito
+    if (responseData && (
+      responseData.success === true || 
+      responseData.situacao === 1 || responseData.situacao === '1' ||
+      (responseData.message && responseData.message.toLowerCase().includes('sucesso'))
+    )) {
+      // Se for bem-sucedido, registrar esta solicitação para evitar duplicações
       processedRequests.set(requestKey, new Date());
-      return NextResponse.json(response.data);
+      return NextResponse.json({
+        success: true,
+        message: responseData.message || 'Solicitação enviada com sucesso',
+        ...responseData
+      });
     } else {
-      // Se a API retornou algum erro específico
+      // Se não há indicação clara de sucesso, considerar como erro
+      console.log('Resposta não indica sucesso claro:', responseData);
       return NextResponse.json(
-        response.data || { success: false, message: 'Erro desconhecido no processamento da solicitação' },
+        { 
+          success: false, 
+          message: responseData?.message || responseData?.mensagem || 'Erro ao processar solicitação'
+        },
         { status: 400 }
       );
     }
