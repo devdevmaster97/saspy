@@ -57,7 +57,7 @@ export default function Sidebar({ userName, cardNumber, company }: SidebarProps)
     { href: '/dashboard/qrcode', label: translations.menu_qrcode || 'QR Code', icon: <FaQrcode size={20} /> },
     { href: '/dashboard/dados', label: translations.menu_my_data || 'Meus Dados', icon: <FaUser size={20} /> },
     { href: '/dashboard/antecipacao', label: translations.menu_anticipation || 'Antecipação', icon: <FaCalendarAlt size={20} /> },
-    { href: '/dashboard/adesao-saspy', label: 'Aderir ao Saspyx', icon: <FaStar size={20} className="text-yellow-400" /> },
+    { href: '/dashboard/adesao-saspy', label: 'Aderir ao Sascred', icon: <FaStar size={20} className="text-yellow-400" /> },
   ];
 
   const handleLogout = () => {

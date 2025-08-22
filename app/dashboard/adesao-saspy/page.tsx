@@ -14,20 +14,25 @@ export default function AdesaoSaspyPlus() {
   useEffect(() => {
     // Verificar se o usuário já aderiu ao Saspyx
     const verificarAdesao = () => {
+      console.log('Iniciando verificação de adesão...');
       try {
         const storedUser = localStorage.getItem('saspy_user');
+        console.log('Usuário armazenado:', storedUser);
         if (storedUser) {
           const userData = JSON.parse(storedUser);
           const adesaoStatus = localStorage.getItem(`saspy_plus_${userData.cartao}`);
+          console.log('Status de adesão:', adesaoStatus);
           
           if (adesaoStatus === 'aderido') {
             setJaAderiu(true);
+            console.log('Usuário já aderiu ao Saspyx.');
           }
         }
       } catch (error) {
         console.error('Erro ao verificar status de adesão:', error);
       } finally {
         setCheckingStatus(false);
+        console.log('Verificação de adesão concluída.');
       }
     };
 
@@ -176,7 +181,7 @@ export default function AdesaoSaspyPlus() {
               Voltar
             </button>
             <h1 className="text-3xl font-bold text-gray-900 text-center">
-              Aderir ao Saspyx
+              Aderir ao Sascred
             </h1>
           </div>
 
@@ -239,7 +244,7 @@ export default function AdesaoSaspyPlus() {
             Voltar
           </button>
           <h1 className="text-3xl font-bold text-gray-900 text-center">
-            Aderir ao Saspyx
+            Aderir ao Sascred
           </h1>
         </div>
 
@@ -322,7 +327,7 @@ export default function AdesaoSaspyPlus() {
                 <section>
                   <h3 className="text-xl font-semibold text-gray-800 mb-3">6. Privacidade e Proteção de Dados</h3>
                   <p className="text-justify">
-                    Ao aderir ao Saspyx, o(a) usuário(a) autoriza o tratamento de seus dados pessoais conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018), exclusivamente para fins de operação, segurança e aperfeiçoamento do sistema de créditos.
+                    Ao aderir ao Sascred, o(a) usuário(a) autoriza o tratamento de seus dados pessoais conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018), exclusivamente para fins de operação, segurança e aperfeiçoamento do sistema de créditos.
                   </p>
                 </section>
 
@@ -360,27 +365,27 @@ export default function AdesaoSaspyPlus() {
               </div>
 
               <div className="flex justify-center">
-                <button
-                  onClick={handleAccept}
-                  disabled={!isChecked || isLoading}
-                  className={`px-8 py-3 rounded-lg font-semibold text-white transition-all duration-200 ${
-                    isChecked && !isLoading
-                      ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
-                      : 'bg-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  {isLoading ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Processando...
-                    </div>
-                  ) : (
-                    <div className="flex items-center">
-                      <FaCheckCircle className="mr-2" />
-                      Aceitar e Aderir ao Saspyx
-                    </div>
-                  )}
-                </button>
+              <button
+                onClick={handleAccept}
+                disabled={!isChecked || isLoading}
+                className={`px-8 py-3 rounded-lg font-semibold text-white transition-all duration-200 ${
+                  isChecked && !isLoading
+                    ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                    : 'bg-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Processando...
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <FaCheckCircle className="mr-2" />
+                      Aceitar e Aderir ao Sascred
+                  </div>
+                )}
+              </button>
               </div>
             </div>
           </div>

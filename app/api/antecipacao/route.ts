@@ -22,11 +22,22 @@ export async function POST(request: NextRequest) {
     // Verificar parâmetros necessários
     const { matricula, pass, empregador, valor_pedido, taxa, valor_descontar, mes_corrente, chave_pix } = body;
     
-    if (!matricula || !pass || !empregador || !valor_pedido || !taxa || !valor_descontar || !mes_corrente || !chave_pix) {
+    if (!matricula || !pass || !empregador || !valor_pedido || !taxa || !valor_descontar || !mes_corrente) {
       return NextResponse.json(
         { 
           success: false, 
           message: 'Todos os campos são obrigatórios' 
+        },
+        { status: 400 }
+      );
+    }
+    
+    // Validação específica e mais rigorosa da chave PIX
+    if (!chave_pix || chave_pix.trim() === "") {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'A Chave PIX é obrigatória para receber o valor da antecipação' 
         },
         { status: 400 }
       );

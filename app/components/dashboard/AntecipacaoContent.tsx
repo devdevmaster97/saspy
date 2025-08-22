@@ -372,8 +372,18 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
       return;
     }
     
-    if (!chavePix) {
-      setErro("Digite a chave PIX para receber o valor");
+    // Validação mais rigorosa da chave PIX
+    if (!chavePix || chavePix.trim() === "") {
+      setErro("A Chave PIX é obrigatória para receber o valor da antecipação");
+      
+      // Destacar visualmente o campo PIX
+      const pixInput = document.getElementById('chave-pix');
+      if (pixInput) {
+        pixInput.classList.add('border-red-500', 'bg-red-50');
+        setTimeout(() => {
+          pixInput.classList.remove('border-red-500', 'bg-red-50');
+        }, 3000);
+      }
       return;
     }
 
@@ -763,16 +773,32 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
             
             {/* Chave PIX */}
             <div className="mb-4">
-                            <label htmlFor="chave-pix" className="block text-sm font-medium text-gray-700 mb-1">                {t.pix_key_label || 'Chave PIX para Recebimento'}              </label>
+              <label htmlFor="chave-pix" className="block text-sm font-medium text-gray-700 mb-1">
+                {t.pix_key_label || 'Chave PIX para Recebimento'} <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
                 id="chave-pix"
                 placeholder={t.pix_key_placeholder || 'CPF, E-mail, Celular ou Chave Aleatória'}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                className={`w-full p-3 border ${
+                  erro.toLowerCase().includes("pix") ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                 value={chavePix}
-                onChange={(e) => setChavePix(e.target.value)}
+                onChange={(e) => {
+                  setChavePix(e.target.value);
+                  // Limpar erro quando o usuário começar a digitar
+                  if (erro.toLowerCase().includes("pix") && e.target.value.trim() !== "") {
+                    setErro("");
+                  }
+                }}
                 disabled={loading}
               />
+              {!chavePix && (
+                <p className="text-xs mt-1 text-gray-500 flex items-center">
+                  <span className="text-red-500 mr-1">*</span>
+                  Campo obrigatório para receber o valor
+                </p>
+              )}
             </div>
             
             {/* Seção senha com informação adicional */}
