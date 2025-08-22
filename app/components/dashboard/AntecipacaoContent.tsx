@@ -575,8 +575,7 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
     return 'bg-yellow-50 border-yellow-200';
   };
   
-  // Filtrar apenas solicitações pendentes
-  const solicitacoesPendentes = ultimasSolicitacoes.filter(isPendente);
+
 
   if (isInitialLoading && !associadoData) {
     return (
@@ -679,43 +678,6 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
                   )}
                 </div>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* Últimas Solicitações Pendentes */}
-        {solicitacoesPendentes.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-md font-medium text-gray-700 flex items-center">
-                <FaClockRotateLeft className="mr-1" /> {t.pending_requests_title || 'Solicitações Pendentes'}
-              </h3>
-              {loadingHistorico && (
-                <FaSpinner className="animate-spin text-blue-600" />
-              )}
-            </div>
-            <div className="overflow-x-auto">
-              <div className="flex space-x-3 py-2">
-                {solicitacoesPendentes.map((solicitacao) => (
-                  <div 
-                    key={solicitacao.id} 
-                    className="bg-gray-50 rounded-lg border border-gray-200 p-3 flex-shrink-0 w-48"
-                  >
-                    <div className="text-sm text-gray-500">
-                      {format(new Date(solicitacao.data_solicitacao), "dd/MM/yyyy", { locale: ptBR })}
-                    </div>
-                    <div className="font-semibold">
-                      ₲ {Number(solicitacao.valor_solicitado).toFixed(2)}
-                    </div>
-                    <div className="text-xs text-gray-600">
-                      {t.month_label || 'Mês:'} {solicitacao.mes_corrente}
-                    </div>
-                    <div className="mt-1 text-xs">
-                                              {t.status_label || 'Status:'} {formatarStatus(solicitacao.status)}
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         )}
