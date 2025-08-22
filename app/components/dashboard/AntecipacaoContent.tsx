@@ -651,17 +651,18 @@ export default function AntecipacaoContent({ cartao: propCartao }: AntecipacaoPr
                       key={solicitacao.id} 
                       className={`p-3 rounded-lg border ${getStatusClass(solicitacao.status)}`}
                     >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-semibold">
-                            ₲ {Number(solicitacao.valor_solicitado).toFixed(2)}
-                          </div>
-                          <div className="text-xs text-gray-600">
-                            {format(new Date(solicitacao.data_solicitacao), "dd/MM/yyyy", { locale: ptBR })}
-                          </div>
+                      <div className="space-y-2">
+                        <div className="text-sm text-gray-600">
+                          <strong>Data:</strong> {format(new Date(solicitacao.data_solicitacao), "dd/MM/yyyy", { locale: ptBR })}
                         </div>
-                        <div className="font-medium">
-                          {formatarStatus(solicitacao.status)}
+                        <div className="font-semibold text-lg">
+                          <strong>Valor:</strong> ₲ {Number(solicitacao.valor_solicitado).toFixed(2)}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          <strong>Status:</strong> {formatarStatus(solicitacao.status)}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          <strong>Mês:</strong> {solicitacao.mes_corrente}
                         </div>
                       </div>
                     </div>
